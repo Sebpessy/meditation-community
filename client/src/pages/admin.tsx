@@ -111,8 +111,13 @@ export default function AdminPage() {
     }
   });
 
+  useEffect(() => {
+    if (!user) {
+      setLocation("/auth");
+    }
+  }, [user, setLocation]);
+
   if (!user) {
-    setLocation("/auth");
     return null;
   }
 

@@ -107,8 +107,13 @@ export default function MeditationPage() {
     return () => clearInterval(interval);
   }, [meditation]);
 
+  useEffect(() => {
+    if (!user) {
+      setLocation("/auth");
+    }
+  }, [user, setLocation]);
+
   if (!user) {
-    setLocation("/auth");
     return null;
   }
 

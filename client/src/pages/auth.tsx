@@ -64,7 +64,20 @@ export default function AuthPage() {
       }
       setLocation("/meditation");
     } catch (error: any) {
-      setError(error.message || "An error occurred during authentication");
+      console.error("Authentication error:", error);
+      if (error.code === "auth/invalid-credential") {
+        setError("Invalid email or password. Please check your credentials and try again.");
+      } else if (error.code === "auth/user-not-found") {
+        setError("No account found with this email. Please sign up first.");
+      } else if (error.code === "auth/wrong-password") {
+        setError("Incorrect password. Please try again.");
+      } else if (error.code === "auth/email-already-in-use") {
+        setError("An account with this email already exists. Please sign in instead.");
+      } else if (error.code === "auth/weak-password") {
+        setError("Password is too weak. Please choose a stronger password.");
+      } else {
+        setError(error.message || "An error occurred during authentication");
+      }
     } finally {
       setLoading(false);
     }
@@ -85,7 +98,14 @@ export default function AuthPage() {
       });
       setLocation("/meditation");
     } catch (error: any) {
-      setError(error.message || "Failed to sign in with Google");
+      console.error("Google sign-in error:", error);
+      if (error.code === "auth/invalid-credential") {
+        setError("Firebase authentication is not properly configured. Please check your Firebase project settings.");
+      } else if (error.code === "auth/popup-closed-by-user") {
+        setError("Sign-in was cancelled. Please try again.");
+      } else {
+        setError(error.message || "Failed to sign in with Google");
+      }
     } finally {
       setLoading(false);
     }
