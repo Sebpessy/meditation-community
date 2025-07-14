@@ -1,0 +1,123 @@
+# Replit.md - Serene Space Meditation Application
+
+## Overview
+
+This is a full-stack meditation application built with React frontend and Express backend. The application provides daily meditation sessions with live chat functionality, user authentication through Firebase, and admin capabilities for managing meditation templates and schedules.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+- **Framework**: React 18 with TypeScript
+- **Styling**: TailwindCSS with shadcn/ui components
+- **State Management**: TanStack React Query for server state
+- **Routing**: Wouter for client-side navigation
+- **Authentication**: Firebase Auth with React Firebase Hooks
+- **Build Tool**: Vite for development and production builds
+
+### Backend Architecture
+- **Runtime**: Node.js with Express.js
+- **Database**: PostgreSQL with Drizzle ORM
+- **Database Provider**: Neon Database (@neondatabase/serverless)
+- **WebSocket**: Native WebSocket server for real-time chat
+- **Authentication**: Firebase Admin SDK integration
+
+### Project Structure
+```
+/
+├── client/          # React frontend
+│   ├── src/
+│   │   ├── components/  # UI components
+│   │   ├── pages/       # Page components
+│   │   ├── lib/         # Utilities and configs
+│   │   └── hooks/       # Custom React hooks
+├── server/          # Express backend
+│   ├── index.ts     # Main server file
+│   ├── routes.ts    # API routes and WebSocket
+│   ├── storage.ts   # Database abstraction layer
+│   └── vite.ts      # Vite integration
+├── shared/          # Shared types and schemas
+└── migrations/      # Database migrations
+```
+
+## Key Components
+
+### Authentication System
+- Firebase Authentication for user management
+- Backend user registration and profile storage
+- Admin role management through database flags
+- Session management with secure cookies
+
+### Database Schema
+- **Users**: Email, name, Firebase UID, admin status
+- **Meditation Templates**: Video content, session steps, instructor info
+- **Schedules**: Daily meditation scheduling system
+- **Chat Messages**: Real-time chat for meditation sessions
+
+### Real-time Features
+- WebSocket server for live chat during meditation sessions
+- Online user counting and presence tracking
+- Session-based chat rooms organized by date
+
+### Admin Dashboard
+- Template management (CRUD operations)
+- Schedule management for daily meditations
+- User management and analytics
+
+## Data Flow
+
+1. **User Authentication**: Firebase handles auth, backend stores user profiles
+2. **Daily Meditation**: Schedule system determines today's meditation template
+3. **Video Streaming**: Templates contain video URLs and structured session steps
+4. **Live Chat**: WebSocket connections enable real-time communication
+5. **Admin Operations**: CRUD operations for templates and schedules through REST API
+
+## External Dependencies
+
+### Frontend Dependencies
+- React ecosystem (react, react-dom, react-router via wouter)
+- UI library (shadcn/ui with Radix UI primitives)
+- State management (@tanstack/react-query)
+- Firebase (firebase, react-firebase-hooks)
+- Styling (tailwindcss, clsx, class-variance-authority)
+
+### Backend Dependencies
+- Express.js with WebSocket support
+- Drizzle ORM with PostgreSQL
+- Neon Database serverless driver
+- Firebase Admin SDK (implied for auth validation)
+
+### Development Tools
+- TypeScript for type safety
+- Vite for build tooling
+- ESBuild for server bundling
+- PostCSS for CSS processing
+
+## Deployment Strategy
+
+### Development
+- Vite dev server for frontend with HMR
+- Express server with auto-reload via tsx
+- Database migrations via Drizzle Kit
+
+### Production Build
+- Frontend: Vite builds to `dist/public`
+- Backend: ESBuild bundles server to `dist/index.js`
+- Database: Schema migrations applied before deployment
+
+### Environment Configuration
+- Database URL required for Neon PostgreSQL connection
+- Firebase configuration for authentication
+- WebSocket support for real-time features
+
+### Key Features
+1. **Daily Meditation Sessions**: Scheduled content with video playback
+2. **Real-time Chat**: Live interaction during meditation sessions
+3. **User Management**: Authentication and profile handling
+4. **Admin Dashboard**: Content and schedule management
+5. **Responsive Design**: Mobile-friendly interface with TailwindCSS
+
+The application uses a modern tech stack with strong typing, real-time capabilities, and a clean separation between frontend and backend concerns. The database design supports the core meditation scheduling functionality while enabling social features through chat and user management.

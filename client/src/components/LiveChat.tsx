@@ -1,0 +1,137 @@
+import { useState, useEffect, useRef } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Send } from "lucide-react";
+import { useWebSocket } from "@/lib/websocket";
+import { apiRequest } from "@/lib/queryClient";
+
+interface LiveChatProps {
+  userId?: number;
+  sessionDate: string;
+}
+
+export function LiveChat({ userId, sessionDate }: LiveChatProps) {
+  const [inputMessage, setInputMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { messages, onlineCount, isConnected, sendMessage } = useWebSocket(userId, sessionDate);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Load initial messages
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        const response = await apiRequest("GET", `/api/meditation/chat/${sessionDate}`);
+        // Initial messages are loaded via WebSocket connection
+      } catch (error) {
+        console.error("Failed to load chat messages:", error);
+      }
+    };
+
+    loadMessages();
+  }, [sessionDate]);
+
+  const handleSendMessage = () => {
+    if (inputMessage.trim() && isConnected) {
+      sendMessage(inputMessage.trim());
+      setInputMessage("");
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  return (
+    <Card className="h-full max-h-[600px] flex flex-col">
+      {/* Chat Header */}
+      <div className="p-4 border-b border-neutral-200">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-neutral-800">Live Chat</h3>
+          <div className="flex items-center space-x-2">
+            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400'}`} />
+            <span className="text-sm text-neutral-600">
+              {onlineCount} online
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {messages.length === 0 ? (
+          <div className="text-center text-neutral-500 py-8">
+            <p>No messages yet. Start the conversation!</p>
+          </div>
+        ) : (
+          messages.map((message) => (
+            <div key={message.id} className="flex items-start space-x-3">
+              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-medium text-primary">
+                  {message.user.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-neutral-800">
+                    {message.user.name}
+                  </span>
+                  <span className="text-xs text-neutral-500">
+                    {formatTime(message.timestamp)}
+                  </span>
+                </div>
+                <p className="text-sm text-neutral-700 break-words">
+                  {message.message}
+                </p>
+              </div>
+            </div>
+          ))
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Chat Input */}
+      <div className="p-4 border-t border-neutral-200">
+        {userId ? (
+          <div className="flex items-center space-x-2">
+            <Input
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Share your thoughts..."
+              className="flex-1"
+              disabled={!isConnected}
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={!inputMessage.trim() || !isConnected}
+              size="sm"
+              className="p-2"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="text-center text-neutral-500 py-2">
+            <p>Please sign in to join the chat</p>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
