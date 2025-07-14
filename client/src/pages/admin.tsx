@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Loading } from "@/components/ui/loading";
-import { Plus, Edit, Trash2, Calendar, Users, Search } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, Users, Search, BarChart3, Activity, Clock, Target } from "lucide-react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
@@ -27,6 +27,14 @@ export default function AdminPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<MeditationTemplate | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [scheduleForm, setScheduleForm] = useState({
+    date: "",
+    templateId: "",
+    scheduledTime: "",
+    isActive: true
+  });
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
 
   const [templateForm, setTemplateForm] = useState({
     title: "",
@@ -111,6 +119,66 @@ export default function AdminPage() {
     }
   });
 
+  const createScheduleMutation = useMutation({
+    mutationFn: (scheduleData: any) => apiRequest("POST", "/api/admin/schedules", scheduleData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/schedules"] });
+      setIsScheduleModalOpen(false);
+      resetScheduleForm();
+      toast({
+        title: "Schedule created",
+        description: "The meditation schedule has been created successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create schedule. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateScheduleMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => 
+      apiRequest("PUT", `/api/admin/schedules/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/schedules"] });
+      setEditingSchedule(null);
+      setIsScheduleModalOpen(false);
+      resetScheduleForm();
+      toast({
+        title: "Schedule updated",
+        description: "The meditation schedule has been updated successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update schedule. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteScheduleMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/admin/schedules/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/schedules"] });
+      toast({
+        title: "Schedule deleted",
+        description: "The meditation schedule has been deleted successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete schedule. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   useEffect(() => {
     if (!user) {
       setLocation("/auth");
@@ -136,6 +204,15 @@ export default function AdminPage() {
         { number: 2, title: "", description: "" },
         { number: 3, title: "", description: "" }
       ]
+    });
+  };
+
+  const resetScheduleForm = () => {
+    setScheduleForm({
+      date: "",
+      templateId: "",
+      scheduledTime: "",
+      isActive: true
     });
   };
 
@@ -194,6 +271,42 @@ export default function AdminPage() {
     }
   };
 
+  const handleScheduleInputChange = (field: string, value: string | boolean) => {
+    setScheduleForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleScheduleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const scheduleData = {
+      ...scheduleForm,
+      templateId: parseInt(scheduleForm.templateId),
+    };
+
+    if (editingSchedule) {
+      updateScheduleMutation.mutate({ id: editingSchedule.id, data: scheduleData });
+    } else {
+      createScheduleMutation.mutate(scheduleData);
+    }
+  };
+
+  const handleEditSchedule = (schedule: Schedule) => {
+    setEditingSchedule(schedule);
+    setScheduleForm({
+      date: schedule.date,
+      templateId: schedule.templateId?.toString() || "",
+      scheduledTime: schedule.scheduledTime,
+      isActive: schedule.isActive || true
+    });
+    setIsScheduleModalOpen(true);
+  };
+
+  const handleDeleteSchedule = (id: number) => {
+    if (confirm("Are you sure you want to delete this schedule?")) {
+      deleteScheduleMutation.mutate(id);
+    }
+  };
+
   const filteredTemplates = templates?.filter(template =>
     template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.instructor.toLowerCase().includes(searchTerm.toLowerCase())
@@ -207,12 +320,144 @@ export default function AdminPage() {
         <p className="text-neutral-600">Manage meditation templates and schedules</p>
       </div>
 
-      <Tabs defaultValue="templates" className="space-y-8">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="dashboard" className="space-y-8">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="schedules">Schedules</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
+
+        {/* Dashboard Tab */}
+        <TabsContent value="dashboard" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-600">Total Templates</p>
+                    <p className="text-2xl font-bold text-neutral-800">{templates?.length || 0}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Target className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-600">Active Schedules</p>
+                    <p className="text-2xl font-bold text-neutral-800">
+                      {schedules?.filter(s => s.isActive).length || 0}
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-green-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-600">Avg Duration</p>
+                    <p className="text-2xl font-bold text-neutral-800">
+                      {templates?.length ? Math.round(
+                        templates.reduce((sum, t) => sum + t.duration, 0) / templates.length
+                      ) : 0} min
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-purple-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-600">Status</p>
+                    <p className="text-2xl font-bold text-green-600">Active</p>
+                  </div>
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                    <Activity className="w-6 h-6 text-orange-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <BarChart3 className="w-5 h-5 mr-2" />
+                  Template Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {["Beginner", "Intermediate", "Advanced"].map((level) => {
+                    const count = templates?.filter(t => t.difficulty === level).length || 0;
+                    const percentage = templates?.length ? (count / templates.length) * 100 : 0;
+                    return (
+                      <div key={level} className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-neutral-600">{level}</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-20 h-2 bg-neutral-200 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-primary rounded-full transition-all duration-300"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                          <span className="text-sm text-neutral-600 w-8">{count}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-neutral-800">Database connected</p>
+                      <p className="text-xs text-neutral-500">System is operational</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-neutral-800">Templates loaded</p>
+                      <p className="text-xs text-neutral-500">{templates?.length || 0} templates available</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-neutral-800">Schedules active</p>
+                      <p className="text-xs text-neutral-500">{schedules?.filter(s => s.isActive).length || 0} active schedules</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
         {/* Templates Tab */}
         <TabsContent value="templates" className="space-y-6">
@@ -448,10 +693,81 @@ export default function AdminPage() {
         <TabsContent value="schedules" className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-neutral-800">Schedule Management</h2>
-            <Button>
-              <Calendar className="w-4 h-4 mr-2" />
-              Add Schedule
-            </Button>
+            <Dialog open={isScheduleModalOpen} onOpenChange={setIsScheduleModalOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => { resetScheduleForm(); setEditingSchedule(null); }}>
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Add Schedule
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingSchedule ? "Edit Schedule" : "Create New Schedule"}
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleScheduleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="schedule-date">Date</Label>
+                      <Input
+                        id="schedule-date"
+                        type="date"
+                        value={scheduleForm.date}
+                        onChange={(e) => handleScheduleInputChange("date", e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="schedule-time">Time</Label>
+                      <Input
+                        id="schedule-time"
+                        type="time"
+                        value={scheduleForm.scheduledTime}
+                        onChange={(e) => handleScheduleInputChange("scheduledTime", e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="schedule-template">Template</Label>
+                    <Select value={scheduleForm.templateId} onValueChange={(value) => handleScheduleInputChange("templateId", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a template" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {templates?.map((template) => (
+                          <SelectItem key={template.id} value={template.id.toString()}>
+                            {template.title} - {template.duration} min
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="schedule-active"
+                      checked={scheduleForm.isActive}
+                      onChange={(e) => handleScheduleInputChange("isActive", e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor="schedule-active">Active</Label>
+                  </div>
+
+                  <div className="flex justify-end space-x-3">
+                    <Button type="button" variant="outline" onClick={() => setIsScheduleModalOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={createScheduleMutation.isPending || updateScheduleMutation.isPending}>
+                      {editingSchedule ? "Update Schedule" : "Create Schedule"}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {schedulesLoading ? (
@@ -466,26 +782,30 @@ export default function AdminPage() {
                   {schedules?.length === 0 ? (
                     <p className="text-center text-neutral-500 py-8">No schedules found</p>
                   ) : (
-                    schedules?.map((schedule) => (
-                      <div key={schedule.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{schedule.date}</p>
-                          <p className="text-sm text-neutral-600">Time: {schedule.scheduledTime}</p>
-                          <p className="text-sm text-neutral-600">Template ID: {schedule.templateId}</p>
-                        </div>
+                    schedules?.map((schedule) => {
+                      const template = templates?.find(t => t.id === schedule.templateId);
+                      return (
+                        <div key={schedule.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{schedule.date}</p>
+                            <p className="text-sm text-neutral-600">Time: {schedule.scheduledTime}</p>
+                            <p className="text-sm text-neutral-600">
+                              Template: {template ? `${template.title} (${template.duration} min)` : 'Unknown Template'}
+                            </p>
+                          </div>
                         <div className="flex items-center space-x-2">
                           <Badge variant={schedule.isActive ? "default" : "secondary"}>
                             {schedule.isActive ? "Active" : "Inactive"}
                           </Badge>
-                          <Button size="sm" variant="ghost">
+                          <Button size="sm" variant="ghost" onClick={() => handleEditSchedule(schedule)}>
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600">
+                          <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600" onClick={() => handleDeleteSchedule(schedule.id)}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
-                    ))
+                    )})
                   )}
                 </div>
               </CardContent>

@@ -140,7 +140,7 @@ export class DatabaseStorage implements IStorage {
   async createTemplate(template: InsertMeditationTemplate): Promise<MeditationTemplate> {
     const [newTemplate] = await db
       .insert(meditationTemplates)
-      .values(template)
+      .values(template as any)
       .returning();
     return newTemplate;
   }
