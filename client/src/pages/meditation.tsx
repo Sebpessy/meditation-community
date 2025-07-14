@@ -53,8 +53,21 @@ export default function MeditationPage() {
       if (user?.uid) {
         try {
           const response = await apiRequest("GET", `/api/auth/user/${user.uid}`);
-          const userData = await response.json();
-          setCurrentUserId(userData.id);
+          if (response.ok) {
+            const userData = await response.json();
+            setCurrentUserId(userData.id);
+          } else if (response.status === 404) {
+            // User doesn't exist in backend, register them
+            const registerResponse = await apiRequest("POST", "/api/auth/register", {
+              email: user.email,
+              name: user.displayName || user.email?.split('@')[0] || "User",
+              firebaseUid: user.uid
+            });
+            if (registerResponse.ok) {
+              const userData = await registerResponse.json();
+              setCurrentUserId(userData.id);
+            }
+          }
         } catch (error) {
           console.error("Failed to fetch user:", error);
         }

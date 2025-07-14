@@ -22,7 +22,10 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    if (!userId || !sessionDate) return;
+    if (!userId || !sessionDate) {
+      console.log('WebSocket connection skipped: userId =', userId, 'sessionDate =', sessionDate);
+      return;
+    }
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -30,7 +33,7 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
     const ws = new WebSocket(wsUrl);
     
     ws.onopen = () => {
-      console.log('WebSocket connected');
+      console.log('WebSocket connected for user:', userId, 'session:', sessionDate);
       setIsConnected(true);
       setSocket(ws);
       

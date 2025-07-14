@@ -32,11 +32,18 @@ export default function AuthPage() {
 
   const registerUserInBackend = async (user: any) => {
     try {
-      await apiRequest("POST", "/api/auth/register", {
+      const response = await apiRequest("POST", "/api/auth/register", {
         email: user.email,
-        name: user.displayName || formData.name || user.email,
+        name: user.displayName || formData.name || user.email?.split('@')[0] || "User",
         firebaseUid: user.uid
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Backend registration error:", errorData);
+      } else {
+        console.log("User registered successfully in backend");
+      }
     } catch (error) {
       console.error("Failed to register user in backend:", error);
     }

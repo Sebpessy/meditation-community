@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { 
@@ -11,6 +11,7 @@ import { User, Settings, LogOut, Menu, X } from "lucide-react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
+import { apiRequest } from "@/lib/queryClient";
 
 interface NavigationProps {
   onlineCount: number;
@@ -20,10 +21,44 @@ export function Navigation({ onlineCount }: NavigationProps) {
   const [location] = useLocation();
   const [user] = useAuthState(auth);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [backendUser, setBackendUser] = useState<{ name: string; email: string } | null>(null);
+
+  // Fetch backend user info
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (user?.uid) {
+        try {
+          const response = await apiRequest("GET", `/api/auth/user/${user.uid}`);
+          if (response.ok) {
+            const userData = await response.json();
+            setBackendUser({ name: userData.name, email: userData.email });
+          } else if (response.status === 404) {
+            // User doesn't exist in backend, register them
+            const registerResponse = await apiRequest("POST", "/api/auth/register", {
+              email: user.email,
+              name: user.displayName || user.email?.split('@')[0] || "User",
+              firebaseUid: user.uid
+            });
+            if (registerResponse.ok) {
+              const userData = await registerResponse.json();
+              setBackendUser({ name: userData.name, email: userData.email });
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch user:", error);
+        }
+      } else {
+        setBackendUser(null);
+      }
+    };
+
+    fetchUser();
+  }, [user]);
 
   const handleSignOut = async () => {
     try {
       await signOut(auth);
+      setBackendUser(null);
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -95,7 +130,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                       <User className="w-4 h-4 text-primary" />
                     </div>
                     <span className="hidden sm:inline text-sm font-medium text-neutral-700">
-                      {user.displayName || user.email}
+                      {backendUser?.name || user.displayName || user.email}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>

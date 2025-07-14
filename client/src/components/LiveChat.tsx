@@ -39,7 +39,7 @@ export function LiveChat({ userId, sessionDate }: LiveChatProps) {
   }, [sessionDate]);
 
   const handleSendMessage = () => {
-    if (inputMessage.trim() && isConnected) {
+    if (inputMessage.trim() && isConnected && userId) {
       sendMessage(inputMessage.trim());
       setInputMessage("");
     }

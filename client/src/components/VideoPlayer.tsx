@@ -71,8 +71,20 @@ export function VideoPlayer({
     <div className="space-y-6">
       <Card className="overflow-hidden">
         <div className="aspect-video bg-neutral-900 relative">
-          {/* Placeholder for video - in production this would be a proper video element */}
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+          <video
+            ref={videoRef}
+            className="w-full h-full object-cover"
+            src={videoUrl}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onLoadedMetadata={() => {
+              if (videoRef.current) {
+                console.log('Video loaded:', videoRef.current.duration);
+              }
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center"
+               style={{ display: videoUrl ? 'none' : 'flex' }}>
             <div className="text-center text-white">
               <h3 className="text-xl font-semibold mb-2">{title}</h3>
               <p className="text-neutral-200">Video player placeholder</p>
