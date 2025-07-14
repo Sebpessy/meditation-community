@@ -1,4 +1,6 @@
 import { users, meditationTemplates, schedules, chatMessages, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type InsertChatMessage } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -25,228 +27,186 @@ export interface IStorage {
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private templates: Map<number, MeditationTemplate>;
-  private schedules: Map<number, Schedule>;
-  private chatMessages: Map<number, ChatMessage>;
-  private currentUserId: number;
-  private currentTemplateId: number;
-  private currentScheduleId: number;
-  private currentMessageId: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.users = new Map();
-    this.templates = new Map();
-    this.schedules = new Map();
-    this.chatMessages = new Map();
-    this.currentUserId = 1;
-    this.currentTemplateId = 1;
-    this.currentScheduleId = 1;
-    this.currentMessageId = 1;
-    
-    // Initialize with some sample data
+    // Initialize with sample data if tables are empty
     this.initializeSampleData();
   }
 
-  private initializeSampleData() {
-    // Create sample templates
-    const template1: MeditationTemplate = {
-      id: 1,
-      title: "Morning Mindfulness",
-      description: "Begin your day with gentle awareness and peaceful presence",
-      duration: 12,
-      difficulty: "Beginner",
-      videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      thumbnailUrl: "https://images.unsplash.com/photo-1545389336-cf090694435e",
-      instructor: "Sarah Johnson",
-      instructorTitle: "Mindfulness Teacher",
-      sessionSteps: [
-        { number: 1, title: "Find your comfortable position", description: "Sit comfortably with your back straight and eyes closed" },
-        { number: 2, title: "Focus on your breath", description: "Notice the natural rhythm of your breathing" },
-        { number: 3, title: "Observe without judgment", description: "Let thoughts come and go naturally" }
-      ],
-      createdAt: new Date(),
-    };
+  private async initializeSampleData() {
+    try {
+      // Check if templates already exist
+      const existingTemplates = await db.select().from(meditationTemplates).limit(1);
+      if (existingTemplates.length > 0) {
+        return; // Sample data already exists
+      }
 
-    const template2: MeditationTemplate = {
-      id: 2,
-      title: "Nature Connection",
-      description: "Connect with the natural world within",
-      duration: 18,
-      difficulty: "Intermediate",
-      videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      thumbnailUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a",
-      instructor: "Michael Chen",
-      instructorTitle: "Nature Guide",
-      sessionSteps: [
-        { number: 1, title: "Ground yourself", description: "Feel your connection to the earth" },
-        { number: 2, title: "Visualize nature", description: "Imagine yourself in a peaceful natural setting" },
-        { number: 3, title: "Breathe with nature", description: "Sync your breath with the natural world" }
-      ],
-      createdAt: new Date(),
-    };
+      // Create sample templates
+      const sampleTemplates = [
+        {
+          title: "Morning Mindfulness",
+          description: "Begin your day with gentle awareness and peaceful presence",
+          duration: 12,
+          difficulty: "Beginner",
+          videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          thumbnailUrl: "https://images.unsplash.com/photo-1545389336-cf090694435e",
+          instructor: "Sarah Johnson",
+          instructorTitle: "Mindfulness Teacher",
+          sessionSteps: [
+            { number: 1, title: "Find your comfortable position", description: "Sit comfortably with your back straight and eyes closed" },
+            { number: 2, title: "Focus on your breath", description: "Notice the natural rhythm of your breathing" },
+            { number: 3, title: "Observe without judgment", description: "Let thoughts come and go naturally" }
+          ],
+        },
+        {
+          title: "Nature Connection",
+          description: "Connect with the natural world within",
+          duration: 18,
+          difficulty: "Intermediate",
+          videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          thumbnailUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a",
+          instructor: "Michael Chen",
+          instructorTitle: "Nature Guide",
+          sessionSteps: [
+            { number: 1, title: "Ground yourself", description: "Feel your connection to the earth" },
+            { number: 2, title: "Visualize nature", description: "Imagine yourself in a peaceful natural setting" },
+            { number: 3, title: "Breathe with nature", description: "Sync your breath with the natural world" }
+          ],
+        },
+        {
+          title: "Evening Reflection",
+          description: "Wind down and reflect on your day",
+          duration: 15,
+          difficulty: "Beginner",
+          videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          thumbnailUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
+          instructor: "Lisa Parker",
+          instructorTitle: "Reflection Coach",
+          sessionSteps: [
+            { number: 1, title: "Review your day", description: "Think about the positive moments" },
+            { number: 2, title: "Release tensions", description: "Let go of any stress or worries" },
+            { number: 3, title: "Set intentions", description: "Focus on tomorrow's possibilities" }
+          ],
+        }
+      ];
 
-    const template3: MeditationTemplate = {
-      id: 3,
-      title: "Evening Reflection",
-      description: "Wind down and reflect on your day",
-      duration: 15,
-      difficulty: "Beginner",
-      videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      thumbnailUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
-      instructor: "Lisa Parker",
-      instructorTitle: "Reflection Coach",
-      sessionSteps: [
-        { number: 1, title: "Review your day", description: "Think about the positive moments" },
-        { number: 2, title: "Release tensions", description: "Let go of any stress or worries" },
-        { number: 3, title: "Set intentions", description: "Focus on tomorrow's possibilities" }
-      ],
-      createdAt: new Date(),
-    };
-
-    this.templates.set(1, template1);
-    this.templates.set(2, template2);
-    this.templates.set(3, template3);
-    this.currentTemplateId = 4;
-
-    // Create today's schedule
-    const today = new Date().toISOString().split('T')[0];
-    const todaySchedule: Schedule = {
-      id: 1,
-      date: today,
-      templateId: 1,
-      scheduledTime: "09:00",
-      isActive: true,
-      createdAt: new Date(),
-    };
-
-    this.schedules.set(1, todaySchedule);
-    this.currentScheduleId = 2;
+      // Insert sample templates one by one
+      const insertedTemplates = [];
+      for (const template of sampleTemplates) {
+        const [inserted] = await db.insert(meditationTemplates).values(template as any).returning();
+        insertedTemplates.push(inserted);
+      }
+      
+      // Create today's schedule with the first template
+      const today = new Date().toISOString().split('T')[0];
+      await db.insert(schedules).values({
+        date: today,
+        templateId: insertedTemplates[0].id,
+        scheduledTime: "09:00",
+        isActive: true,
+      });
+    } catch (error) {
+      console.error("Error initializing sample data:", error);
+    }
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.firebaseUid === firebaseUid,
-    );
+    const [user] = await db.select().from(users).where(eq(users.firebaseUid, firebaseUid));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { 
-      ...insertUser, 
-      id,
-      isAdmin: false,
-      createdAt: new Date(),
-    };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async getAllTemplates(): Promise<MeditationTemplate[]> {
-    return Array.from(this.templates.values());
+    return await db.select().from(meditationTemplates);
   }
 
   async getTemplate(id: number): Promise<MeditationTemplate | undefined> {
-    return this.templates.get(id);
+    const [template] = await db.select().from(meditationTemplates).where(eq(meditationTemplates.id, id));
+    return template || undefined;
   }
 
   async createTemplate(template: InsertMeditationTemplate): Promise<MeditationTemplate> {
-    const id = this.currentTemplateId++;
-    const newTemplate: MeditationTemplate = {
-      ...template,
-      id,
-      thumbnailUrl: template.thumbnailUrl || null,
-      sessionSteps: template.sessionSteps as Array<{number: number, title: string, description: string}>,
-      createdAt: new Date(),
-    };
-    this.templates.set(id, newTemplate);
+    const [newTemplate] = await db
+      .insert(meditationTemplates)
+      .values(template)
+      .returning();
     return newTemplate;
   }
 
   async updateTemplate(id: number, template: Partial<InsertMeditationTemplate>): Promise<MeditationTemplate | undefined> {
-    const existing = this.templates.get(id);
-    if (!existing) return undefined;
-    
-    const updated: MeditationTemplate = { 
-      ...existing, 
-      ...template,
-      thumbnailUrl: template.thumbnailUrl !== undefined ? template.thumbnailUrl || null : existing.thumbnailUrl,
-      sessionSteps: template.sessionSteps ? template.sessionSteps as Array<{number: number, title: string, description: string}> : existing.sessionSteps
-    };
-    this.templates.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(meditationTemplates)
+      .set(template as any) // Cast to any to avoid strict type checking issues
+      .where(eq(meditationTemplates.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async deleteTemplate(id: number): Promise<boolean> {
-    return this.templates.delete(id);
+    const result = await db.delete(meditationTemplates).where(eq(meditationTemplates.id, id));
+    return (result.rowCount || 0) > 0;
   }
 
   async getScheduleByDate(date: string): Promise<Schedule | undefined> {
-    return Array.from(this.schedules.values()).find(
-      (schedule) => schedule.date === date && schedule.isActive
-    );
+    const [schedule] = await db.select().from(schedules).where(eq(schedules.date, date));
+    return schedule || undefined;
   }
 
   async getAllSchedules(): Promise<Schedule[]> {
-    return Array.from(this.schedules.values());
+    return await db.select().from(schedules);
   }
 
   async createSchedule(schedule: InsertSchedule): Promise<Schedule> {
-    const id = this.currentScheduleId++;
-    const newSchedule: Schedule = {
-      ...schedule,
-      id,
-      templateId: schedule.templateId || null,
-      isActive: schedule.isActive !== undefined ? schedule.isActive : true,
-      createdAt: new Date(),
-    };
-    this.schedules.set(id, newSchedule);
+    const [newSchedule] = await db
+      .insert(schedules)
+      .values(schedule)
+      .returning();
     return newSchedule;
   }
 
   async updateSchedule(id: number, schedule: Partial<InsertSchedule>): Promise<Schedule | undefined> {
-    const existing = this.schedules.get(id);
-    if (!existing) return undefined;
-    
-    const updated: Schedule = { 
-      ...existing, 
-      ...schedule,
-      templateId: schedule.templateId !== undefined ? schedule.templateId || null : existing.templateId,
-      isActive: schedule.isActive !== undefined ? schedule.isActive : existing.isActive
-    };
-    this.schedules.set(id, updated);
-    return updated;
+    const [updated] = await db
+      .update(schedules)
+      .set(schedule)
+      .where(eq(schedules.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async deleteSchedule(id: number): Promise<boolean> {
-    return this.schedules.delete(id);
+    const result = await db.delete(schedules).where(eq(schedules.id, id));
+    return (result.rowCount || 0) > 0;
   }
 
   async getChatMessages(sessionDate: string, limit: number = 50): Promise<ChatMessage[]> {
-    const messages = Array.from(this.chatMessages.values())
-      .filter(msg => msg.sessionDate === sessionDate)
-      .sort((a, b) => a.timestamp!.getTime() - b.timestamp!.getTime())
-      .slice(-limit);
+    const messages = await db.select()
+      .from(chatMessages)
+      .where(eq(chatMessages.sessionDate, sessionDate))
+      .orderBy(desc(chatMessages.timestamp))
+      .limit(limit);
     
-    return messages;
+    return messages.reverse(); // Return in chronological order
   }
 
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
-    const id = this.currentMessageId++;
-    const newMessage: ChatMessage = {
-      ...message,
-      id,
-      userId: message.userId || null,
-      timestamp: new Date(),
-    };
-    this.chatMessages.set(id, newMessage);
+    const [newMessage] = await db
+      .insert(chatMessages)
+      .values(message)
+      .returning();
     return newMessage;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
