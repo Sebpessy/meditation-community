@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,58 @@ function getCSTDate(): string {
   const cstOffset = -6; // CST is UTC-6
   const cstTime = new Date(now.getTime() + (cstOffset * 60 * 60 * 1000));
   return cstTime.toISOString().split('T')[0];
+}
+
+// Function to calculate time remaining until midnight Central Time (outside component to prevent re-creation)
+function calculateTimeUntilMidnight(): string {
+  // Get current time in Central Time
+  const nowInCentral = new Date().toLocaleString("en-US", {timeZone: "America/Chicago"});
+  const [datePart, timePart] = nowInCentral.split(', ');
+  const [time, ampm] = timePart.split(' ');
+  const [hours, minutes, seconds] = time.split(':').map(Number);
+  
+  // Convert to 24-hour format
+  let hour24 = hours;
+  if (ampm === 'PM' && hours !== 12) hour24 += 12;
+  if (ampm === 'AM' && hours === 12) hour24 = 0;
+  
+  // Calculate remaining time
+  const totalSecondsUntilMidnight = (24 * 60 * 60) - (hour24 * 60 * 60) - (minutes * 60) - seconds;
+  
+  if (totalSecondsUntilMidnight <= 0) {
+    return "00:00:00";
+  }
+  
+  const remainingHours = Math.floor(totalSecondsUntilMidnight / 3600);
+  const remainingMinutes = Math.floor((totalSecondsUntilMidnight % 3600) / 60);
+  const remainingSeconds = totalSecondsUntilMidnight % 60;
+  
+  return `${remainingHours.toString().padStart(2, '0')}:${remainingMinutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+// Simple countdown component to prevent blinking
+function CountdownTimer() {
+  const [time, setTime] = useState(calculateTimeUntilMidnight());
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTime(calculateTimeUntilMidnight());
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return (
+    <div className="mb-6">
+      <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 max-w-md mx-auto">
+        <div className="text-center">
+          <div className="text-sm text-neutral-600 mb-2">Next meditation in</div>
+          <div className="text-2xl font-mono font-bold text-primary">{time}</div>
+          <div className="text-xs text-neutral-500 mt-1">Updates daily at midnight CST</div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 interface TodaysMeditation {
@@ -40,64 +92,6 @@ interface TodaysMeditation {
 export default function MeditationPage() {
   const [, setLocation] = useLocation();
   const [user] = useAuthState(auth);
-  const [countdown, setCountdown] = useState("");
-  
-  // Function to calculate time remaining until midnight Central Time
-  const calculateTimeUntilMidnight = () => {
-    const now = new Date();
-    
-    // Get tomorrow's date in Central Time zone
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // Create midnight tomorrow in Central Time
-    const midnightTomorrow = new Date(tomorrow.toLocaleDateString("en-US", {timeZone: "America/Chicago"}) + " 00:00:00");
-    
-    // Convert to Central Time for accurate calculation
-    const options = { timeZone: "America/Chicago" };
-    const centralNow = new Date(now.toLocaleString("en-US", options));
-    const centralMidnight = new Date(midnightTomorrow.toLocaleString("en-US", options));
-    
-    // Simple calculation: hours until midnight
-    const nowInCentral = new Date().toLocaleString("en-US", {timeZone: "America/Chicago"});
-    const [datePart, timePart] = nowInCentral.split(', ');
-    const [time, ampm] = timePart.split(' ');
-    const [hours, minutes, seconds] = time.split(':').map(Number);
-    
-    // Convert to 24-hour format
-    let hour24 = hours;
-    if (ampm === 'PM' && hours !== 12) hour24 += 12;
-    if (ampm === 'AM' && hours === 12) hour24 = 0;
-    
-    // Calculate remaining time
-    const totalSecondsUntilMidnight = (24 * 60 * 60) - (hour24 * 60 * 60) - (minutes * 60) - seconds;
-    
-    if (totalSecondsUntilMidnight <= 0) {
-      return "00:00:00";
-    }
-    
-    const remainingHours = Math.floor(totalSecondsUntilMidnight / 3600);
-    const remainingMinutes = Math.floor((totalSecondsUntilMidnight % 3600) / 60);
-    const remainingSeconds = totalSecondsUntilMidnight % 60;
-    
-    return `${remainingHours.toString().padStart(2, '0')}:${remainingMinutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-  
-  // Update countdown every second
-  useEffect(() => {
-    const updateCountdown = () => {
-      const newCountdown = calculateTimeUntilMidnight();
-      setCountdown(prevCountdown => {
-        // Only update if value actually changed to reduce re-renders
-        return prevCountdown !== newCountdown ? newCountdown : prevCountdown;
-      });
-    };
-    
-    updateCountdown(); // Initial call
-    const interval = setInterval(updateCountdown, 1000);
-    
-    return () => clearInterval(interval);
-  }, []);
   const [onlineCount, setOnlineCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<number | undefined>();
   const [wsOnlineCount, setWsOnlineCount] = useState(0);
@@ -252,15 +246,7 @@ export default function MeditationPage() {
         </Badge>
         
         {/* Countdown Timer */}
-        <div className="mb-6">
-          <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 max-w-md mx-auto">
-            <div className="text-center">
-              <div className="text-sm text-neutral-600 mb-2">Next meditation in</div>
-              <div className="text-2xl font-mono font-bold text-primary">{countdown}</div>
-              <div className="text-xs text-neutral-500 mt-1">Updates daily at midnight CST</div>
-            </div>
-          </div>
-        </div>
+        <CountdownTimer />
         <h1 className="text-3xl sm:text-4xl font-bold text-neutral-800 mb-2">
           {meditation.title}
         </h1>
