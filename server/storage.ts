@@ -212,15 +212,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getChatMessages(sessionDate: string, limit: number = 50): Promise<ChatMessage[]> {
+    console.log('getChatMessages called for session:', sessionDate);
+    
     const messages = await db.select({
       id: chatMessages.id,
       message: chatMessages.message,
       timestamp: chatMessages.timestamp,
-      user: {
-        id: users.id,
-        name: users.name,
-        profilePicture: users.profilePicture
-      }
+      userId: chatMessages.userId,
+      userName: users.name,
+      userProfilePicture: users.profilePicture
     })
       .from(chatMessages)
       .innerJoin(users, eq(chatMessages.userId, users.id))
@@ -228,7 +228,25 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(chatMessages.timestamp))
       .limit(limit);
     
-    return messages.reverse(); // Return in chronological order
+    console.log('Raw messages from DB:', messages.length);
+    console.log('Sample message:', messages[0]);
+    
+    // Transform to match the expected ChatMessage format
+    const transformedMessages = messages.map(msg => ({
+      id: msg.id,
+      message: msg.message,
+      timestamp: msg.timestamp,
+      user: {
+        id: msg.userId,
+        name: msg.userName,
+        profilePicture: msg.userProfilePicture
+      }
+    }));
+    
+    console.log('Transformed messages:', transformedMessages.length);
+    console.log('Sample transformed:', transformedMessages[0]);
+    
+    return transformedMessages.reverse(); // Return in chronological order
   }
 
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {

@@ -34,20 +34,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Send initial messages to the user (last 30 messages)
             try {
               const initialMessages = await storage.getChatMessages(message.sessionDate, 30);
-              const messagesWithUsers = await Promise.all(
-                initialMessages.map(async (msg) => {
-                  const user = msg.userId ? await storage.getUser(msg.userId) : null;
-                  return {
-                    ...msg,
-                    user: user ? { 
-                      id: user.id, 
-                      name: user.name, 
-                      profilePicture: user.profilePicture 
-                    } : { id: 0, name: 'Unknown' }
-                  };
-                })
-              );
+              console.log('Initial messages count:', initialMessages.length);
+              console.log('Sample message structure:', initialMessages[0]);
+              
+              // The getChatMessages method already returns messages with user data
+              // We just need to format them correctly for the WebSocket
+              const messagesWithUsers = initialMessages.map((msg: any) => {
+                return {
+                  id: msg.id,
+                  message: msg.message,
+                  timestamp: msg.timestamp,
+                  user: {
+                    id: msg.user.id,
+                    name: msg.user.name,
+                    profilePicture: msg.user.profilePicture
+                  }
+                };
+              });
 
+              console.log('Sending initial messages to user:', messagesWithUsers.length);
               // Send initial messages to the joining user
               ws.send(JSON.stringify({
                 type: 'initial-messages',
@@ -226,18 +231,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const messages = await storage.getChatMessages(req.params.sessionDate);
       
-      // Get user info for each message
-      const messagesWithUsers = await Promise.all(
-        messages.map(async (msg) => {
-          const user = msg.userId ? await storage.getUser(msg.userId) : null;
-          return {
-            ...msg,
-            user: user ? { id: user.id, name: user.name } : { id: 0, name: 'Unknown' }
-          };
-        })
-      );
-
-      res.json(messagesWithUsers);
+      // The getChatMessages method now returns messages with user data already populated
+      res.json(messages);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch chat messages' });
     }
