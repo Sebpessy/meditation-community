@@ -150,8 +150,8 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
 
       {/* Mobile Layout */}
       <div className="md:hidden flex flex-col h-full">
-        {/* Mobile Chat Header - Sticky within container */}
-        <div className="sticky top-0 z-30 bg-white border-b border-neutral-200 p-4 flex-shrink-0">
+        {/* Mobile Chat Header - Fixed relative to container */}
+        <div className="bg-white border-b border-neutral-200 p-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-neutral-800">Live Chat</h3>
             <div className="flex items-center space-x-2">
@@ -197,8 +197,8 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Mobile Chat Input - Sticky at bottom */}
-        <div className="sticky bottom-0 z-30 bg-white border-t border-neutral-200 p-4 flex-shrink-0">
+        {/* Mobile Chat Input - Fixed at bottom */}
+        <div className="bg-white border-t border-neutral-200 p-4 flex-shrink-0">
           {userId ? (
             <div className="flex items-center space-x-2">
               <Input
