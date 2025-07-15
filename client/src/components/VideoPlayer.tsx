@@ -57,6 +57,19 @@ export function VideoPlayer({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const getYouTubeEmbedUrl = (url: string) => {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    if (match) {
+      return `https://www.youtube.com/embed/${match[1]}?enablejsapi=1&origin=${window.location.origin}`;
+    }
+    return null;
+  };
+
+  const isYouTubeUrl = (url: string) => {
+    return url.includes('youtube.com') || url.includes('youtu.be');
+  };
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -71,59 +84,87 @@ export function VideoPlayer({
     <div className="space-y-6">
       <Card className="overflow-hidden">
         <div className="aspect-video bg-neutral-900 relative">
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
-            src={videoUrl}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-            onLoadedMetadata={() => {
-              if (videoRef.current) {
-                console.log('Video loaded:', videoRef.current.duration);
-              }
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center"
-               style={{ display: videoUrl ? 'none' : 'flex' }}>
-            <div className="text-center text-white">
-              <h3 className="text-xl font-semibold mb-2">{title}</h3>
-              <p className="text-neutral-200">Video player placeholder</p>
-              <p className="text-sm text-neutral-300 mt-1">{videoUrl}</p>
-            </div>
-          </div>
-          
-          {/* Video Controls Overlay */}
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-            <Button
-              size="lg"
-              onClick={togglePlay}
-              className="w-16 h-16 bg-white/90 hover:bg-white text-primary rounded-full p-0"
-            >
-              {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-1" />}
-            </Button>
-          </div>
-
-          {/* Video Progress Bar */}
-          <div className="absolute bottom-0 left-0 right-0 p-4">
-            <div className="flex items-center space-x-3 text-white text-sm">
-              <span>{formatTime(currentTime)}</span>
-              <div className="flex-1 h-1 bg-white/30 rounded-full">
-                <div 
-                  className="h-full bg-primary rounded-full transition-all" 
-                  style={{ width: `${(currentTime / (duration * 60)) * 100}%` }}
-                />
+          {isYouTubeUrl(videoUrl) ? (
+            <iframe
+              className="w-full h-full"
+              src={getYouTubeEmbedUrl(videoUrl) || ''}
+              title={title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover"
+              src={videoUrl}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onLoadedMetadata={() => {
+                if (videoRef.current) {
+                  console.log('Video loaded:', videoRef.current.duration);
+                }
+              }}
+            />
+          )}
+          {!videoUrl && (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+              <div className="text-center text-white">
+                <h3 className="text-xl font-semibold mb-2">{title}</h3>
+                <p className="text-neutral-200">Video player placeholder</p>
+                <p className="text-sm text-neutral-300 mt-1">{videoUrl}</p>
               </div>
-              <span>{duration}:00</span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={toggleMute}
-                className="text-white hover:bg-white/20 p-1"
-              >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </Button>
             </div>
-          </div>
+          )}
+          
+          {/* Video Controls Overlay - only for non-YouTube videos */}
+          {!isYouTubeUrl(videoUrl) && (
+            <>
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                <Button
+                  size="lg"
+                  onClick={togglePlay}
+                  className="w-16 h-16 bg-white/90 hover:bg-white text-primary rounded-full p-0"
+                >
+                  {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-1" />}
+                </Button>
+              </div>
+
+              {/* Video Progress Bar */}
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <div className="flex items-center space-x-3 text-white text-sm">
+                  <span>{formatTime(currentTime)}</span>
+                  <div className="flex-1 h-1 bg-white/30 rounded-full">
+                    <div 
+                      className="h-full bg-primary rounded-full transition-all" 
+                      style={{ width: `${(currentTime / (duration * 60)) * 100}%` }}
+                    />
+                  </div>
+                  <span>{duration}:00</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={toggleMute}
+                    className="text-white hover:bg-white/20 p-1"
+                  >
+                    {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+          
+          {/* YouTube video info overlay */}
+          {isYouTubeUrl(videoUrl) && (
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
+              <div className="flex items-center space-x-3 text-white text-sm">
+                <div className="w-6 h-6 bg-red-600 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">YT</span>
+                </div>
+                <span>YouTube Video - {duration} min duration</span>
+              </div>
+            </div>
+          )}
         </div>
         
         <CardContent className="p-6">
