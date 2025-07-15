@@ -283,15 +283,7 @@ export default function MeditationPage() {
           </div>
         </div>
 
-        {/* Fixed Title and Description - Below date */}
-        <div className="flex-shrink-0 p-3 bg-white border-b border-neutral-200">
-          <h1 className="text-lg font-bold text-neutral-800 mb-1">
-            {meditation.title}
-          </h1>
-          <p className="text-sm text-neutral-600">
-            {meditation.description}
-          </p>
-        </div>
+
 
         {/* Fixed Chat Header - Below titles */}
         <div className="flex-shrink-0 p-4 bg-white border-b border-neutral-200">
