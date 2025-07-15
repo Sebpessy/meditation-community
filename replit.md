@@ -20,6 +20,8 @@ Preferred communication style: Simple, everyday language.
 - ✅ Removed Community tab from navigation and adjusted header height for larger logo
 - ✅ Fixed admin navigation to only show for users with admin privileges
 - ✅ Updated authentication page with custom logo and "Evolving Hearts" branding
+- ✅ Doubled logo size to 160px x 160px on authentication page
+- ✅ Added functional forgot password link with Firebase integration
 
 ### July 14, 2025
 - ✅ Fixed TypeScript compilation errors in storage layer

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,7 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -119,21 +120,48 @@ export default function AuthPage() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      setError("Please enter your email address first");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+
+    try {
+      await sendPasswordResetEmail(auth, formData.email);
+      setResetEmailSent(true);
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for password reset instructions"
+      });
+    } catch (error: any) {
+      console.error("Password reset error:", error);
+      if (error.code === "auth/user-not-found") {
+        setError("No account found with this email address");
+      } else if (error.code === "auth/invalid-email") {
+        setError("Please enter a valid email address");
+      } else {
+        setError("Failed to send password reset email. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-neutral-50">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+          <div className="w-40 h-40 mx-auto mb-4 flex items-center justify-center">
             <img 
               src={logoImg} 
               alt="Evolving Hearts Logo" 
-              className="w-20 h-20 object-contain"
+              className="w-40 h-40 object-contain"
             />
           </div>
-          <CardTitle className="text-2xl font-bold text-neutral-800">
-            Welcome to Evolving Hearts
-          </CardTitle>
-          <p className="text-neutral-600">Join our meditation community</p>
+
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -212,9 +240,16 @@ export default function AuthPage() {
                   Remember me
                 </Label>
               </div>
-              <Button variant="link" size="sm" className="text-primary">
-                Forgot password?
-              </Button>
+              {!isSignUp && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  className="text-sm text-primary hover:text-primary/80 disabled:opacity-50"
+                >
+                  Forgot password?
+                </button>
+              )}
             </div>
 
             <Button
