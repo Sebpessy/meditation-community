@@ -15,8 +15,9 @@ interface LiveChatProps {
 
 export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatProps) {
   const [inputMessage, setInputMessage] = useState("");
+  const [hoveredUser, setHoveredUser] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { messages, onlineCount, isConnected, sendMessage } = useWebSocket(userId, sessionDate);
+  const { messages, onlineCount, onlineUsers, isConnected, sendMessage } = useWebSocket(userId, sessionDate);
 
   // Update parent component when online count changes
   useEffect(() => {
@@ -66,6 +67,21 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const handleLongPress = (userId: number) => {
+    setHoveredUser(userId);
+    setTimeout(() => setHoveredUser(null), 3000); // Hide after 3 seconds
+  };
+
+  const handleUserClick = (userId: number) => {
+    // For mobile/touch devices
+    if (hoveredUser === userId) {
+      setHoveredUser(null);
+    } else {
+      setHoveredUser(userId);
+      setTimeout(() => setHoveredUser(null), 3000);
+    }
+  };
+
   return (
     <>
       {/* Desktop Layout */}
@@ -82,6 +98,38 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                 </span>
               </div>
             </div>
+            
+            {/* Online Users Display */}
+            {onlineUsers.length > 0 && (
+              <div className="mt-3 flex items-center space-x-2">
+                <span className="text-xs text-neutral-500">Online:</span>
+                <div className="flex items-center -space-x-2">
+                  {onlineUsers.map((user) => (
+                    <div key={user.id} className="relative">
+                      <Avatar 
+                        className="w-8 h-8 border-2 border-white cursor-pointer hover:z-10 transition-transform hover:scale-110"
+                        onMouseEnter={() => setHoveredUser(user.id)}
+                        onMouseLeave={() => setHoveredUser(null)}
+                        onClick={() => handleUserClick(user.id)}
+                      >
+                        <AvatarImage src={user.profilePicture || ""} alt={user.name} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                          {user.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      {hoveredUser === user.id && (
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-20">
+                          <div className="bg-neutral-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                            {user.name}
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-800"></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Desktop Chat Messages */}

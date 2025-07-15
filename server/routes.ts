@@ -7,6 +7,7 @@ import { z } from "zod";
 
 // WebSocket connection management
 const activeConnections = new Map<WebSocket, { userId?: number, sessionDate?: string }>();
+const sessionUsers = new Map<string, Set<number>>(); // sessionDate -> Set of userIds
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -30,6 +31,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             connectionInfo.userId = message.userId;
             connectionInfo.sessionDate = message.sessionDate;
             activeConnections.set(ws, connectionInfo);
+            
+            // Track unique users in session
+            if (!sessionUsers.has(message.sessionDate)) {
+              sessionUsers.set(message.sessionDate, new Set());
+            }
+            sessionUsers.get(message.sessionDate)!.add(message.userId);
             
             // Send initial messages to the user (last 30 messages)
             try {
@@ -62,11 +69,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.error('Failed to send initial messages:', error);
             }
             
+            // Get online users info for display
+            const onlineUsers = await getOnlineUsers(message.sessionDate);
+            
             // Broadcast user joined
             broadcastToSession(message.sessionDate, {
               type: 'user-joined',
               userId: message.userId,
-              onlineCount: getOnlineCount(message.sessionDate)
+              onlineCount: getOnlineCount(message.sessionDate),
+              onlineUsers: onlineUsers
             });
             break;
 
@@ -87,11 +98,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
             break;
 
           case 'leave-session':
-            if (connectionInfo.sessionDate) {
+            if (connectionInfo.sessionDate && connectionInfo.userId) {
+              // Remove user from session if no other connections exist
+              const hasOtherConnections = Array.from(activeConnections.values()).some(
+                conn => conn.userId === connectionInfo.userId && 
+                       conn.sessionDate === connectionInfo.sessionDate && 
+                       conn !== connectionInfo
+              );
+              
+              if (!hasOtherConnections) {
+                sessionUsers.get(connectionInfo.sessionDate)?.delete(connectionInfo.userId);
+              }
+              
+              const onlineUsers = await getOnlineUsers(connectionInfo.sessionDate);
+              
               broadcastToSession(connectionInfo.sessionDate, {
                 type: 'user-left',
                 userId: connectionInfo.userId,
-                onlineCount: getOnlineCount(connectionInfo.sessionDate) - 1
+                onlineCount: getOnlineCount(connectionInfo.sessionDate) - 1,
+                onlineUsers: onlineUsers
               });
             }
             break;
@@ -101,16 +126,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
 
-    ws.on('close', () => {
+    ws.on('close', async () => {
       const connectionInfo = activeConnections.get(ws);
-      if (connectionInfo?.sessionDate) {
+      activeConnections.delete(ws);
+      
+      if (connectionInfo?.sessionDate && connectionInfo.userId) {
+        // Check if user has other active connections in this session
+        const hasOtherConnections = Array.from(activeConnections.values()).some(
+          conn => conn.userId === connectionInfo.userId && 
+                 conn.sessionDate === connectionInfo.sessionDate
+        );
+        
+        if (!hasOtherConnections) {
+          sessionUsers.get(connectionInfo.sessionDate)?.delete(connectionInfo.userId);
+        }
+        
+        const onlineUsers = await getOnlineUsers(connectionInfo.sessionDate);
+        
         broadcastToSession(connectionInfo.sessionDate, {
           type: 'user-left',
           userId: connectionInfo.userId,
-          onlineCount: getOnlineCount(connectionInfo.sessionDate) - 1
+          onlineCount: getOnlineCount(connectionInfo.sessionDate),
+          onlineUsers: onlineUsers
         });
       }
-      activeConnections.delete(ws);
     });
   });
 
@@ -125,13 +164,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   function getOnlineCount(sessionDate: string): number {
-    let count = 0;
-    activeConnections.forEach((connectionInfo) => {
-      if (connectionInfo.sessionDate === sessionDate) {
-        count++;
-      }
-    });
-    return count;
+    const userSet = sessionUsers.get(sessionDate);
+    return userSet ? userSet.size : 0;
+  }
+
+  async function getOnlineUsers(sessionDate: string): Promise<Array<{id: number, name: string, profilePicture?: string}>> {
+    const userSet = sessionUsers.get(sessionDate);
+    if (!userSet || userSet.size === 0) return [];
+    
+    const userIds = Array.from(userSet);
+    const users = await Promise.all(
+      userIds.map(async (userId) => {
+        const user = await storage.getUser(userId);
+        return user ? {
+          id: user.id,
+          name: user.name,
+          profilePicture: user.profilePicture
+        } : null;
+      })
+    );
+    
+    return users.filter(user => user !== null) as Array<{id: number, name: string, profilePicture?: string}>;
   }
 
   // Auth routes
@@ -248,6 +301,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ count });
     } catch (error) {
       res.status(500).json({ error: 'Failed to get online count' });
+    }
+  });
+
+  app.get('/api/meditation/online-users/:sessionDate', async (req, res) => {
+    try {
+      const users = await getOnlineUsers(req.params.sessionDate);
+      res.json({ users });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get online users' });
     }
   });
 

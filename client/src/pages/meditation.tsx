@@ -84,6 +84,7 @@ export default function MeditationPage() {
   const [currentUserId, setCurrentUserId] = useState<number | undefined>();
   const [wsOnlineCount, setWsOnlineCount] = useState(0);
   const [inputMessage, setInputMessage] = useState("");
+  const [hoveredUser, setHoveredUser] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: meditation, isLoading, error } = useQuery<TodaysMeditation>({
@@ -102,6 +103,7 @@ export default function MeditationPage() {
     messages, 
     isConnected, 
     onlineCount: wsOnlineCountFromSocket, 
+    onlineUsers,
     sendMessage 
   } = useWebSocket(currentUserId, getCSTDate());
 
@@ -185,6 +187,16 @@ export default function MeditationPage() {
       minute: '2-digit',
       hour12: true 
     });
+  };
+
+  const handleUserClick = (userId: number) => {
+    // For mobile/touch devices
+    if (hoveredUser === userId) {
+      setHoveredUser(null);
+    } else {
+      setHoveredUser(userId);
+      setTimeout(() => setHoveredUser(null), 3000);
+    }
   };
 
   const formatDate = (dateStr: string) => {
@@ -296,6 +308,38 @@ export default function MeditationPage() {
               </span>
             </div>
           </div>
+          
+          {/* Online Users Display */}
+          {onlineUsers && onlineUsers.length > 0 && (
+            <div className="mt-3 flex items-center space-x-2">
+              <span className="text-xs text-neutral-500">Online:</span>
+              <div className="flex items-center -space-x-2">
+                {onlineUsers.map((user) => (
+                  <div key={user.id} className="relative">
+                    <Avatar 
+                      className="w-8 h-8 border-2 border-white cursor-pointer hover:z-10 transition-transform active:scale-110"
+                      onTouchStart={() => setHoveredUser(user.id)}
+                      onTouchEnd={() => setTimeout(() => setHoveredUser(null), 3000)}
+                      onClick={() => handleUserClick(user.id)}
+                    >
+                      <AvatarImage src={user.profilePicture || ""} alt={user.name} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {user.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {hoveredUser === user.id && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-20">
+                        <div className="bg-neutral-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                          {user.name}
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-800"></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Scrollable Chat Messages - Only this part scrolls */}

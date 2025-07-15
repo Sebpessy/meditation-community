@@ -11,8 +11,15 @@ export interface ChatMessage {
   };
 }
 
+export interface OnlineUser {
+  id: number;
+  name: string;
+  profilePicture?: string;
+}
+
 export interface WebSocketMessage {
   type: string;
+  onlineUsers?: OnlineUser[];
   [key: string]: any;
 }
 
@@ -20,6 +27,7 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const messagesRef = useRef<ChatMessage[]>([]);
 
@@ -70,6 +78,9 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
           case 'user-left':
             console.log('Online count updated:', message.onlineCount);
             setOnlineCount(message.onlineCount);
+            if (message.onlineUsers) {
+              setOnlineUsers(message.onlineUsers);
+            }
             break;
           case 'initial-messages':
             // Load initial messages and keep last 30
@@ -116,6 +127,7 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
   return {
     messages,
     onlineCount,
+    onlineUsers,
     isConnected,
     sendMessage
   };
