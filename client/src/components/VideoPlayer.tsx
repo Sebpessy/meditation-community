@@ -217,15 +217,7 @@ export function VideoPlayer({
             </>
           )}
           
-          {/* YouTube video notice */}
-          {isYouTubeUrl(videoUrl) && (
-            <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center space-x-2">
-              <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                <span className="text-red-600 text-xs font-bold">YT</span>
-              </div>
-              <span>YouTube Player</span>
-            </div>
-          )}
+
         </div>
         
         <CardContent className="p-6">
@@ -274,33 +266,7 @@ export function VideoPlayer({
             </div>
           </div>
 
-          {/* Video Type Notice */}
-          {isYouTubeUrl(videoUrl) ? (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm">
-              <div className="flex items-center space-x-2 text-red-700 mb-2">
-                <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">YT</span>
-                </div>
-                <span className="font-medium">YouTube Video</span>
-              </div>
-              <p className="text-red-600">
-                This video uses YouTube's native player with built-in controls. 
-                Use YouTube's controls for playback, fullscreen, and settings.
-              </p>
-            </div>
-          ) : (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
-              <div className="flex items-center space-x-2 text-blue-700 mb-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-7 4h12a3 3 0 003-3V7a3 3 0 00-3-3H6a3 3 0 00-3 3v4a3 3 0 003 3z" />
-                </svg>
-                <span className="font-medium">Custom Video Player</span>
-              </div>
-              <p className="text-blue-600">
-                Click the progress bar to jump to any position. Use the fullscreen and picture-in-picture buttons for enhanced viewing.
-              </p>
-            </div>
-          )}
+
         </CardContent>
       </Card>
 
