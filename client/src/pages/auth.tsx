@@ -161,7 +161,10 @@ export default function AuthPage() {
               className="w-40 h-40 object-contain"
             />
           </div>
-
+          <CardTitle className="text-2xl font-bold text-neutral-800">
+            Welcome to Evolving Hearts
+          </CardTitle>
+          <p className="text-neutral-600">Join our meditation community</p>
         </CardHeader>
 
         <CardContent className="space-y-6">
