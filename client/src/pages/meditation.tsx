@@ -186,16 +186,7 @@ export default function MeditationPage() {
         </p>
       </div>
 
-      {/* Countdown Timer */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center space-x-2 px-6 py-3 bg-white rounded-full shadow-sm border border-neutral-200">
-          <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className="text-sm font-medium text-neutral-700">Session starts in:</span>
-          <span className="text-lg font-bold text-primary">{countdown}</span>
-        </div>
-      </div>
+
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

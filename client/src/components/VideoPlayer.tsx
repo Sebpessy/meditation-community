@@ -51,6 +51,18 @@ export function VideoPlayer({
     }
   };
 
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const video = videoRef.current;
+    if (video) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const progress = clickX / rect.width;
+      const newTime = progress * (duration * 60);
+      video.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -134,9 +146,12 @@ export function VideoPlayer({
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <div className="flex items-center space-x-3 text-white text-sm">
                   <span>{formatTime(currentTime)}</span>
-                  <div className="flex-1 h-1 bg-white/30 rounded-full">
+                  <div 
+                    className="flex-1 h-1 bg-white/30 rounded-full cursor-pointer"
+                    onClick={handleProgressClick}
+                  >
                     <div 
-                      className="h-full bg-primary rounded-full transition-all" 
+                      className="h-full bg-primary rounded-full transition-all pointer-events-none" 
                       style={{ width: `${(currentTime / (duration * 60)) * 100}%` }}
                     />
                   </div>
@@ -215,23 +230,7 @@ export function VideoPlayer({
         </CardContent>
       </Card>
 
-      {/* Session Guide */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold text-neutral-800 mb-4">Session Guide</h3>
-        <div className="space-y-3">
-          {sessionSteps.map((step) => (
-            <div key={step.number} className="flex items-start space-x-3">
-              <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-xs font-medium text-primary">{step.number}</span>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-neutral-800">{step.title}</p>
-                <p className="text-xs text-neutral-600">{step.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
+
     </div>
   );
 }
