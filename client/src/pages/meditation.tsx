@@ -233,8 +233,8 @@ export default function MeditationPage() {
 
       {/* Mobile Content */}
       <div className="md:hidden flex-1 flex flex-col">
-        {/* Video Player Container - Fixed at top of viewport */}
-        <div className="fixed top-0 left-0 right-0 z-20 bg-white">
+        {/* Video Player Container - Fixed at top of viewport, below navigation */}
+        <div className="fixed top-16 left-0 right-0 z-20 bg-white">
           <VideoPlayer
             videoUrl={meditation.videoUrl}
             title={meditation.title}
@@ -262,7 +262,7 @@ export default function MeditationPage() {
         </div>
 
         {/* Scrollable content area with top padding to account for fixed header */}
-        <div className="flex-1 overflow-y-auto" style={{ paddingTop: '420px' }}>
+        <div className="flex-1 overflow-y-auto" style={{ paddingTop: '480px' }}>
 
           {/* Title and Description for mobile */}
           <div className="p-4 bg-white border-b border-neutral-200">
