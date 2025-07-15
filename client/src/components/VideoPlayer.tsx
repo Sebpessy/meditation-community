@@ -136,11 +136,17 @@ export function VideoPlayer({
               ref={videoRef}
               className="w-full h-full object-cover"
               src={videoUrl}
+              controls={false}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
               onLoadedMetadata={() => {
                 if (videoRef.current) {
                   console.log('Video loaded:', videoRef.current.duration);
+                }
+              }}
+              onTimeUpdate={() => {
+                if (videoRef.current) {
+                  setCurrentTime(videoRef.current.currentTime);
                 }
               }}
             />

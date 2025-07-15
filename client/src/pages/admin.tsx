@@ -23,6 +23,42 @@ export default function AdminPage() {
   const [user] = useAuthState(auth);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [backendUser, setBackendUser] = useState<{ isAdmin: boolean } | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setLocation("/auth");
+        return;
+      }
+
+      try {
+        const response = await apiRequest("GET", `/api/auth/user/${user.uid}`);
+        if (response.ok) {
+          const userData = await response.json();
+          setBackendUser(userData);
+          if (!userData.isAdmin) {
+            setLocation("/meditation");
+            toast({
+              title: "Access Denied",
+              description: "You don't have permission to access the admin panel.",
+              variant: "destructive"
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check admin status:", error);
+        setLocation("/auth");
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user, setLocation, toast]);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<MeditationTemplate | null>(null);
@@ -311,6 +347,20 @@ export default function AdminPage() {
     template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.instructor.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loading size="lg" />
+      </div>
+    );
+  }
+
+  // User is not authenticated or not admin - redirect handled in useEffect
+  if (!user || !backendUser?.isAdmin) {
+    return null;
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
