@@ -290,8 +290,16 @@ export default function MeditationPage() {
             {formatDate(meditation.date)}
           </Badge>
           
-          <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg px-3 py-1">
-            <CountdownTimer />
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400'}`} />
+              <span className="text-sm text-neutral-600">
+                {Math.max(onlineCount, wsOnlineCount)} online
+              </span>
+            </div>
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg px-3 py-1">
+              <CountdownTimer />
+            </div>
           </div>
         </div>
 
@@ -301,17 +309,9 @@ export default function MeditationPage() {
         <div className="flex-shrink-0 p-4 bg-white border-b border-neutral-200">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-neutral-800">Live Chat</h3>
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400'}`} />
-              <span className="text-sm text-neutral-600">
-                {Math.max(onlineCount, wsOnlineCount)} online
-              </span>
-            </div>
-          </div>
-          
-          {/* Online Users Display */}
-          {onlineUsers && onlineUsers.length > 0 && (
-            <div className="mt-3 flex justify-end">
+            
+            {/* Online Users Display */}
+            {onlineUsers && onlineUsers.length > 0 && (
               <div className="flex flex-wrap items-center justify-end gap-1 max-w-full">
                 {onlineUsers.map((user) => (
                   <div key={user.id} className="relative">
@@ -337,8 +337,8 @@ export default function MeditationPage() {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Scrollable Chat Messages - Only this part scrolls */}

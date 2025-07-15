@@ -91,17 +91,9 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
           <div className="p-4 border-b border-neutral-200 bg-white flex-shrink-0">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-neutral-800">Live Chat</h3>
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400'}`} />
-                <span className="text-sm text-neutral-600">
-                  {onlineCount} online
-                </span>
-              </div>
-            </div>
-            
-            {/* Online Users Display */}
-            {onlineUsers.length > 0 && (
-              <div className="mt-3 flex justify-end">
+              
+              {/* Online Users Display */}
+              {onlineUsers.length > 0 && (
                 <div className="flex flex-wrap items-center justify-end gap-1 max-w-full">
                   {onlineUsers.map((user) => (
                     <div key={user.id} className="relative">
