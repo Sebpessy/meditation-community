@@ -106,8 +106,7 @@ export default function MeditationPage() {
   const [onlineCount, setOnlineCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<number | undefined>();
   const [wsOnlineCount, setWsOnlineCount] = useState(0);
-  const [showPiP, setShowPiP] = useState(false);
-  const videoContainerRef = useRef<HTMLDivElement>(null);
+
 
   const { data: meditation, isLoading, error } = useQuery<TodaysMeditation>({
     queryKey: ["/api/meditation/today"],
@@ -159,23 +158,6 @@ export default function MeditationPage() {
       setOnlineCount(onlineData.count);
     }
   }, [onlineData]);
-
-  // PiP scroll detection for mobile
-  useEffect(() => {
-    const handleScroll = () => {
-      if (videoContainerRef.current) {
-        const rect = videoContainerRef.current.getBoundingClientRect();
-        const isVideoVisible = rect.bottom > 0 && rect.top < window.innerHeight;
-        setShowPiP(!isVideoVisible);
-      }
-    };
-
-    // Only add scroll listener on mobile
-    if (window.innerWidth < 768) {
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
-    }
-  }, []);
 
 
 
@@ -231,20 +213,6 @@ export default function MeditationPage() {
 
   return (
     <div className="h-screen flex flex-col md:max-w-7xl md:mx-auto md:px-4 md:sm:px-6 md:lg:px-8 md:py-8">
-      {/* Mobile Header - Date left, Timer right */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-neutral-200 sticky top-0 z-20">
-        <Badge variant="outline" className="text-xs">
-          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          {formatDate(meditation.date)}
-        </Badge>
-        
-        <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg px-3 py-1">
-          <CountdownTimer />
-        </div>
-      </div>
-
       {/* Desktop Header */}
       <div className="hidden md:block text-center mb-8">
         <Badge variant="outline" className="mb-4">
@@ -264,9 +232,9 @@ export default function MeditationPage() {
       </div>
 
       {/* Mobile Content */}
-      <div className="md:hidden flex-1 flex flex-col pb-20">
-        {/* Video Player Container with PiP scroll detection */}
-        <div ref={videoContainerRef} className="relative">
+      <div className="md:hidden flex-1 flex flex-col">
+        {/* Video Player Container - Fixed at top */}
+        <div className="sticky top-0 z-10 bg-white">
           <VideoPlayer
             videoUrl={meditation.videoUrl}
             title={meditation.title}
@@ -279,46 +247,41 @@ export default function MeditationPage() {
           />
         </div>
 
-        {/* Picture-in-Picture Video - Shows when scrolled past main video */}
-        {showPiP && (
-          <div 
-            className="fixed top-20 right-4 z-30 w-32 h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white bg-black cursor-pointer"
-            onClick={() => {
-              // Scroll back to top to show main video
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          >
-            <VideoPlayer
-              videoUrl={meditation.videoUrl}
-              title={meditation.title}
-              instructor={meditation.instructor}
-              instructorTitle={meditation.instructorTitle}
-              duration={meditation.duration}
-              difficulty={meditation.difficulty}
-              participants={Math.max(onlineCount, wsOnlineCount)}
-              sessionSteps={meditation.sessionSteps}
-              isPiP={true}
-            />
+        {/* Mobile Header - Date left, Timer right - Below video */}
+        <div className="flex items-center justify-between p-4 bg-white border-b border-neutral-200">
+          <Badge variant="outline" className="text-xs">
+            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {formatDate(meditation.date)}
+          </Badge>
+          
+          <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg px-3 py-1">
+            <CountdownTimer />
           </div>
-        )}
-
-        {/* Title and Description for mobile */}
-        <div className="p-4 bg-white border-b border-neutral-200">
-          <h1 className="text-xl font-bold text-neutral-800 mb-1">
-            {meditation.title}
-          </h1>
-          <p className="text-sm text-neutral-600">
-            {meditation.description}
-          </p>
         </div>
 
-        {/* Live Chat - Mobile: Constrained height with sticky input */}
-        <div className="flex-1 flex flex-col min-h-0">
-          <LiveChat
-            userId={currentUserId}
-            sessionDate={meditation.date}
-            onOnlineCountChange={setWsOnlineCount}
-          />
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto">
+
+          {/* Title and Description for mobile */}
+          <div className="p-4 bg-white border-b border-neutral-200">
+            <h1 className="text-xl font-bold text-neutral-800 mb-1">
+              {meditation.title}
+            </h1>
+            <p className="text-sm text-neutral-600">
+              {meditation.description}
+            </p>
+          </div>
+
+          {/* Live Chat - Mobile: Constrained height with sticky input */}
+          <div className="flex-1 flex flex-col min-h-0 pb-20">
+            <LiveChat
+              userId={currentUserId}
+              sessionDate={meditation.date}
+              onOnlineCountChange={setWsOnlineCount}
+            />
+          </div>
         </div>
       </div>
 
