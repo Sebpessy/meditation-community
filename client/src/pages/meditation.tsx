@@ -41,6 +41,44 @@ export default function MeditationPage() {
   const [, setLocation] = useLocation();
   const [user] = useAuthState(auth);
   const [countdown, setCountdown] = useState("");
+  
+  // Function to calculate time remaining until midnight CST
+  const calculateTimeUntilMidnight = () => {
+    const now = new Date();
+    const cstOffset = -6; // CST is UTC-6
+    const cstTime = new Date(now.getTime() + (cstOffset * 60 * 60 * 1000));
+    
+    // Get next midnight CST
+    const nextMidnight = new Date(cstTime);
+    nextMidnight.setHours(24, 0, 0, 0); // Set to next midnight
+    
+    // Convert back to actual time for comparison
+    const nextMidnightUTC = new Date(nextMidnight.getTime() - (cstOffset * 60 * 60 * 1000));
+    
+    const timeRemaining = nextMidnightUTC.getTime() - now.getTime();
+    
+    if (timeRemaining <= 0) {
+      return "00:00:00";
+    }
+    
+    const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+  
+  // Update countdown every second
+  useEffect(() => {
+    const updateCountdown = () => {
+      setCountdown(calculateTimeUntilMidnight());
+    };
+    
+    updateCountdown(); // Initial call
+    const interval = setInterval(updateCountdown, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
   const [onlineCount, setOnlineCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<number | undefined>();
   const [wsOnlineCount, setWsOnlineCount] = useState(0);
@@ -193,6 +231,17 @@ export default function MeditationPage() {
           </svg>
           {formatDate(meditation.date)}
         </Badge>
+        
+        {/* Countdown Timer */}
+        <div className="mb-6">
+          <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 max-w-md mx-auto">
+            <div className="text-center">
+              <div className="text-sm text-neutral-600 mb-2">Next meditation in</div>
+              <div className="text-2xl font-mono font-bold text-primary">{countdown}</div>
+              <div className="text-xs text-neutral-500 mt-1">Updates daily at midnight CST</div>
+            </div>
+          </div>
+        </div>
         <h1 className="text-3xl sm:text-4xl font-bold text-neutral-800 mb-2">
           {meditation.title}
         </h1>
