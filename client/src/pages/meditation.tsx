@@ -261,12 +261,12 @@ export default function MeditationPage() {
           </div>
         </div>
 
-        {/* Scrollable content area with top padding to account for fixed header */}
-        <div className="flex-1 overflow-y-auto" style={{ paddingTop: '420px' }}>
+        {/* Fixed content area - no scrolling */}
+        <div className="flex-1 flex flex-col" style={{ paddingTop: '350px' }}>
 
-          {/* Title and Description for mobile */}
-          <div className="p-4 bg-white border-b border-neutral-200">
-            <h1 className="text-xl font-bold text-neutral-800 mb-1">
+          {/* Title and Description for mobile - Fixed position */}
+          <div className="p-3 bg-white border-b border-neutral-200">
+            <h1 className="text-lg font-bold text-neutral-800 mb-1">
               {meditation.title}
             </h1>
             <p className="text-sm text-neutral-600">
@@ -274,7 +274,7 @@ export default function MeditationPage() {
             </p>
           </div>
 
-          {/* Live Chat - Mobile: Full height with sticky input */}
+          {/* Live Chat - Mobile: Fixed position below title */}
           <div className="flex-1 flex flex-col min-h-0">
             <LiveChat
               userId={currentUserId}
