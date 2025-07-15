@@ -76,7 +76,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
             <img 
               src={logoImg} 
               alt="Evolving Hearts Logo" 
-              className="w-10 h-10 object-contain"
+              className="w-20 h-20 object-contain"
             />
             <h1 className="text-xl font-semibold text-neutral-800">Evolving Hearts</h1>
           </div>
