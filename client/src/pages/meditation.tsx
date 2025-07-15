@@ -233,8 +233,8 @@ export default function MeditationPage() {
 
       {/* Mobile Content */}
       <div className="md:hidden flex-1 flex flex-col">
-        {/* Video Player Container - Fixed at top */}
-        <div className="sticky top-0 z-10 bg-white">
+        {/* Video Player Container - Fixed at top of viewport */}
+        <div className="fixed top-0 left-0 right-0 z-20 bg-white">
           <VideoPlayer
             videoUrl={meditation.videoUrl}
             title={meditation.title}
@@ -245,24 +245,24 @@ export default function MeditationPage() {
             participants={Math.max(onlineCount, wsOnlineCount)}
             sessionSteps={meditation.sessionSteps}
           />
-        </div>
-
-        {/* Mobile Header - Date left, Timer right - Below video */}
-        <div className="flex items-center justify-between p-4 bg-white border-b border-neutral-200">
-          <Badge variant="outline" className="text-xs">
-            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            {formatDate(meditation.date)}
-          </Badge>
           
-          <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg px-3 py-1">
-            <CountdownTimer />
+          {/* Mobile Header - Date left, Timer right - Below video */}
+          <div className="flex items-center justify-between p-4 bg-white border-b border-neutral-200">
+            <Badge variant="outline" className="text-xs">
+              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {formatDate(meditation.date)}
+            </Badge>
+            
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg px-3 py-1">
+              <CountdownTimer />
+            </div>
           </div>
         </div>
 
-        {/* Scrollable content area */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Scrollable content area with top padding to account for fixed header */}
+        <div className="flex-1 overflow-y-auto" style={{ paddingTop: '420px' }}>
 
           {/* Title and Description for mobile */}
           <div className="p-4 bg-white border-b border-neutral-200">
@@ -274,8 +274,8 @@ export default function MeditationPage() {
             </p>
           </div>
 
-          {/* Live Chat - Mobile: Constrained height with sticky input */}
-          <div className="flex-1 flex flex-col min-h-0 pb-20">
+          {/* Live Chat - Mobile: Full height with sticky input */}
+          <div className="flex-1 flex flex-col min-h-0">
             <LiveChat
               userId={currentUserId}
               sessionDate={meditation.date}
