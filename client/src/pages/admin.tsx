@@ -105,6 +105,9 @@ export default function AdminPage() {
     enabled: !!backendUser?.isAdmin,
   });
 
+  // Debug: Log users data
+  console.log("Users data:", users);
+
   const createTemplateMutation = useMutation({
     mutationFn: (templateData: any) => apiRequest("POST", "/api/admin/templates", templateData),
     onSuccess: () => {
@@ -421,6 +424,9 @@ export default function AdminPage() {
     user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(userSearchTerm.toLowerCase())
   ) || [];
+
+  // Debug: Log filtered users
+  console.log("Filtered users:", filteredUsers);
 
   // Show loading while checking authentication
   if (isCheckingAuth) {
