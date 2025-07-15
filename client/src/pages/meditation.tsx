@@ -42,36 +42,55 @@ export default function MeditationPage() {
   const [user] = useAuthState(auth);
   const [countdown, setCountdown] = useState("");
   
-  // Function to calculate time remaining until midnight CST
+  // Function to calculate time remaining until midnight Central Time
   const calculateTimeUntilMidnight = () => {
     const now = new Date();
-    const cstOffset = -6; // CST is UTC-6
-    const cstTime = new Date(now.getTime() + (cstOffset * 60 * 60 * 1000));
     
-    // Get next midnight CST
-    const nextMidnight = new Date(cstTime);
-    nextMidnight.setHours(24, 0, 0, 0); // Set to next midnight
+    // Get tomorrow's date in Central Time zone
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
     
-    // Convert back to actual time for comparison
-    const nextMidnightUTC = new Date(nextMidnight.getTime() - (cstOffset * 60 * 60 * 1000));
+    // Create midnight tomorrow in Central Time
+    const midnightTomorrow = new Date(tomorrow.toLocaleDateString("en-US", {timeZone: "America/Chicago"}) + " 00:00:00");
     
-    const timeRemaining = nextMidnightUTC.getTime() - now.getTime();
+    // Convert to Central Time for accurate calculation
+    const options = { timeZone: "America/Chicago" };
+    const centralNow = new Date(now.toLocaleString("en-US", options));
+    const centralMidnight = new Date(midnightTomorrow.toLocaleString("en-US", options));
     
-    if (timeRemaining <= 0) {
+    // Simple calculation: hours until midnight
+    const nowInCentral = new Date().toLocaleString("en-US", {timeZone: "America/Chicago"});
+    const [datePart, timePart] = nowInCentral.split(', ');
+    const [time, ampm] = timePart.split(' ');
+    const [hours, minutes, seconds] = time.split(':').map(Number);
+    
+    // Convert to 24-hour format
+    let hour24 = hours;
+    if (ampm === 'PM' && hours !== 12) hour24 += 12;
+    if (ampm === 'AM' && hours === 12) hour24 = 0;
+    
+    // Calculate remaining time
+    const totalSecondsUntilMidnight = (24 * 60 * 60) - (hour24 * 60 * 60) - (minutes * 60) - seconds;
+    
+    if (totalSecondsUntilMidnight <= 0) {
       return "00:00:00";
     }
     
-    const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
-    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+    const remainingHours = Math.floor(totalSecondsUntilMidnight / 3600);
+    const remainingMinutes = Math.floor((totalSecondsUntilMidnight % 3600) / 60);
+    const remainingSeconds = totalSecondsUntilMidnight % 60;
     
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return `${remainingHours.toString().padStart(2, '0')}:${remainingMinutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
   
   // Update countdown every second
   useEffect(() => {
     const updateCountdown = () => {
-      setCountdown(calculateTimeUntilMidnight());
+      const newCountdown = calculateTimeUntilMidnight();
+      setCountdown(prevCountdown => {
+        // Only update if value actually changed to reduce re-renders
+        return prevCountdown !== newCountdown ? newCountdown : prevCountdown;
+      });
     };
     
     updateCountdown(); // Initial call
