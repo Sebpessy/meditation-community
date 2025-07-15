@@ -69,16 +69,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 sessionDate: connectionInfo.sessionDate
               });
 
-              // Get user info for the message
-              const user = await storage.getUser(connectionInfo.userId);
-              
               // Broadcast message to all users in the session
               broadcastToSession(connectionInfo.sessionDate, {
                 type: 'new-message',
-                message: {
-                  ...chatMessage,
-                  user: user ? { id: user.id, name: user.name } : { id: 0, name: 'Unknown' }
-                }
+                message: chatMessage
               });
             }
             break;
