@@ -8,10 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Loading } from "@/components/ui/loading";
-import { Camera, Save, User } from "lucide-react";
+import { Camera, Save, User, Crop as CropIcon } from "lucide-react";
+import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import { updateUserSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -28,6 +31,19 @@ export default function SettingsPage() {
     email: "",
     profilePicture: ""
   });
+
+  // Image cropping state
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Crop>({
+    unit: '%',
+    width: 50,
+    height: 50,
+    x: 25,
+    y: 25
+  });
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
+  const [isCropDialogOpen, setIsCropDialogOpen] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   // Fetch current user data
   const { data: currentUser, isLoading } = useQuery({
@@ -77,9 +93,68 @@ export default function SettingsPage() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const base64 = e.target?.result as string;
-        setFormData(prev => ({ ...prev, profilePicture: base64 }));
+        setImageToCrop(base64);
+        setIsCropDialogOpen(true);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const getCroppedImg = (image: HTMLImageElement, crop: PixelCrop): Promise<string> => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      throw new Error('No 2d context');
+    }
+
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    canvas.width = crop.width;
+    canvas.height = crop.height;
+
+    ctx.drawImage(
+      image,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * scaleX,
+      crop.height * scaleY,
+      0,
+      0,
+      crop.width,
+      crop.height
+    );
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        }
+      }, 'image/jpeg', 0.8);
+    });
+  };
+
+  const handleCropComplete = async () => {
+    if (completedCrop && imgRef.current) {
+      try {
+        const croppedImageUrl = await getCroppedImg(imgRef.current, completedCrop);
+        setFormData(prev => ({
+          ...prev,
+          profilePicture: croppedImageUrl
+        }));
+        setIsCropDialogOpen(false);
+        setImageToCrop(null);
+      } catch (error) {
+        console.error('Error cropping image:', error);
+        toast({
+          title: "Error",
+          description: "Failed to crop image. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -259,6 +334,53 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Image Cropping Dialog */}
+      <Dialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CropIcon className="w-5 h-5" />
+              Crop Profile Picture
+            </DialogTitle>
+          </DialogHeader>
+          {imageToCrop && (
+            <div className="space-y-4">
+              <div className="relative">
+                <ReactCrop
+                  crop={crop}
+                  onChange={(c) => setCrop(c)}
+                  onComplete={(c) => setCompletedCrop(c)}
+                  aspect={1}
+                  circularCrop
+                >
+                  <img
+                    ref={imgRef}
+                    src={imageToCrop}
+                    alt="Crop"
+                    className="max-w-full max-h-96 object-contain"
+                  />
+                </ReactCrop>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsCropDialogOpen(false);
+                    setImageToCrop(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleCropComplete}>
+                  <CropIcon className="w-4 h-4 mr-2" />
+                  Apply Crop
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
