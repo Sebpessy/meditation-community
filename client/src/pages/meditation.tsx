@@ -253,18 +253,20 @@ export default function MeditationPage() {
 
       {/* Mobile Content */}
       <div className="md:hidden h-screen flex flex-col">
-        {/* Fixed Video Player - Below banner, no padding */}
-        <div className="flex-shrink-0 bg-white">
-          <VideoPlayer
-            videoUrl={meditation.videoUrl}
-            title={meditation.title}
-            instructor={meditation.instructor}
-            instructorTitle={meditation.instructorTitle}
-            duration={meditation.duration}
-            difficulty={meditation.difficulty}
-            participants={Math.max(onlineCount, wsOnlineCount)}
-            sessionSteps={meditation.sessionSteps}
-          />
+        {/* Fixed Video Player - Below banner, reduced height */}
+        <div className="flex-shrink-0 bg-white" style={{ height: '35vh' }}>
+          <div className="h-full">
+            <VideoPlayer
+              videoUrl={meditation.videoUrl}
+              title={meditation.title}
+              instructor={meditation.instructor}
+              instructorTitle={meditation.instructorTitle}
+              duration={meditation.duration}
+              difficulty={meditation.difficulty}
+              participants={Math.max(onlineCount, wsOnlineCount)}
+              sessionSteps={meditation.sessionSteps}
+            />
+          </div>
         </div>
 
         {/* Fixed Date and Timer - Below video */}
