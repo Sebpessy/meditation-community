@@ -12,6 +12,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { apiRequest } from "@/lib/queryClient";
+import logoImg from "@/assets/logo.png";
 
 interface NavigationProps {
   onlineCount: number;
@@ -73,7 +74,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <img 
-              src="/attached_assets/coeur_3models-03 copy_1752543508175.png" 
+              src={logoImg} 
               alt="Evolving Hearts Logo" 
               className="w-10 h-10 object-contain"
             />
