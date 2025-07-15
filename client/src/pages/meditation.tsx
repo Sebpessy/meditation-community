@@ -271,16 +271,13 @@ export default function MeditationPage() {
           </div>
         </div>
 
-        {/* Fixed content area - no scrolling */}
+        {/* Chat area - Full remaining space */}
         <div className="flex-1 flex flex-col" style={{ paddingTop: '400px' }}>
-          {/* Live Chat - Mobile: Takes remaining space */}
-          <div className="flex-1 flex flex-col min-h-0 bg-white">
-            <LiveChat
-              userId={currentUserId}
-              sessionDate={meditation.date}
-              onOnlineCountChange={setWsOnlineCount}
-            />
-          </div>
+          <LiveChat
+            userId={currentUserId}
+            sessionDate={meditation.date}
+            onOnlineCountChange={setWsOnlineCount}
+          />
         </div>
       </div>
 
