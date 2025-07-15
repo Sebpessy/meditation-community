@@ -7,6 +7,7 @@ export interface ChatMessage {
   user: {
     id: number;
     name: string;
+    profilePicture?: string;
   };
 }
 

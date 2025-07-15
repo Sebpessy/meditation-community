@@ -212,8 +212,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getChatMessages(sessionDate: string, limit: number = 50): Promise<ChatMessage[]> {
-    const messages = await db.select()
+    const messages = await db.select({
+      id: chatMessages.id,
+      message: chatMessages.message,
+      timestamp: chatMessages.timestamp,
+      user: {
+        id: users.id,
+        name: users.name,
+        profilePicture: users.profilePicture
+      }
+    })
       .from(chatMessages)
+      .innerJoin(users, eq(chatMessages.userId, users.id))
       .where(eq(chatMessages.sessionDate, sessionDate))
       .orderBy(desc(chatMessages.timestamp))
       .limit(limit);
@@ -226,7 +236,20 @@ export class DatabaseStorage implements IStorage {
       .insert(chatMessages)
       .values(message)
       .returning();
-    return newMessage;
+    
+    // Get the user information including profile picture
+    const user = await this.getUser(newMessage.userId);
+    
+    return {
+      id: newMessage.id,
+      message: newMessage.message,
+      timestamp: newMessage.timestamp,
+      user: {
+        id: user!.id,
+        name: user!.name,
+        profilePicture: user!.profilePicture
+      }
+    };
   }
 }
 

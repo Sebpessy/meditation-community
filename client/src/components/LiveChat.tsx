@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send } from "lucide-react";
 import { useWebSocket } from "@/lib/websocket";
 import { apiRequest } from "@/lib/queryClient";
@@ -89,11 +90,12 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
         ) : (
           messages.map((message, index) => (
             <div key={message.id} className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-medium text-primary">
+              <Avatar className="w-8 h-8 flex-shrink-0">
+                <AvatarImage src={message.user.profilePicture || ""} alt={message.user.name} />
+                <AvatarFallback className="bg-primary/10 text-primary text-xs">
                   {message.user.name.charAt(0).toUpperCase()}
-                </span>
-              </div>
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
                   <span className="text-sm font-medium text-neutral-800">
