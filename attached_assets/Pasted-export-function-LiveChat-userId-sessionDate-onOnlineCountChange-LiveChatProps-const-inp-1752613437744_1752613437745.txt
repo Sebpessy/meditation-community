@@ -1,24 +1,8 @@
-import { useState, useEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send } from "lucide-react";
-import { useWebSocket } from "@/lib/websocket";
-import { apiRequest } from "@/lib/queryClient";
-
-interface LiveChatProps {
-  userId?: number;
-  sessionDate: string;
-  onOnlineCountChange?: (count: number) => void;
-}
-
 export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatProps) {
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, onlineCount, isConnected, sendMessage } = useWebSocket(userId, sessionDate);
 
-  // Update parent component when online count changes
   useEffect(() => {
     if (onOnlineCountChange) {
       onOnlineCountChange(onlineCount);
@@ -33,17 +17,14 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
     scrollToBottom();
   }, [messages]);
 
-  // Load initial messages
   useEffect(() => {
     const loadMessages = async () => {
       try {
         const response = await apiRequest("GET", `/api/meditation/chat/${sessionDate}`);
-        // Initial messages are loaded via WebSocket connection
       } catch (error) {
         console.error("Failed to load chat messages:", error);
       }
     };
-
     loadMessages();
   }, [sessionDate]);
 
