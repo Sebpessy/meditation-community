@@ -22,7 +22,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
   const [location] = useLocation();
   const [user] = useAuthState(auth);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [backendUser, setBackendUser] = useState<{ name: string; email: string } | null>(null);
+  const [backendUser, setBackendUser] = useState<{ name: string; email: string; isAdmin: boolean } | null>(null);
 
   // Fetch backend user info
   useEffect(() => {
@@ -32,7 +32,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
           const response = await apiRequest("GET", `/api/auth/user/${user.uid}`);
           if (response.ok) {
             const userData = await response.json();
-            setBackendUser({ name: userData.name, email: userData.email });
+            setBackendUser({ name: userData.name, email: userData.email, isAdmin: userData.isAdmin });
           } else if (response.status === 404) {
             // User doesn't exist in backend, register them
             const registerResponse = await apiRequest("POST", "/api/auth/register", {
@@ -42,7 +42,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
             });
             if (registerResponse.ok) {
               const userData = await registerResponse.json();
-              setBackendUser({ name: userData.name, email: userData.email });
+              setBackendUser({ name: userData.name, email: userData.email, isAdmin: userData.isAdmin });
             }
           }
         } catch (error) {
@@ -93,7 +93,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
               </span>
             </Link>
 
-            {user && (
+            {user && backendUser?.isAdmin && (
               <Link href="/admin">
                 <span className={`font-medium transition-colors cursor-pointer ${
                   isActive("/admin") 
@@ -166,7 +166,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                 </span>
               </Link>
 
-              {user && (
+              {user && backendUser?.isAdmin && (
                 <Link href="/admin">
                   <span className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer">
                     Admin
