@@ -105,8 +105,7 @@ export default function AdminPage() {
     enabled: !!backendUser?.isAdmin,
   });
 
-  // Debug: Log users data
-  console.log("Users data:", users);
+
 
   const createTemplateMutation = useMutation({
     mutationFn: (templateData: any) => apiRequest("POST", "/api/admin/templates", templateData),
@@ -425,8 +424,7 @@ export default function AdminPage() {
     user.email.toLowerCase().includes(userSearchTerm.toLowerCase())
   ) || [];
 
-  // Debug: Log filtered users
-  console.log("Filtered users:", filteredUsers);
+
 
   // Show loading while checking authentication
   if (isCheckingAuth) {
@@ -975,84 +973,143 @@ export default function AdminPage() {
               </CardContent>
             </Card>
           ) : (
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-4 font-medium text-neutral-700">User</th>
-                        <th className="text-left p-4 font-medium text-neutral-700">Email</th>
-                        <th className="text-left p-4 font-medium text-neutral-700">Role</th>
-                        <th className="text-left p-4 font-medium text-neutral-700">Joined</th>
-                        <th className="text-left p-4 font-medium text-neutral-700">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredUsers.map((user) => (
-                        <tr key={user.id} className="border-b hover:bg-neutral-50">
-                          <td className="p-4">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                                <span className="text-primary font-medium">
-                                  {user.name.charAt(0).toUpperCase()}
-                                </span>
-                              </div>
-                              <div>
-                                <p className="font-medium text-neutral-800">{user.name}</p>
-                                <p className="text-sm text-neutral-600">ID: {user.id}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <p className="text-neutral-800">{user.email}</p>
-                          </td>
-                          <td className="p-4">
-                            <Badge variant={user.isAdmin ? "default" : "secondary"}>
-                              {user.isAdmin ? "Admin" : "User"}
-                            </Badge>
-                          </td>
-                          <td className="p-4">
-                            <p className="text-neutral-600">
-                              {new Date(user.createdAt).toLocaleDateString()}
-                            </p>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center space-x-2">
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => toggleUserAdminStatus(user)}
-                                disabled={updateUserMutation.isPending}
-                              >
-                                {user.isAdmin ? "Remove Admin" : "Make Admin"}
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                onClick={() => handleEditUser(user)}
-                                disabled={updateUserMutation.isPending}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="text-red-500 hover:text-red-600"
-                                onClick={() => handleDeleteUser(user.id)}
-                                disabled={deleteUserMutation.isPending}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </td>
+            <div className="space-y-4">
+              {/* Desktop Table View */}
+              <Card className="hidden md:block">
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-4 font-medium text-neutral-700">User</th>
+                          <th className="text-left p-4 font-medium text-neutral-700">Email</th>
+                          <th className="text-left p-4 font-medium text-neutral-700">Role</th>
+                          <th className="text-left p-4 font-medium text-neutral-700">Joined</th>
+                          <th className="text-left p-4 font-medium text-neutral-700">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+                      </thead>
+                      <tbody>
+                        {filteredUsers.map((user) => (
+                          <tr key={user.id} className="border-b hover:bg-neutral-50">
+                            <td className="p-4">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                  <span className="text-primary font-medium">
+                                    {user.name.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-neutral-800">{user.name}</p>
+                                  <p className="text-sm text-neutral-600">ID: {user.id}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <p className="text-neutral-800">{user.email}</p>
+                            </td>
+                            <td className="p-4">
+                              <Badge variant={user.isAdmin ? "default" : "secondary"}>
+                                {user.isAdmin ? "Admin" : "User"}
+                              </Badge>
+                            </td>
+                            <td className="p-4">
+                              <p className="text-neutral-600">
+                                {new Date(user.createdAt).toLocaleDateString()}
+                              </p>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center space-x-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => toggleUserAdminStatus(user)}
+                                  disabled={updateUserMutation.isPending}
+                                >
+                                  {user.isAdmin ? "Remove Admin" : "Make Admin"}
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  onClick={() => handleEditUser(user)}
+                                  disabled={updateUserMutation.isPending}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="text-red-500 hover:text-red-600"
+                                  onClick={() => handleDeleteUser(user.id)}
+                                  disabled={deleteUserMutation.isPending}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-3">
+                {filteredUsers.map((user) => (
+                  <Card key={user.id} className="p-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                        <span className="text-primary font-medium text-lg">
+                          {user.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-medium text-neutral-800 truncate">{user.name}</h3>
+                          <Badge variant={user.isAdmin ? "default" : "secondary"} className="text-xs">
+                            {user.isAdmin ? "Admin" : "User"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-neutral-600 truncate mb-1">{user.email}</p>
+                        <p className="text-xs text-neutral-500">
+                          ID: {user.id} • Joined: {new Date(user.createdAt).toLocaleDateString()}
+                        </p>
+                        <div className="flex items-center space-x-2 mt-3">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => toggleUserAdminStatus(user)}
+                            disabled={updateUserMutation.isPending}
+                            className="flex-1 text-xs"
+                          >
+                            {user.isAdmin ? "Remove Admin" : "Make Admin"}
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => handleEditUser(user)}
+                            disabled={updateUserMutation.isPending}
+                            className="px-3"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => handleDeleteUser(user.id)}
+                            disabled={deleteUserMutation.isPending}
+                            className="px-3 text-red-500 hover:text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* User Edit Modal */}

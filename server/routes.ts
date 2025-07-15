@@ -358,6 +358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const users = await storage.getAllUsers();
       res.json(users);
     } catch (error) {
+      console.error('Error in /api/admin/users:', error);
       res.status(500).json({ error: 'Failed to fetch users' });
     }
   });
