@@ -147,42 +147,7 @@ export default function MeditationPage() {
     }
   }, [onlineData]);
 
-  // Countdown timer
-  useEffect(() => {
-    if (!meditation) return;
 
-    const updateCountdown = () => {
-      const now = new Date();
-      const today = now.toISOString().split('T')[0];
-      const scheduledDateTime = new Date(`${today}T${meditation.scheduledTime}:00`);
-      
-      // If scheduled time has passed, set for next day
-      if (scheduledDateTime <= now) {
-        scheduledDateTime.setDate(scheduledDateTime.getDate() + 1);
-      }
-
-      const timeDiff = scheduledDateTime.getTime() - now.getTime();
-      
-      if (timeDiff <= 0) {
-        setCountdown("00:00");
-        return;
-      }
-
-      const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
-
-      if (hours > 0) {
-        setCountdown(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-      } else {
-        setCountdown(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-      }
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, [meditation]);
 
   useEffect(() => {
     if (!user) {
