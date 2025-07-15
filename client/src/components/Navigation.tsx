@@ -161,14 +161,20 @@ export function Navigation({ onlineCount }: NavigationProps) {
           <div className="md:hidden py-4 border-t border-neutral-200">
             <div className="space-y-2">
               <Link href="/meditation">
-                <span className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer">
+                <span 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
+                >
                   Meditation
                 </span>
               </Link>
 
               {user && backendUser?.isAdmin && (
                 <Link href="/admin">
-                  <span className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer">
+                  <span 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
+                  >
                     Admin
                   </span>
                 </Link>

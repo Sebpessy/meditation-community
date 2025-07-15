@@ -30,6 +30,12 @@ Preferred communication style: Simple, everyday language.
 - ✅ Added toggle admin status functionality for user management
 - ✅ Updated dashboard to display user statistics
 - ✅ Granted admin privileges to sebpessy@gmail.com user
+- ✅ Implemented mobile UI improvements for navigation and chat
+- ✅ Added auto-close mobile navigation menu when items are selected
+- ✅ Enhanced chat to focus on latest messages with last 30 messages persistence
+- ✅ Made chat header and input sticky on mobile for better usability
+- ✅ Updated WebSocket to send initial messages when joining sessions
+- ✅ Improved mobile meditation page layout with full-height chat
 
 ### July 14, 2025
 - ✅ Fixed TypeScript compilation errors in storage layer

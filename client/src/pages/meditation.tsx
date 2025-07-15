@@ -209,8 +209,8 @@ export default function MeditationPage() {
           />
         </div>
 
-        {/* Live Chat */}
-        <div className="lg:col-span-1">
+        {/* Live Chat - Mobile: Full height with custom styles */}
+        <div className="lg:col-span-1 h-[calc(100vh-280px)] md:h-auto">
           <LiveChat
             userId={currentUserId}
             sessionDate={meditation.date}

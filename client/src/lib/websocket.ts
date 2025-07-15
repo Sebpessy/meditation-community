@@ -20,6 +20,12 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
+  const messagesRef = useRef<ChatMessage[]>([]);
+
+  // Keep messages in sync with ref for persistence
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   useEffect(() => {
     if (!userId || !sessionDate) {
@@ -53,12 +59,21 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
         
         switch (message.type) {
           case 'new-message':
-            setMessages(prev => [...prev, message.message]);
+            setMessages(prev => {
+              const newMessages = [...prev, message.message];
+              // Keep only last 30 messages for memory management
+              return newMessages.length > 30 ? newMessages.slice(-30) : newMessages;
+            });
             break;
           case 'user-joined':
           case 'user-left':
             console.log('Online count updated:', message.onlineCount);
             setOnlineCount(message.onlineCount);
+            break;
+          case 'initial-messages':
+            // Load initial messages and keep last 30
+            const initialMessages = message.messages.slice(-30);
+            setMessages(initialMessages);
             break;
         }
       } catch (error) {

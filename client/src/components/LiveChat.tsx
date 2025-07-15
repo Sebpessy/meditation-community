@@ -66,9 +66,9 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
   };
 
   return (
-    <Card className="h-full max-h-[600px] flex flex-col">
-      {/* Chat Header */}
-      <div className="p-4 border-b border-neutral-200">
+    <Card className="h-full flex flex-col md:max-h-[600px]">
+      {/* Chat Header - Mobile: Fixed header */}
+      <div className="p-4 border-b border-neutral-200 bg-white md:bg-transparent md:relative sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-neutral-800">Live Chat</h3>
           <div className="flex items-center space-x-2">
@@ -80,14 +80,14 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
         </div>
       </div>
 
-      {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      {/* Chat Messages - Mobile: Flex grow to fill available space */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
         {messages.length === 0 ? (
           <div className="text-center text-neutral-500 py-8">
             <p>No messages yet. Start the conversation!</p>
           </div>
         ) : (
-          messages.map((message) => (
+          messages.map((message, index) => (
             <div key={message.id} className="flex items-start space-x-3">
               <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-xs font-medium text-primary">
@@ -113,8 +113,8 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat Input */}
-      <div className="p-4 border-t border-neutral-200">
+      {/* Chat Input - Mobile: Fixed at bottom */}
+      <div className="p-4 border-t border-neutral-200 bg-white md:bg-transparent md:relative sticky bottom-0 z-10">
         {userId ? (
           <div className="flex items-center space-x-2">
             <Input

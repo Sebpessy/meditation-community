@@ -31,6 +31,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
             connectionInfo.sessionDate = message.sessionDate;
             activeConnections.set(ws, connectionInfo);
             
+            // Send initial messages to the user (last 30 messages)
+            try {
+              const initialMessages = await storage.getChatMessages(message.sessionDate, 30);
+              const messagesWithUsers = await Promise.all(
+                initialMessages.map(async (msg) => {
+                  const user = msg.userId ? await storage.getUser(msg.userId) : null;
+                  return {
+                    ...msg,
+                    user: user ? { id: user.id, name: user.name } : { id: 0, name: 'Unknown' }
+                  };
+                })
+              );
+
+              // Send initial messages to the joining user
+              ws.send(JSON.stringify({
+                type: 'initial-messages',
+                messages: messagesWithUsers
+              }));
+            } catch (error) {
+              console.error('Failed to send initial messages:', error);
+            }
+            
             // Broadcast user joined
             broadcastToSession(message.sessionDate, {
               type: 'user-joined',
