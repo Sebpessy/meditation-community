@@ -259,12 +259,8 @@ export default function MeditationPage() {
               <CountdownTimer />
             </div>
           </div>
-        </div>
 
-        {/* Fixed content area - no scrolling */}
-        <div className="flex-1 flex flex-col" style={{ paddingTop: '350px' }}>
-
-          {/* Title and Description for mobile - Fixed position */}
+          {/* Title and Description for mobile - Always visible under date */}
           <div className="p-3 bg-white border-b border-neutral-200">
             <h1 className="text-lg font-bold text-neutral-800 mb-1">
               {meditation.title}
@@ -273,7 +269,10 @@ export default function MeditationPage() {
               {meditation.description}
             </p>
           </div>
+        </div>
 
+        {/* Fixed content area - no scrolling */}
+        <div className="flex-1 flex flex-col" style={{ paddingTop: '400px' }}>
           {/* Live Chat - Mobile: Fixed position below title */}
           <div className="flex-1 flex flex-col min-h-0">
             <LiveChat
