@@ -118,7 +118,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
       </Card>
 
       {/* Chat Input - Mobile: Fixed at bottom of viewport, outside of Card */}
-      <div className="p-4 border-t border-neutral-200 bg-white md:bg-transparent md:relative md:static fixed md:relative bottom-0 left-0 right-0 z-50 shadow-lg md:shadow-none">
+      <div className="p-px border-t border-neutral-200 bg-white md:bg-transparent md:relative md:static fixed md:relative bottom-0 left-0 right-0 z-50 shadow-lg md:shadow-none">
         {userId ? (
           <div className="flex items-center space-x-2">
             <Input
