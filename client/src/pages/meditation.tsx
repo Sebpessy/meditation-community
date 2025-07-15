@@ -172,12 +172,14 @@ export default function MeditationPage() {
   }
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    // Parse the date string and ensure it's interpreted as CST
+    const date = new Date(dateStr + 'T12:00:00-06:00'); // Add CST timezone
     return date.toLocaleDateString('en-US', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
-      day: 'numeric' 
+      day: 'numeric',
+      timeZone: 'America/Chicago' // Force CST interpretation
     });
   };
 
