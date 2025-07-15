@@ -16,7 +16,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { MeditationTemplate, Schedule } from "@shared/schema";
+import { MeditationTemplate, Schedule, User } from "@shared/schema";
 
 export default function AdminPage() {
   const [, setLocation] = useLocation();
@@ -71,6 +71,9 @@ export default function AdminPage() {
   });
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
+  const [userSearchTerm, setUserSearchTerm] = useState("");
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
 
   const [templateForm, setTemplateForm] = useState({
     title: "",
@@ -94,6 +97,12 @@ export default function AdminPage() {
 
   const { data: schedules, isLoading: schedulesLoading } = useQuery<Schedule[]>({
     queryKey: ["/api/admin/schedules"],
+  });
+
+  // Fetch users
+  const { data: users, isLoading: usersLoading } = useQuery<User[]>({
+    queryKey: ["/api/admin/users"],
+    enabled: !!backendUser?.isAdmin,
   });
 
   const createTemplateMutation = useMutation({
@@ -210,6 +219,46 @@ export default function AdminPage() {
       toast({
         title: "Error",
         description: "Failed to delete schedule. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // User Management Mutations
+  const updateUserMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => 
+      apiRequest("PUT", `/api/admin/users/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setEditingUser(null);
+      setIsUserModalOpen(false);
+      toast({
+        title: "User updated",
+        description: "The user has been updated successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update user. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/admin/users/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "User deleted",
+        description: "The user has been deleted successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete user. Please try again.",
         variant: "destructive"
       });
     }
@@ -343,9 +392,34 @@ export default function AdminPage() {
     }
   };
 
+  // User Management Handlers
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setIsUserModalOpen(true);
+  };
+
+  const handleUpdateUser = (id: number, userData: any) => {
+    updateUserMutation.mutate({ id, data: userData });
+  };
+
+  const handleDeleteUser = (id: number) => {
+    if (confirm("Are you sure you want to delete this user?")) {
+      deleteUserMutation.mutate(id);
+    }
+  };
+
+  const toggleUserAdminStatus = (user: User) => {
+    handleUpdateUser(user.id, { isAdmin: !user.isAdmin });
+  };
+
   const filteredTemplates = templates?.filter(template =>
     template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.instructor.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  const filteredUsers = users?.filter(user => 
+    user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(userSearchTerm.toLowerCase())
   ) || [];
 
   // Show loading while checking authentication
@@ -433,11 +507,11 @@ export default function AdminPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-neutral-600">Status</p>
-                    <p className="text-2xl font-bold text-green-600">Active</p>
+                    <p className="text-sm font-medium text-neutral-600">Total Users</p>
+                    <p className="text-2xl font-bold text-neutral-800">{users?.length || 0}</p>
                   </div>
                   <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                    <Activity className="w-6 h-6 text-orange-600" />
+                    <Users className="w-6 h-6 text-orange-600" />
                   </div>
                 </div>
               </CardContent>
@@ -870,20 +944,162 @@ export default function AdminPage() {
             <div className="flex items-center space-x-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
-                <Input placeholder="Search users..." className="pl-10" />
+                <Input 
+                  placeholder="Search users..." 
+                  className="pl-10" 
+                  value={userSearchTerm}
+                  onChange={(e) => setUserSearchTerm(e.target.value)}
+                />
               </div>
             </div>
           </div>
 
-          <Card>
-            <CardContent className="p-0">
-              <div className="text-center py-12">
-                <Users className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-neutral-800 mb-2">User Management</h3>
-                <p className="text-neutral-600">User management features coming soon</p>
-              </div>
-            </CardContent>
-          </Card>
+          {usersLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loading />
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <Card>
+              <CardContent className="p-0">
+                <div className="text-center py-12">
+                  <Users className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-neutral-800 mb-2">No Users Found</h3>
+                  <p className="text-neutral-600">No users match your search criteria.</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-4 font-medium text-neutral-700">User</th>
+                        <th className="text-left p-4 font-medium text-neutral-700">Email</th>
+                        <th className="text-left p-4 font-medium text-neutral-700">Role</th>
+                        <th className="text-left p-4 font-medium text-neutral-700">Joined</th>
+                        <th className="text-left p-4 font-medium text-neutral-700">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredUsers.map((user) => (
+                        <tr key={user.id} className="border-b hover:bg-neutral-50">
+                          <td className="p-4">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                <span className="text-primary font-medium">
+                                  {user.name.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="font-medium text-neutral-800">{user.name}</p>
+                                <p className="text-sm text-neutral-600">ID: {user.id}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <p className="text-neutral-800">{user.email}</p>
+                          </td>
+                          <td className="p-4">
+                            <Badge variant={user.isAdmin ? "default" : "secondary"}>
+                              {user.isAdmin ? "Admin" : "User"}
+                            </Badge>
+                          </td>
+                          <td className="p-4">
+                            <p className="text-neutral-600">
+                              {new Date(user.createdAt).toLocaleDateString()}
+                            </p>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center space-x-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => toggleUserAdminStatus(user)}
+                                disabled={updateUserMutation.isPending}
+                              >
+                                {user.isAdmin ? "Remove Admin" : "Make Admin"}
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                onClick={() => handleEditUser(user)}
+                                disabled={updateUserMutation.isPending}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="text-red-500 hover:text-red-600"
+                                onClick={() => handleDeleteUser(user.id)}
+                                disabled={deleteUserMutation.isPending}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* User Edit Modal */}
+          <Dialog open={isUserModalOpen} onOpenChange={setIsUserModalOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Edit User</DialogTitle>
+              </DialogHeader>
+              {editingUser && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="userName">Name</Label>
+                    <Input
+                      id="userName"
+                      value={editingUser.name}
+                      onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="userEmail">Email</Label>
+                    <Input
+                      id="userEmail"
+                      value={editingUser.email}
+                      onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="isAdmin"
+                      checked={editingUser.isAdmin}
+                      onChange={(e) => setEditingUser({ ...editingUser, isAdmin: e.target.checked })}
+                    />
+                    <Label htmlFor="isAdmin">Administrator</Label>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsUserModalOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={() => handleUpdateUser(editingUser.id, editingUser)}
+                      disabled={updateUserMutation.isPending}
+                    >
+                      Save Changes
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </TabsContent>
       </Tabs>
     </div>

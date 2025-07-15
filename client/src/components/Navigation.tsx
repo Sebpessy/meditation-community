@@ -32,7 +32,6 @@ export function Navigation({ onlineCount }: NavigationProps) {
           const response = await apiRequest("GET", `/api/auth/user/${user.uid}`);
           if (response.ok) {
             const userData = await response.json();
-            console.log("Navigation: Backend user data:", userData);
             setBackendUser({ name: userData.name, email: userData.email, isAdmin: userData.isAdmin });
           } else if (response.status === 404) {
             // User doesn't exist in backend, register them
@@ -105,9 +104,6 @@ export function Navigation({ onlineCount }: NavigationProps) {
                 </span>
               </Link>
             )}
-            
-            {/* Debug info */}
-            {console.log("Navigation render - user:", !!user, "backendUser:", backendUser, "isAdmin:", backendUser?.isAdmin)}
           </div>
 
           {/* Right Side */}
