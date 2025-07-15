@@ -312,7 +312,7 @@ export default function MeditationPage() {
           {/* Online Users Display */}
           {onlineUsers && onlineUsers.length > 0 && (
             <div className="mt-3 flex justify-end">
-              <div className="flex items-center -space-x-2">
+              <div className="flex flex-wrap items-center justify-end gap-1 max-w-full">
                 {onlineUsers.map((user) => (
                   <div key={user.id} className="relative">
                     <Avatar 

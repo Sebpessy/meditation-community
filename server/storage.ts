@@ -28,6 +28,7 @@ export interface IStorage {
   // Chat operations
   getChatMessages(sessionDate: string, limit?: number): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  flushChatMessages(sessionDate: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -293,6 +294,11 @@ export class DatabaseStorage implements IStorage {
         profilePicture: user!.profilePicture
       }
     };
+  }
+
+  async flushChatMessages(sessionDate: string): Promise<boolean> {
+    const result = await db.delete(chatMessages).where(eq(chatMessages.sessionDate, sessionDate));
+    return (result.rowCount || 0) > 0;
   }
 }
 
