@@ -68,7 +68,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
 
   return (
     <div className="h-full flex flex-col">
-      <Card className="h-full flex flex-col md:flex-col">
+      <Card className="h-full flex flex-col">
         {/* Chat Header */}
         <div className="p-4 border-b border-neutral-200 bg-white sticky top-0 z-10 md:relative">
           <div className="flex items-center justify-between">
@@ -82,8 +82,8 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
           </div>
         </div>
 
-        {/* Chat Messages - Mobile: Limited height, Desktop: Inside Card */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 md:max-h-[400px] max-h-[33vh] pb-16 md:pb-0">
+        {/* Chat Messages - Mobile: Limited to 1/3 screen height, scrollable */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 md:max-h-[400px] max-h-[33vh] pb-0">
           {messages.length === 0 ? (
             <div className="text-center text-neutral-500 py-8">
               <p>No messages yet. Start the conversation!</p>
@@ -115,38 +115,10 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
           )}
           <div ref={messagesEndRef} />
         </div>
-
-        {/* Chat Input - Desktop: Inside Card, Mobile: Fixed at bottom */}
-        <div className="hidden md:block p-4 border-t border-neutral-200 bg-white">
-          {userId ? (
-            <div className="flex items-center space-x-2">
-              <Input
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Share your thoughts..."
-                className="flex-1"
-                disabled={!isConnected}
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || !isConnected}
-                size="sm"
-                className="p-2"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="text-center text-neutral-500 py-2">
-              <p>Please sign in to join the chat</p>
-            </div>
-          )}
-        </div>
       </Card>
 
-      {/* Chat Input - Mobile: Fixed at bottom of viewport */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-4 border-t border-neutral-200 bg-white shadow-lg">
+      {/* Chat Input - Mobile: Fixed at bottom of viewport, outside of Card */}
+      <div className="p-px border-t border-neutral-200 bg-white md:bg-transparent md:relative md:static fixed md:relative bottom-0 left-0 right-0 z-50 shadow-lg md:shadow-none">
         {userId ? (
           <div className="flex items-center space-x-2">
             <Input
