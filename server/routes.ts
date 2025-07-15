@@ -39,7 +39,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   const user = msg.userId ? await storage.getUser(msg.userId) : null;
                   return {
                     ...msg,
-                    user: user ? { id: user.id, name: user.name } : { id: 0, name: 'Unknown' }
+                    user: user ? { 
+                      id: user.id, 
+                      name: user.name, 
+                      profilePicture: user.profilePicture 
+                    } : { id: 0, name: 'Unknown' }
                   };
                 })
               );
