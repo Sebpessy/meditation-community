@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   firebaseUid: text("firebase_uid").notNull().unique(),
+  profilePicture: text("profile_picture"),
   isAdmin: boolean("is_admin").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -46,6 +47,13 @@ export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   name: true,
   firebaseUid: true,
+  profilePicture: true,
+});
+
+export const updateUserSchema = createInsertSchema(users).pick({
+  email: true,
+  name: true,
+  profilePicture: true,
 });
 
 export const insertMeditationTemplateSchema = createInsertSchema(meditationTemplates).omit({

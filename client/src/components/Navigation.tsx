@@ -22,7 +22,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
   const [location] = useLocation();
   const [user] = useAuthState(auth);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [backendUser, setBackendUser] = useState<{ name: string; email: string; isAdmin: boolean } | null>(null);
+  const [backendUser, setBackendUser] = useState<{ name: string; email: string; isAdmin: boolean; profilePicture?: string } | null>(null);
 
   // Fetch backend user info
   useEffect(() => {
@@ -32,7 +32,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
           const response = await apiRequest("GET", `/api/auth/user/${user.uid}`);
           if (response.ok) {
             const userData = await response.json();
-            setBackendUser({ name: userData.name, email: userData.email, isAdmin: userData.isAdmin });
+            setBackendUser({ name: userData.name, email: userData.email, isAdmin: userData.isAdmin, profilePicture: userData.profilePicture });
           } else if (response.status === 404) {
             // User doesn't exist in backend, register them
             const registerResponse = await apiRequest("POST", "/api/auth/register", {
@@ -42,7 +42,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
             });
             if (registerResponse.ok) {
               const userData = await registerResponse.json();
-              setBackendUser({ name: userData.name, email: userData.email, isAdmin: userData.isAdmin });
+              setBackendUser({ name: userData.name, email: userData.email, isAdmin: userData.isAdmin, profilePicture: userData.profilePicture });
             }
           }
         } catch (error) {
@@ -119,19 +119,24 @@ export function Navigation({ onlineCount }: NavigationProps) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                      <User className="w-4 h-4 text-primary" />
-                    </div>
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src={backendUser?.profilePicture || ""} alt="Profile" />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {backendUser?.name?.charAt(0)?.toUpperCase() || user.displayName?.charAt(0)?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
                     <span className="hidden sm:inline text-sm font-medium text-neutral-700">
                       {backendUser?.name || user.displayName || user.email}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
-                    <Settings className="w-4 h-4 mr-2" />
-                    Settings
-                  </DropdownMenuItem>
+                  <Link href="/settings">
+                    <DropdownMenuItem>
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
@@ -176,6 +181,17 @@ export function Navigation({ onlineCount }: NavigationProps) {
                     className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
                   >
                     Admin
+                  </span>
+                </Link>
+              )}
+
+              {user && (
+                <Link href="/settings">
+                  <span 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
+                  >
+                    Settings
                   </span>
                 </Link>
               )}

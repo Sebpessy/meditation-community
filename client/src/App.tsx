@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import AuthPage from "@/pages/auth";
 import MeditationPage from "@/pages/meditation";
 import AdminPage from "@/pages/admin";
+import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 function AppContent() {
@@ -49,6 +50,7 @@ function AppContent() {
         <Route path="/auth" component={AuthPage} />
         <Route path="/meditation" component={MeditationPage} />
         <Route path="/admin" component={AdminPage} />
+        <Route path="/settings" component={SettingsPage} />
         <Route path="/" component={MeditationPage} />
         <Route component={NotFound} />
       </Switch>

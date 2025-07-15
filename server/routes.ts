@@ -169,6 +169,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User profile routes
+  app.put('/api/user/profile', async (req, res) => {
+    try {
+      // For now, we'll use a simple approach - the frontend will send the Firebase UID
+      const firebaseUid = req.body.firebaseUid;
+      
+      if (!firebaseUid) {
+        return res.status(401).json({ error: 'Firebase UID required' });
+      }
+
+      const user = await storage.getUserByFirebaseUid(firebaseUid);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const { updateUserSchema } = await import('@shared/schema');
+      const updateData = updateUserSchema.parse(req.body);
+      
+      const updatedUser = await storage.updateUser(user.id, updateData);
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Profile update error:', error);
+      res.status(400).json({ error: 'Invalid user data' });
+    }
+  });
+
   // Meditation routes
   app.get('/api/meditation/today', async (req, res) => {
     try {

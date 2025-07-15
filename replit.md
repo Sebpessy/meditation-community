@@ -36,6 +36,13 @@ Preferred communication style: Simple, everyday language.
 - ✅ Made chat header and input sticky on mobile for better usability
 - ✅ Updated WebSocket to send initial messages when joining sessions
 - ✅ Improved mobile meditation page layout with full-height chat
+- ✅ Created comprehensive user settings page with profile management
+- ✅ Added profile picture upload functionality with base64 storage
+- ✅ Implemented user profile editing (name, email, profile picture)
+- ✅ Updated database schema to include profile pictures
+- ✅ Added settings navigation in both desktop dropdown and mobile menu
+- ✅ Enhanced user avatar display with profile pictures in navigation
+- ✅ Created backend API route for user profile updates
 
 ### July 14, 2025
 - ✅ Fixed TypeScript compilation errors in storage layer
