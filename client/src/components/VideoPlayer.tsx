@@ -216,23 +216,21 @@ export function VideoPlayer({
       </Card>
 
       {/* Session Guide */}
-      <Card>
-        <CardContent className="p-6">
-          <h3 className="text-lg font-semibold text-neutral-800 mb-4">Session Guide</h3>
-          <div className="space-y-3">
-            {sessionSteps.map((step) => (
-              <div key={step.number} className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-xs font-medium text-primary">{step.number}</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-neutral-800">{step.title}</p>
-                  <p className="text-xs text-neutral-600">{step.description}</p>
-                </div>
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold text-neutral-800 mb-4">Session Guide</h3>
+        <div className="space-y-3">
+          {sessionSteps.map((step) => (
+            <div key={step.number} className="flex items-start space-x-3">
+              <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-xs font-medium text-primary">{step.number}</span>
               </div>
-            ))}
-          </div>
-        </CardContent>
+              <div>
+                <p className="text-sm font-medium text-neutral-800">{step.title}</p>
+                <p className="text-xs text-neutral-600">{step.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </Card>
     </div>
   );
