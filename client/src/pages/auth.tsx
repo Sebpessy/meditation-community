@@ -202,6 +202,7 @@ export default function AuthPage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
+                onFocus={() => setError("")}
                 required
                 className="mt-1"
               />

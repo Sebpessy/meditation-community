@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -17,6 +17,7 @@ import NotFound from "@/pages/not-found";
 function AppContent() {
   const [user, loading] = useAuthState(auth);
   const [onlineCount, setOnlineCount] = useState(0);
+  const [location] = useLocation();
 
   const { data: onlineData } = useQuery<{count: number}>({
     queryKey: ["/api/meditation/online-count", new Date().toISOString().split('T')[0]],
@@ -43,7 +44,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      <Navigation onlineCount={onlineCount} />
+      {location !== "/auth" && <Navigation onlineCount={onlineCount} />}
       <Switch>
         <Route path="/auth" component={AuthPage} />
         <Route path="/meditation" component={MeditationPage} />

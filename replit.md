@@ -22,6 +22,8 @@ Preferred communication style: Simple, everyday language.
 - ✅ Updated authentication page with custom logo and "Evolving Hearts" branding
 - ✅ Doubled logo size to 160px x 160px on authentication page
 - ✅ Added functional forgot password link with Firebase integration
+- ✅ Improved forgot password UX: error clears when user clicks back into email field
+- ✅ Removed top navigation bar from auth page for cleaner login experience
 
 ### July 14, 2025
 - ✅ Fixed TypeScript compilation errors in storage layer
