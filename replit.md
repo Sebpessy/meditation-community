@@ -65,6 +65,8 @@ Preferred communication style: Simple, everyday language.
 - ✅ Added online users API endpoint for real-time user list retrieval
 - ✅ Enhanced WebSocket messaging to include complete online user data
 - ✅ Updated both desktop and mobile chat interfaces with online user avatars
+- ✅ Moved online user avatars to the right side of chat header
+- ✅ Removed duplicate "Online:" text label for cleaner interface
 
 ### July 14, 2025
 - ✅ Fixed TypeScript compilation errors in storage layer

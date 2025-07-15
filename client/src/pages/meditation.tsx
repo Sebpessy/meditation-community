@@ -311,8 +311,7 @@ export default function MeditationPage() {
           
           {/* Online Users Display */}
           {onlineUsers && onlineUsers.length > 0 && (
-            <div className="mt-3 flex items-center space-x-2">
-              <span className="text-xs text-neutral-500">Online:</span>
+            <div className="mt-3 flex justify-end">
               <div className="flex items-center -space-x-2">
                 {onlineUsers.map((user) => (
                   <div key={user.id} className="relative">
