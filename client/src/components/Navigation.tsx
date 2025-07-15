@@ -70,7 +70,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
   return (
     <nav className="bg-white shadow-sm border-b border-neutral-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-24">
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <img 
@@ -92,15 +92,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                 Meditation
               </span>
             </Link>
-            <Link href="/community">
-              <span className={`font-medium transition-colors cursor-pointer ${
-                isActive("/community") 
-                  ? "text-primary border-b-2 border-primary pb-1" 
-                  : "text-neutral-600 hover:text-neutral-800"
-              }`}>
-                Community
-              </span>
-            </Link>
+
             {user && (
               <Link href="/admin">
                 <span className={`font-medium transition-colors cursor-pointer ${
@@ -173,11 +165,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                   Meditation
                 </span>
               </Link>
-              <Link href="/community">
-                <span className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer">
-                  Community
-                </span>
-              </Link>
+
               {user && (
                 <Link href="/admin">
                   <span className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer">
