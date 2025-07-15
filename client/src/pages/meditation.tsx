@@ -264,7 +264,7 @@ export default function MeditationPage() {
       </div>
 
       {/* Mobile Content */}
-      <div className="md:hidden flex-1 flex flex-col">
+      <div className="md:hidden flex-1 flex flex-col pb-20">
         {/* Video Player Container with PiP scroll detection */}
         <div ref={videoContainerRef} className="relative">
           <VideoPlayer
@@ -281,27 +281,24 @@ export default function MeditationPage() {
 
         {/* Picture-in-Picture Video - Shows when scrolled past main video */}
         {showPiP && (
-          <div className="fixed top-20 right-4 z-30 w-32 h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white bg-black">
-            <div className="w-full h-full">
-              {meditation.videoUrl.includes('youtube.com') || meditation.videoUrl.includes('youtu.be') ? (
-                <iframe
-                  src={meditation.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                  className="w-full h-full"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : (
-                <video
-                  src={meditation.videoUrl}
-                  className="w-full h-full object-cover"
-                  controls={false}
-                  muted
-                  autoPlay
-                  loop
-                />
-              )}
-            </div>
+          <div 
+            className="fixed top-20 right-4 z-30 w-32 h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white bg-black cursor-pointer"
+            onClick={() => {
+              // Scroll back to top to show main video
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
+            <VideoPlayer
+              videoUrl={meditation.videoUrl}
+              title={meditation.title}
+              instructor={meditation.instructor}
+              instructorTitle={meditation.instructorTitle}
+              duration={meditation.duration}
+              difficulty={meditation.difficulty}
+              participants={Math.max(onlineCount, wsOnlineCount)}
+              sessionSteps={meditation.sessionSteps}
+              isPiP={true}
+            />
           </div>
         )}
 
@@ -353,8 +350,9 @@ export default function MeditationPage() {
         </div>
       </div>
 
-      {/* Community Stats */}
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Community Stats - Desktop only */}
+      <div className="hidden md:block mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
             <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -390,6 +388,7 @@ export default function MeditationPage() {
           </div>
           <h3 className="text-2xl font-bold text-neutral-800">4.8</h3>
           <p className="text-sm text-neutral-600">Average Rating</p>
+        </div>
         </div>
       </div>
     </div>
