@@ -7,14 +7,16 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthState } from "react-firebase-hooks/auth";
 import logoImg from "@/assets/logo.png";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
+  const [user] = useAuthState(auth);
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -48,6 +50,19 @@ export default function AuthPage() {
       }
     } catch (error) {
       console.error("Failed to register user in backend:", error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      toast({
+        title: "Signed out successfully",
+        description: "You can now sign in with a different account"
+      });
+    } catch (error) {
+      console.error("Sign out error:", error);
+      setError("Failed to sign out. Please try again.");
     }
   };
 
@@ -98,6 +113,10 @@ export default function AuthPage() {
     
     try {
       const provider = new GoogleAuthProvider();
+      // Force account selection prompt
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
       const userCredential = await signInWithPopup(auth, provider);
       await registerUserInBackend(userCredential.user);
       
@@ -168,6 +187,25 @@ export default function AuthPage() {
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {/* Already Signed In Notice */}
+          {user && (
+            <Alert>
+              <AlertDescription className="flex items-center justify-between">
+                <span>
+                  You're signed in as <strong>{user.displayName || user.email}</strong>
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSignOut}
+                  className="ml-2"
+                >
+                  Sign Out
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Auth Toggle */}
           <div className="bg-neutral-100 p-1 rounded-lg flex">
             <Button
