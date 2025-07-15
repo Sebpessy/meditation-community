@@ -67,9 +67,9 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
   };
 
   return (
-    <Card className="h-full flex flex-col md:max-h-[600px]">
-      {/* Chat Header - Mobile: Fixed header */}
-      <div className="p-4 border-b border-neutral-200 bg-white md:bg-transparent md:relative sticky top-0 z-10">
+    <Card className="h-full flex flex-col">
+      {/* Chat Header */}
+      <div className="p-4 border-b border-neutral-200 bg-white sticky top-0 z-10 md:relative">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-neutral-800">Live Chat</h3>
           <div className="flex items-center space-x-2">
@@ -81,8 +81,8 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
         </div>
       </div>
 
-      {/* Chat Messages - Mobile: Flex grow to fill available space */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
+      {/* Chat Messages - Mobile: Limited to 1/3 screen height, scrollable */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 md:max-h-[400px] max-h-[33vh] pb-20 md:pb-4">
         {messages.length === 0 ? (
           <div className="text-center text-neutral-500 py-8">
             <p>No messages yet. Start the conversation!</p>
@@ -115,8 +115,8 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat Input - Mobile: Fixed at bottom */}
-      <div className="p-4 border-t border-neutral-200 bg-white md:bg-transparent md:relative sticky bottom-0 z-10">
+      {/* Chat Input - Mobile: Fixed at bottom of viewport */}
+      <div className="p-4 border-t border-neutral-200 bg-white md:bg-transparent md:relative md:sticky md:bottom-0 fixed bottom-0 left-0 right-0 z-10">
         {userId ? (
           <div className="flex items-center space-x-2">
             <Input

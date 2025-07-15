@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -58,15 +58,26 @@ function CountdownTimer() {
   }, []);
   
   return (
-    <div className="mb-6">
-      <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 max-w-md mx-auto">
-        <div className="text-center">
-          <div className="text-sm text-neutral-600 mb-2">Next meditation in</div>
-          <div className="text-2xl font-mono font-bold text-primary">{time}</div>
-          <div className="text-xs text-neutral-500 mt-1">Updates daily at midnight CST</div>
+    <>
+      {/* Desktop version */}
+      <div className="hidden md:block mb-6">
+        <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 max-w-md mx-auto">
+          <div className="text-center">
+            <div className="text-sm text-neutral-600 mb-2">Next meditation in</div>
+            <div className="text-2xl font-mono font-bold text-primary" style={{ fontVariantNumeric: 'tabular-nums' }}>{time}</div>
+            <div className="text-xs text-neutral-500 mt-1">Updates daily at midnight CST</div>
+          </div>
         </div>
       </div>
-    </div>
+      
+      {/* Mobile version - more compact */}
+      <div className="md:hidden">
+        <div className="text-center">
+          <div className="text-xs text-neutral-600">Next in</div>
+          <div className="text-sm font-mono font-bold text-primary" style={{ fontVariantNumeric: 'tabular-nums' }}>{time}</div>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -95,6 +106,8 @@ export default function MeditationPage() {
   const [onlineCount, setOnlineCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<number | undefined>();
   const [wsOnlineCount, setWsOnlineCount] = useState(0);
+  const [showPiP, setShowPiP] = useState(false);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
 
   const { data: meditation, isLoading, error } = useQuery<TodaysMeditation>({
     queryKey: ["/api/meditation/today"],
@@ -146,6 +159,23 @@ export default function MeditationPage() {
       setOnlineCount(onlineData.count);
     }
   }, [onlineData]);
+
+  // PiP scroll detection for mobile
+  useEffect(() => {
+    const handleScroll = () => {
+      if (videoContainerRef.current) {
+        const rect = videoContainerRef.current.getBoundingClientRect();
+        const isVideoVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+        setShowPiP(!isVideoVisible);
+      }
+    };
+
+    // Only add scroll listener on mobile
+    if (window.innerWidth < 768) {
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
 
 
 
@@ -200,9 +230,23 @@ export default function MeditationPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="text-center mb-8">
+    <div className="h-screen flex flex-col md:max-w-7xl md:mx-auto md:px-4 md:sm:px-6 md:lg:px-8 md:py-8">
+      {/* Mobile Header - Date left, Timer right */}
+      <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-neutral-200 sticky top-0 z-20">
+        <Badge variant="outline" className="text-xs">
+          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {formatDate(meditation.date)}
+        </Badge>
+        
+        <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg px-3 py-1">
+          <CountdownTimer />
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden md:block text-center mb-8">
         <Badge variant="outline" className="mb-4">
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -210,7 +254,6 @@ export default function MeditationPage() {
           {formatDate(meditation.date)}
         </Badge>
         
-        {/* Countdown Timer */}
         <CountdownTimer />
         <h1 className="text-3xl sm:text-4xl font-bold text-neutral-800 mb-2">
           {meditation.title}
@@ -220,12 +263,10 @@ export default function MeditationPage() {
         </p>
       </div>
 
-
-
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Video Player */}
-        <div className="lg:col-span-2">
+      {/* Mobile Content */}
+      <div className="md:hidden flex-1 flex flex-col">
+        {/* Video Player Container with PiP scroll detection */}
+        <div ref={videoContainerRef} className="relative">
           <VideoPlayer
             videoUrl={meditation.videoUrl}
             title={meditation.title}
@@ -238,13 +279,77 @@ export default function MeditationPage() {
           />
         </div>
 
-        {/* Live Chat - Mobile: Full height with custom styles */}
-        <div className="lg:col-span-1 h-[calc(100vh-280px)] md:h-auto">
+        {/* Picture-in-Picture Video - Shows when scrolled past main video */}
+        {showPiP && (
+          <div className="fixed top-20 right-4 z-30 w-32 h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white bg-black">
+            <div className="w-full h-full">
+              {meditation.videoUrl.includes('youtube.com') || meditation.videoUrl.includes('youtu.be') ? (
+                <iframe
+                  src={meditation.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  src={meditation.videoUrl}
+                  className="w-full h-full object-cover"
+                  controls={false}
+                  muted
+                  autoPlay
+                  loop
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Title and Description for mobile */}
+        <div className="p-4 bg-white border-b border-neutral-200">
+          <h1 className="text-xl font-bold text-neutral-800 mb-1">
+            {meditation.title}
+          </h1>
+          <p className="text-sm text-neutral-600">
+            {meditation.description}
+          </p>
+        </div>
+
+        {/* Live Chat - Mobile: Constrained height with sticky input */}
+        <div className="flex-1 flex flex-col">
           <LiveChat
             userId={currentUserId}
             sessionDate={meditation.date}
             onOnlineCountChange={setWsOnlineCount}
           />
+        </div>
+      </div>
+
+      {/* Desktop Content */}
+      <div className="hidden md:block">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Video Player */}
+          <div className="lg:col-span-2">
+            <VideoPlayer
+              videoUrl={meditation.videoUrl}
+              title={meditation.title}
+              instructor={meditation.instructor}
+              instructorTitle={meditation.instructorTitle}
+              duration={meditation.duration}
+              difficulty={meditation.difficulty}
+              participants={Math.max(onlineCount, wsOnlineCount)}
+              sessionSteps={meditation.sessionSteps}
+            />
+          </div>
+
+          {/* Live Chat - Desktop */}
+          <div className="lg:col-span-1 h-[600px]">
+            <LiveChat
+              userId={currentUserId}
+              sessionDate={meditation.date}
+              onOnlineCountChange={setWsOnlineCount}
+            />
+          </div>
         </div>
       </div>
 
