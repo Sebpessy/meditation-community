@@ -205,7 +205,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Meditation routes
   app.get('/api/meditation/today', async (req, res) => {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      // Use Central Standard Time (CST) as reference - UTC-6
+      const now = new Date();
+      const cstOffset = -6; // CST is UTC-6
+      const cstTime = new Date(now.getTime() + (cstOffset * 60 * 60 * 1000));
+      const today = cstTime.toISOString().split('T')[0];
       const schedule = await storage.getScheduleByDate(today);
       
       if (!schedule || !schedule.templateId) {

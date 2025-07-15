@@ -10,6 +10,14 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
 
+// Helper function to get current date in Central Standard Time (CST)
+function getCSTDate(): string {
+  const now = new Date();
+  const cstOffset = -6; // CST is UTC-6
+  const cstTime = new Date(now.getTime() + (cstOffset * 60 * 60 * 1000));
+  return cstTime.toISOString().split('T')[0];
+}
+
 interface TodaysMeditation {
   id: number;
   title: string;
@@ -43,7 +51,7 @@ export default function MeditationPage() {
   });
 
   const { data: onlineData } = useQuery<{count: number}>({
-    queryKey: ["/api/meditation/online-count", meditation?.date || new Date().toISOString().split('T')[0]],
+    queryKey: ["/api/meditation/online-count", meditation?.date || getCSTDate()],
     refetchInterval: 10000,
     enabled: !!meditation?.date,
   });
