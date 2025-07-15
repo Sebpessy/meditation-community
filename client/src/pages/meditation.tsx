@@ -32,8 +32,9 @@ function calculateTimeUntilMidnight(): string {
   const timeUntilMidnight = midnight.getTime() - cstTime.getTime();
   const hours = Math.floor(timeUntilMidnight / (1000 * 60 * 60));
   const minutes = Math.floor((timeUntilMidnight % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((timeUntilMidnight % (1000 * 60)) / 1000);
   
-  return `${hours}h ${minutes}m`;
+  return `${hours}h ${minutes}m ${seconds}s`;
 }
 
 function CountdownTimer() {
@@ -42,7 +43,7 @@ function CountdownTimer() {
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeRemaining(calculateTimeUntilMidnight());
-    }, 60000); // Update every minute
+    }, 1000); // Update every second
 
     return () => clearInterval(timer);
   }, []);
