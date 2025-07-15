@@ -313,7 +313,7 @@ export default function MeditationPage() {
         </div>
 
         {/* Live Chat - Mobile: Constrained height with sticky input */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           <LiveChat
             userId={currentUserId}
             sessionDate={meditation.date}
