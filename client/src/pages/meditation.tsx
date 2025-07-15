@@ -273,8 +273,8 @@ export default function MeditationPage() {
 
         {/* Fixed content area - no scrolling */}
         <div className="flex-1 flex flex-col" style={{ paddingTop: '400px' }}>
-          {/* Live Chat - Mobile: Fixed position below title */}
-          <div className="flex-1 flex flex-col min-h-0">
+          {/* Live Chat - Mobile: Takes remaining space */}
+          <div className="flex-1 flex flex-col min-h-0 bg-white">
             <LiveChat
               userId={currentUserId}
               sessionDate={meditation.date}

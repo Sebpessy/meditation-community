@@ -68,57 +68,55 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
 
   return (
     <div className="h-full flex flex-col">
-      <Card className="h-full flex flex-col">
-        {/* Chat Header */}
-        <div className="p-4 border-b border-neutral-200 bg-white sticky top-0 z-10 md:relative">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-neutral-800">Live Chat</h3>
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400'}`} />
-              <span className="text-sm text-neutral-600">
-                {onlineCount} online
-              </span>
-            </div>
+      {/* Chat Header - Fixed position, not scrollable */}
+      <div className="p-4 border-b border-neutral-200 bg-white flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-neutral-800">Live Chat</h3>
+          <div className="flex items-center space-x-2">
+            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400'}`} />
+            <span className="text-sm text-neutral-600">
+              {onlineCount} online
+            </span>
           </div>
         </div>
+      </div>
 
-        {/* Chat Messages - Mobile: Limited to 1/3 screen height, scrollable */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 md:max-h-[400px] max-h-[33vh] pb-0">
-          {messages.length === 0 ? (
-            <div className="text-center text-neutral-500 py-8">
-              <p>No messages yet. Start the conversation!</p>
-            </div>
-          ) : (
-            messages.map((message, index) => (
-              <div key={message.id} className="flex items-start space-x-3">
-                <Avatar className="w-8 h-8 flex-shrink-0">
-                  <AvatarImage src={message.user.profilePicture || ""} alt={message.user.name} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                    {message.user.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-neutral-800">
-                      {message.user.name}
-                    </span>
-                    <span className="text-xs text-neutral-500">
-                      {formatTime(message.timestamp)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-neutral-700 break-words">
-                    {message.message}
-                  </p>
+      {/* Chat Messages - Scrollable area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
+        {messages.length === 0 ? (
+          <div className="text-center text-neutral-500 py-8">
+            <p>No messages yet. Start the conversation!</p>
+          </div>
+        ) : (
+          messages.map((message, index) => (
+            <div key={message.id} className="flex items-start space-x-3">
+              <Avatar className="w-8 h-8 flex-shrink-0">
+                <AvatarImage src={message.user.profilePicture || ""} alt={message.user.name} />
+                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                  {message.user.name.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-neutral-800">
+                    {message.user.name}
+                  </span>
+                  <span className="text-xs text-neutral-500">
+                    {formatTime(message.timestamp)}
+                  </span>
                 </div>
+                <p className="text-sm text-neutral-700 break-words">
+                  {message.message}
+                </p>
               </div>
-            ))
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-      </Card>
+            </div>
+          ))
+        )}
+        <div ref={messagesEndRef} />
+      </div>
 
-      {/* Chat Input - Mobile: Fixed at bottom of viewport, outside of Card */}
-      <div className="p-px border-t border-neutral-200 bg-white md:bg-transparent md:relative md:static fixed md:relative bottom-0 left-0 right-0 z-50 shadow-lg md:shadow-none">
+      {/* Chat Input - Fixed at bottom, no gaps */}
+      <div className="p-4 border-t border-neutral-200 bg-white flex-shrink-0">
         {userId ? (
           <div className="flex items-center space-x-2">
             <Input
