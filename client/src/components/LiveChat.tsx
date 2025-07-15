@@ -9,12 +9,20 @@ import { apiRequest } from "@/lib/queryClient";
 interface LiveChatProps {
   userId?: number;
   sessionDate: string;
+  onOnlineCountChange?: (count: number) => void;
 }
 
-export function LiveChat({ userId, sessionDate }: LiveChatProps) {
+export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatProps) {
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, onlineCount, isConnected, sendMessage } = useWebSocket(userId, sessionDate);
+
+  // Update parent component when online count changes
+  useEffect(() => {
+    if (onOnlineCountChange) {
+      onOnlineCountChange(onlineCount);
+    }
+  }, [onlineCount, onOnlineCountChange]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -35,6 +35,7 @@ export default function MeditationPage() {
   const [countdown, setCountdown] = useState("");
   const [onlineCount, setOnlineCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<number | undefined>();
+  const [wsOnlineCount, setWsOnlineCount] = useState(0);
 
   const { data: meditation, isLoading, error } = useQuery<TodaysMeditation>({
     queryKey: ["/api/meditation/today"],
@@ -58,6 +59,7 @@ export default function MeditationPage() {
             setCurrentUserId(userData.id);
           } else if (response.status === 404) {
             // User doesn't exist in backend, register them
+            console.log("User not found, registering:", user.uid);
             const registerResponse = await apiRequest("POST", "/api/auth/register", {
               email: user.email,
               name: user.displayName || user.email?.split('@')[0] || "User",
@@ -65,7 +67,10 @@ export default function MeditationPage() {
             });
             if (registerResponse.ok) {
               const userData = await registerResponse.json();
+              console.log("User registered successfully:", userData);
               setCurrentUserId(userData.id);
+            } else {
+              console.error("Registration failed:", registerResponse.status);
             }
           }
         } catch (error) {
@@ -199,7 +204,7 @@ export default function MeditationPage() {
             instructorTitle={meditation.instructorTitle}
             duration={meditation.duration}
             difficulty={meditation.difficulty}
-            participants={onlineCount}
+            participants={Math.max(onlineCount, wsOnlineCount)}
             sessionSteps={meditation.sessionSteps}
           />
         </div>
@@ -209,6 +214,7 @@ export default function MeditationPage() {
           <LiveChat
             userId={currentUserId}
             sessionDate={meditation.date}
+            onOnlineCountChange={setWsOnlineCount}
           />
         </div>
       </div>

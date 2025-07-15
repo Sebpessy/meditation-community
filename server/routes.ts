@@ -112,29 +112,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post('/api/auth/register', async (req, res) => {
     try {
+      console.log('Registration attempt:', req.body);
       const userData = insertUserSchema.parse(req.body);
       
       // Check if user already exists
       const existingUser = await storage.getUserByFirebaseUid(userData.firebaseUid);
       if (existingUser) {
+        console.log('User already exists:', existingUser);
         return res.json(existingUser);
       }
 
       const user = await storage.createUser(userData);
+      console.log('User created successfully:', user);
       res.json(user);
     } catch (error) {
+      console.error('Registration error:', error);
       res.status(400).json({ error: 'Invalid user data' });
     }
   });
 
   app.get('/api/auth/user/:firebaseUid', async (req, res) => {
     try {
+      console.log('Fetching user with Firebase UID:', req.params.firebaseUid);
       const user = await storage.getUserByFirebaseUid(req.params.firebaseUid);
       if (!user) {
+        console.log('User not found for Firebase UID:', req.params.firebaseUid);
         return res.status(404).json({ error: 'User not found' });
       }
+      console.log('User found:', user);
       res.json(user);
     } catch (error) {
+      console.error('User fetch error:', error);
       res.status(500).json({ error: 'Failed to fetch user' });
     }
   });

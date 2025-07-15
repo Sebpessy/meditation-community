@@ -26,6 +26,8 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
       console.log('WebSocket connection skipped: userId =', userId, 'sessionDate =', sessionDate);
       return;
     }
+    
+    console.log('Starting WebSocket connection for user:', userId, 'session:', sessionDate);
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
@@ -55,6 +57,7 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
             break;
           case 'user-joined':
           case 'user-left':
+            console.log('Online count updated:', message.onlineCount);
             setOnlineCount(message.onlineCount);
             break;
         }
