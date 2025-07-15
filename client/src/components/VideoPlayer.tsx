@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, PictureInPicture2 } from "lucide-react";
 
 interface VideoPlayerProps {
   videoUrl: string;
@@ -53,13 +53,39 @@ export function VideoPlayer({
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const video = videoRef.current;
-    if (video) {
+    if (video && video.duration) {
       const rect = e.currentTarget.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const progress = clickX / rect.width;
-      const newTime = progress * (duration * 60);
+      const newTime = progress * video.duration;
       video.currentTime = newTime;
       setCurrentTime(newTime);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    const video = videoRef.current;
+    if (video) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        video.requestFullscreen();
+      }
+    }
+  };
+
+  const togglePictureInPicture = async () => {
+    const video = videoRef.current;
+    if (video) {
+      try {
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+        } else {
+          await video.requestPictureInPicture();
+        }
+      } catch (error) {
+        console.error('Picture-in-picture failed:', error);
+      }
     }
   };
 
@@ -152,10 +178,10 @@ export function VideoPlayer({
                   >
                     <div 
                       className="h-full bg-primary rounded-full transition-all pointer-events-none" 
-                      style={{ width: `${(currentTime / (duration * 60)) * 100}%` }}
+                      style={{ width: `${videoRef.current?.duration ? (currentTime / videoRef.current.duration) * 100 : 0}%` }}
                     />
                   </div>
-                  <span>{duration}:00</span>
+                  <span>{formatTime(videoRef.current?.duration || duration * 60)}</span>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -163,6 +189,22 @@ export function VideoPlayer({
                     className="text-white hover:bg-white/20 p-1"
                   >
                     {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={togglePictureInPicture}
+                    className="text-white hover:bg-white/20 p-1"
+                  >
+                    <PictureInPicture2 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={toggleFullscreen}
+                    className="text-white hover:bg-white/20 p-1"
+                  >
+                    <Maximize className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
