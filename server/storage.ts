@@ -145,6 +145,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(id: number): Promise<boolean> {
+    // First delete all chat messages by this user to avoid foreign key constraint
+    await db.delete(chatMessages).where(eq(chatMessages.userId, id));
+    
+    // Then delete the user
     const result = await db.delete(users).where(eq(users.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
