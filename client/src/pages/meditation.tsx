@@ -15,74 +15,45 @@ import { auth } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
 import { useWebSocket } from "@/lib/websocket";
 
-// Helper function to get current date in Central Standard Time (CST)
 function getCSTDate(): string {
   const now = new Date();
-  const cstOffset = -6; // CST is UTC-6
-  const cstTime = new Date(now.getTime() + (cstOffset * 60 * 60 * 1000));
+  const cstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
   return cstTime.toISOString().split('T')[0];
 }
 
-// Function to calculate time remaining until midnight Central Time (outside component to prevent re-creation)
 function calculateTimeUntilMidnight(): string {
-  // Get current time in Central Time
-  const nowInCentral = new Date().toLocaleString("en-US", {timeZone: "America/Chicago"});
-  const [datePart, timePart] = nowInCentral.split(', ');
-  const [time, ampm] = timePart.split(' ');
-  const [hours, minutes, seconds] = time.split(':').map(Number);
+  const now = new Date();
+  const cstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
   
-  // Convert to 24-hour format
-  let hour24 = hours;
-  if (ampm === 'PM' && hours !== 12) hour24 += 12;
-  if (ampm === 'AM' && hours === 12) hour24 = 0;
+  // Calculate time until midnight CST
+  const midnight = new Date(cstTime);
+  midnight.setHours(24, 0, 0, 0);
   
-  // Calculate remaining time
-  const totalSecondsUntilMidnight = (24 * 60 * 60) - (hour24 * 60 * 60) - (minutes * 60) - seconds;
+  const timeUntilMidnight = midnight.getTime() - cstTime.getTime();
+  const hours = Math.floor(timeUntilMidnight / (1000 * 60 * 60));
+  const minutes = Math.floor((timeUntilMidnight % (1000 * 60 * 60)) / (1000 * 60));
   
-  if (totalSecondsUntilMidnight <= 0) {
-    return "00:00:00";
-  }
-  
-  const remainingHours = Math.floor(totalSecondsUntilMidnight / 3600);
-  const remainingMinutes = Math.floor((totalSecondsUntilMidnight % 3600) / 60);
-  const remainingSeconds = totalSecondsUntilMidnight % 60;
-  
-  return `${remainingHours.toString().padStart(2, '0')}:${remainingMinutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  return `${hours}h ${minutes}m`;
 }
 
-// Simple countdown component to prevent blinking
 function CountdownTimer() {
-  const [time, setTime] = useState(calculateTimeUntilMidnight());
-  
+  const [timeRemaining, setTimeRemaining] = useState(calculateTimeUntilMidnight());
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(calculateTimeUntilMidnight());
-    }, 1000);
-    
-    return () => clearInterval(interval);
+    const timer = setInterval(() => {
+      setTimeRemaining(calculateTimeUntilMidnight());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
   }, []);
-  
+
   return (
-    <>
-      {/* Desktop version */}
-      <div className="hidden md:block mb-6">
-        <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 max-w-md mx-auto">
-          <div className="text-center">
-            <div className="text-sm text-neutral-600 mb-2">Next meditation in</div>
-            <div className="text-2xl font-mono font-bold text-primary" style={{ fontVariantNumeric: 'tabular-nums' }}>{time}</div>
-            <div className="text-xs text-neutral-500 mt-1">Updates daily at midnight CST</div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Mobile version - more compact */}
-      <div className="md:hidden">
-        <div className="text-center">
-          <div className="text-xs text-neutral-600">Next in</div>
-          <div className="text-sm font-mono font-bold text-primary" style={{ fontVariantNumeric: 'tabular-nums' }}>{time}</div>
-        </div>
-      </div>
-    </>
+    <div className="flex items-center space-x-2 text-sm text-primary">
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>Next in {timeRemaining}</span>
+    </div>
   );
 }
 
@@ -114,7 +85,6 @@ export default function MeditationPage() {
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-
   const { data: meditation, isLoading, error } = useQuery<TodaysMeditation>({
     queryKey: ["/api/meditation/today"],
     retry: 1,
@@ -125,6 +95,14 @@ export default function MeditationPage() {
     refetchInterval: 10000,
     enabled: !!meditation?.date,
   });
+
+  // WebSocket integration for chat - moved to top to avoid hooks order issues
+  const { 
+    messages, 
+    isConnected, 
+    onlineCount: wsOnlineCountFromSocket, 
+    sendMessage 
+  } = useWebSocket(currentUserId, getCSTDate());
 
   // Get current user ID from backend
   useEffect(() => {
@@ -166,13 +144,59 @@ export default function MeditationPage() {
     }
   }, [onlineData]);
 
+  // Update online count from WebSocket
+  useEffect(() => {
+    if (wsOnlineCountFromSocket > 0) {
+      setWsOnlineCount(wsOnlineCountFromSocket);
+    }
+  }, [wsOnlineCountFromSocket]);
 
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (!user) {
       setLocation("/auth");
     }
   }, [user, setLocation]);
+
+  const handleSendMessage = useCallback(() => {
+    if (inputMessage.trim() && isConnected) {
+      sendMessage(inputMessage.trim());
+      setInputMessage("");
+    }
+  }, [inputMessage, isConnected, sendMessage]);
+
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
+  }, [handleSendMessage]);
+
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
+
+  const formatDate = (dateStr: string) => {
+    // Parse the date string and ensure it's interpreted as CST
+    const date = new Date(dateStr + 'T12:00:00-06:00'); // Add CST timezone
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      timeZone: 'America/Chicago' // Force CST interpretation
+    });
+  };
 
   if (!user) {
     return null;
@@ -205,62 +229,6 @@ export default function MeditationPage() {
       </div>
     );
   }
-
-  const formatDate = (dateStr: string) => {
-    // Parse the date string and ensure it's interpreted as CST
-    const date = new Date(dateStr + 'T12:00:00-06:00'); // Add CST timezone
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      timeZone: 'America/Chicago' // Force CST interpretation
-    });
-  };
-
-  // WebSocket integration for chat
-  const { 
-    messages, 
-    isConnected, 
-    onlineCount: wsOnlineCountFromSocket, 
-    sendMessage 
-  } = useWebSocket(currentUserId, getCSTDate());
-
-  // Update online count from WebSocket
-  useEffect(() => {
-    if (wsOnlineCountFromSocket > 0) {
-      setWsOnlineCount(wsOnlineCountFromSocket);
-    }
-  }, [wsOnlineCountFromSocket]);
-
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
-
-  const handleSendMessage = useCallback(() => {
-    if (inputMessage.trim() && isConnected) {
-      sendMessage(inputMessage.trim());
-      setInputMessage("");
-    }
-  }, [inputMessage, isConnected, sendMessage]);
-
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSendMessage();
-    }
-  }, [handleSendMessage]);
-
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    });
-  };
 
   return (
     <div className="h-screen flex flex-col md:max-w-7xl md:mx-auto md:px-4 md:sm:px-6 md:lg:px-8 md:py-8">
@@ -327,7 +295,7 @@ export default function MeditationPage() {
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-neutral-800">Live Chat</h3>
             <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${wsOnlineCount > 0 ? 'bg-secondary animate-pulse' : 'bg-neutral-400'}`} />
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400'}`} />
               <span className="text-sm text-neutral-600">
                 {Math.max(onlineCount, wsOnlineCount)} online
               </span>
@@ -371,7 +339,7 @@ export default function MeditationPage() {
 
         {/* Fixed Chat Input - Always at bottom */}
         <div className="flex-shrink-0 p-4 bg-white border-t border-neutral-200">
-          {userId ? (
+          {currentUserId ? (
             <div className="flex items-center space-x-2">
               <Input
                 value={inputMessage}
@@ -429,42 +397,30 @@ export default function MeditationPage() {
       {/* Community Stats - Desktop only */}
       <div className="hidden md:block mt-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-            <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-primary mb-2">
+              {Math.max(onlineCount, wsOnlineCount)}
+            </div>
+            <div className="text-sm text-neutral-600">Active Now</div>
           </div>
-          <h3 className="text-2xl font-bold text-neutral-800">2,847</h3>
-          <p className="text-sm text-neutral-600">Community Members</p>
-        </div>
-        <div className="text-center">
-          <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-            <svg className="w-8 h-8 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-primary mb-2">
+              {meditation.duration}
+            </div>
+            <div className="text-sm text-neutral-600">Minutes</div>
           </div>
-          <h3 className="text-2xl font-bold text-neutral-800">15,423</h3>
-          <p className="text-sm text-neutral-600">Sessions Completed</p>
-        </div>
-        <div className="text-center">
-          <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-3">
-            <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-primary mb-2">
+              {meditation.difficulty}
+            </div>
+            <div className="text-sm text-neutral-600">Level</div>
           </div>
-          <h3 className="text-2xl font-bold text-neutral-800">98,765</h3>
-          <p className="text-sm text-neutral-600">Minutes Meditated</p>
-        </div>
-        <div className="text-center">
-          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-            </svg>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-primary mb-2">
+              {meditation.instructor}
+            </div>
+            <div className="text-sm text-neutral-600">Instructor</div>
           </div>
-          <h3 className="text-2xl font-bold text-neutral-800">4.8</h3>
-          <p className="text-sm text-neutral-600">Average Rating</p>
-        </div>
         </div>
       </div>
     </div>
