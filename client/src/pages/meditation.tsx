@@ -247,7 +247,7 @@ export default function MeditationPage() {
           />
           
           {/* Mobile Header - Date left, Timer right - Below video */}
-          <div className="flex items-center justify-between p-4 bg-white border-b border-neutral-200">
+          <div className="flex items-center justify-between p-2 bg-white border-b border-neutral-200">
             <Badge variant="outline" className="text-xs">
               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -262,7 +262,7 @@ export default function MeditationPage() {
         </div>
 
         {/* Scrollable content area with top padding to account for fixed header */}
-        <div className="flex-1 overflow-y-auto" style={{ paddingTop: '480px' }}>
+        <div className="flex-1 overflow-y-auto" style={{ paddingTop: '420px' }}>
 
           {/* Title and Description for mobile */}
           <div className="p-4 bg-white border-b border-neutral-200">

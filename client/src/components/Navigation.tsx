@@ -71,15 +71,15 @@ export function Navigation({ onlineCount }: NavigationProps) {
   return (
     <nav className="bg-white shadow-sm border-b border-neutral-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-24">
+        <div className="flex justify-between items-center h-16 md:h-24">
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <img 
               src={logoImg} 
               alt="Evolving Hearts Logo" 
-              className="w-20 h-20 object-contain"
+              className="w-12 h-12 md:w-20 md:h-20 object-contain"
             />
-            <h1 className="text-xl font-semibold text-neutral-800">Evolving Hearts</h1>
+            <h1 className="text-lg md:text-xl font-semibold text-neutral-800">Evolving Hearts</h1>
           </div>
 
           {/* Desktop Navigation */}
