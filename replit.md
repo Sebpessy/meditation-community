@@ -18,6 +18,8 @@ Preferred communication style: Simple, everyday language.
 - ✅ Video player now works seamlessly with both direct video files and YouTube links
 - ✅ Replaced default logo with custom PNG logo and doubled its size
 - ✅ Removed Community tab from navigation and adjusted header height for larger logo
+- ✅ Fixed admin navigation to only show for users with admin privileges
+- ✅ Updated authentication page with custom logo and "Evolving Hearts" branding
 
 ### July 14, 2025
 - ✅ Fixed TypeScript compilation errors in storage layer

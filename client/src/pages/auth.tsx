@@ -11,6 +11,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithP
 import { auth } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import logoImg from "@/assets/logo.png";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
@@ -100,7 +101,7 @@ export default function AuthPage() {
       await registerUserInBackend(userCredential.user);
       
       toast({
-        title: "Welcome to Serene Space",
+        title: "Welcome to Evolving Hearts",
         description: "You've been signed in with Google"
       });
       setLocation("/meditation");
@@ -122,13 +123,15 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-neutral-50">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
+          <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+            <img 
+              src={logoImg} 
+              alt="Evolving Hearts Logo" 
+              className="w-20 h-20 object-contain"
+            />
           </div>
           <CardTitle className="text-2xl font-bold text-neutral-800">
-            Welcome to Serene Space
+            Welcome to Evolving Hearts
           </CardTitle>
           <p className="text-neutral-600">Join our meditation community</p>
         </CardHeader>
