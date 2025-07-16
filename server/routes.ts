@@ -328,6 +328,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Like routes
+  app.post('/api/messages/:messageId/like', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const messageId = parseInt(req.params.messageId);
+      const success = await storage.likeMessage(messageId, user.id);
+      
+      if (success) {
+        const likeCount = await storage.getMessageLikes(messageId);
+        res.json({ success: true, likes: likeCount });
+      } else {
+        res.status(409).json({ error: 'Message already liked' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to like message' });
+    }
+  });
+
+  app.delete('/api/messages/:messageId/like', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const messageId = parseInt(req.params.messageId);
+      const success = await storage.unlikeMessage(messageId, user.id);
+      
+      if (success) {
+        const likeCount = await storage.getMessageLikes(messageId);
+        res.json({ success: true, likes: likeCount });
+      } else {
+        res.status(404).json({ error: 'Like not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to unlike message' });
+    }
+  });
+
+  app.get('/api/messages/:messageId/likes', async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const likes = await storage.getMessageLikes(messageId);
+      res.json({ likes });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get message likes' });
+    }
+  });
+
+  app.get('/api/users/:userId/liked-messages', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const userId = parseInt(req.params.userId);
+      // Users can only see their own liked messages
+      if (user.id !== userId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const likedMessages = await storage.getUserLikedMessages(userId);
+      res.json({ likedMessages });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get liked messages' });
+    }
+  });
+
   // Admin routes
   app.get('/api/admin/templates', async (req, res) => {
     try {

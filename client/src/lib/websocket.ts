@@ -30,16 +30,18 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const messagesRef = useRef<ChatMessage[]>([]);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldReconnectRef = useRef(true);
 
   // Keep messages in sync with ref for persistence
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
 
-  useEffect(() => {
+  const connectWebSocket = () => {
     if (!userId || !sessionDate) {
       console.log('WebSocket connection skipped: userId =', userId, 'sessionDate =', sessionDate);
-      return;
+      return null;
     }
     
     console.log('Starting WebSocket connection for user:', userId, 'session:', sessionDate);
@@ -97,21 +99,76 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
       console.log('WebSocket disconnected');
       setIsConnected(false);
       setSocket(null);
+      
+      // Auto-reconnect if should reconnect and connection was lost unexpectedly
+      if (shouldReconnectRef.current && reconnectTimeoutRef.current === null) {
+        console.log('Scheduling WebSocket reconnection in 2 seconds...');
+        reconnectTimeoutRef.current = setTimeout(() => {
+          reconnectTimeoutRef.current = null;
+          if (shouldReconnectRef.current) {
+            connectWebSocket();
+          }
+        }, 2000);
+      }
     };
 
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
     };
 
+    return ws;
+  };
+
+  useEffect(() => {
+    const ws = connectWebSocket();
+    
+    // Handle page visibility changes
+    const handleVisibilityChange = () => {
+      if (!document.hidden && (!socket || socket.readyState !== WebSocket.OPEN)) {
+        console.log('Page became visible, reconnecting WebSocket...');
+        connectWebSocket();
+      }
+    };
+
+    // Handle window focus
+    const handleWindowFocus = () => {
+      if (!socket || socket.readyState !== WebSocket.OPEN) {
+        console.log('Window focused, reconnecting WebSocket...');
+        connectWebSocket();
+      }
+    };
+
+    // Handle clicks to reconnect
+    const handleClick = () => {
+      if (!socket || socket.readyState !== WebSocket.OPEN) {
+        console.log('Click detected, reconnecting WebSocket...');
+        connectWebSocket();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleWindowFocus);
+    document.addEventListener('click', handleClick);
+
     return () => {
-      if (ws.readyState === WebSocket.OPEN) {
+      shouldReconnectRef.current = false;
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      
+      if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({
           type: 'leave-session',
           userId,
           sessionDate
         }));
       }
-      ws.close();
+      ws?.close();
+      
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleWindowFocus);
+      document.removeEventListener('click', handleClick);
     };
   }, [userId, sessionDate]);
 

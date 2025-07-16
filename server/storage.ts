@@ -1,6 +1,6 @@
-import { users, meditationTemplates, schedules, chatMessages, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type InsertChatMessage } from "@shared/schema";
+import { users, meditationTemplates, schedules, chatMessages, messageLikes, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type InsertChatMessage, type MessageLike, type InsertMessageLike } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, count, and } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -29,6 +29,12 @@ export interface IStorage {
   getChatMessages(sessionDate: string, limit?: number): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   flushChatMessages(sessionDate: string): Promise<boolean>;
+  
+  // Like operations
+  likeMessage(messageId: number, userId: number): Promise<boolean>;
+  unlikeMessage(messageId: number, userId: number): Promise<boolean>;
+  getMessageLikes(messageId: number): Promise<number>;
+  getUserLikedMessages(userId: number): Promise<number[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -299,6 +305,46 @@ export class DatabaseStorage implements IStorage {
   async flushChatMessages(sessionDate: string): Promise<boolean> {
     const result = await db.delete(chatMessages).where(eq(chatMessages.sessionDate, sessionDate));
     return (result.rowCount || 0) > 0;
+  }
+
+  async likeMessage(messageId: number, userId: number): Promise<boolean> {
+    try {
+      await db.insert(messageLikes).values({
+        messageId,
+        userId
+      });
+      return true;
+    } catch (error) {
+      // Handle unique constraint violation (user already liked this message)
+      console.error('Error liking message:', error);
+      return false;
+    }
+  }
+
+  async unlikeMessage(messageId: number, userId: number): Promise<boolean> {
+    const result = await db.delete(messageLikes).where(
+      and(
+        eq(messageLikes.messageId, messageId),
+        eq(messageLikes.userId, userId)
+      )
+    );
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getMessageLikes(messageId: number): Promise<number> {
+    const result = await db
+      .select({ count: count() })
+      .from(messageLikes)
+      .where(eq(messageLikes.messageId, messageId));
+    return result[0]?.count || 0;
+  }
+
+  async getUserLikedMessages(userId: number): Promise<number[]> {
+    const likes = await db
+      .select({ messageId: messageLikes.messageId })
+      .from(messageLikes)
+      .where(eq(messageLikes.userId, userId));
+    return likes.map(like => like.messageId);
   }
 }
 

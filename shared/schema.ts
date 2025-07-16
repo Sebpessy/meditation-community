@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -45,6 +45,15 @@ export const chatMessages = pgTable("chat_messages", {
   sessionDate: text("session_date").notNull(), // YYYY-MM-DD format
 });
 
+export const messageLikes = pgTable("message_likes", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").references(() => chatMessages.id),
+  userId: integer("user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueLike: unique().on(table.messageId, table.userId),
+}));
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   name: true,
@@ -73,6 +82,11 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
   timestamp: true,
 });
 
+export const insertMessageLikeSchema = createInsertSchema(messageLikes).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type MeditationTemplate = typeof meditationTemplates.$inferSelect;
@@ -81,3 +95,5 @@ export type Schedule = typeof schedules.$inferSelect;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type MessageLike = typeof messageLikes.$inferSelect;
+export type InsertMessageLike = z.infer<typeof insertMessageLikeSchema>;

@@ -3,9 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send } from "lucide-react";
+import { Send, Heart } from "lucide-react";
 import { useWebSocket } from "@/lib/websocket";
 import { apiRequest } from "@/lib/queryClient";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface LiveChatProps {
   userId?: number;
@@ -16,8 +17,11 @@ interface LiveChatProps {
 export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatProps) {
   const [inputMessage, setInputMessage] = useState("");
   const [hoveredUser, setHoveredUser] = useState<number | null>(null);
+  const [messageLikes, setMessageLikes] = useState<{ [messageId: number]: number }>({});
+  const [likedMessages, setLikedMessages] = useState<Set<number>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, onlineCount, onlineUsers, isConnected, sendMessage } = useWebSocket(userId, sessionDate);
+  const queryClient = useQueryClient();
 
   // Update parent component when online count changes
   useEffect(() => {
@@ -25,6 +29,89 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
       onOnlineCountChange(onlineCount);
     }
   }, [onlineCount, onOnlineCountChange]);
+
+  // Fetch user liked messages
+  const { data: userLikedMessages } = useQuery({
+    queryKey: ['liked-messages', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const response = await apiRequest('GET', `/api/users/${userId}/liked-messages`);
+      return response.likedMessages || [];
+    },
+    enabled: !!userId,
+  });
+
+  // Update liked messages state when data changes
+  useEffect(() => {
+    if (userLikedMessages) {
+      setLikedMessages(new Set(userLikedMessages));
+    }
+  }, [userLikedMessages]);
+
+  // Fetch likes for all messages
+  useEffect(() => {
+    const fetchLikes = async () => {
+      if (messages.length === 0) return;
+      
+      const likesData: { [messageId: number]: number } = {};
+      
+      for (const message of messages) {
+        try {
+          const response = await apiRequest('GET', `/api/messages/${message.id}/likes`);
+          likesData[message.id] = response.likes || 0;
+        } catch (error) {
+          console.error('Failed to fetch likes for message:', message.id, error);
+          likesData[message.id] = 0;
+        }
+      }
+      
+      setMessageLikes(likesData);
+    };
+
+    fetchLikes();
+  }, [messages]);
+
+  // Like mutation
+  const likeMutation = useMutation({
+    mutationFn: async (messageId: number) => {
+      return await apiRequest('POST', `/api/messages/${messageId}/like`);
+    },
+    onSuccess: (data, messageId) => {
+      setMessageLikes(prev => ({ ...prev, [messageId]: data.likes }));
+      setLikedMessages(prev => new Set([...prev, messageId]));
+    },
+    onError: (error) => {
+      console.error('Failed to like message:', error);
+    },
+  });
+
+  // Unlike mutation
+  const unlikeMutation = useMutation({
+    mutationFn: async (messageId: number) => {
+      return await apiRequest('DELETE', `/api/messages/${messageId}/like`);
+    },
+    onSuccess: (data, messageId) => {
+      setMessageLikes(prev => ({ ...prev, [messageId]: data.likes }));
+      setLikedMessages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(messageId);
+        return newSet;
+      });
+    },
+    onError: (error) => {
+      console.error('Failed to unlike message:', error);
+    },
+  });
+
+  const handleLikeToggle = (messageId: number) => {
+    if (!userId) return;
+    
+    if (likedMessages.has(messageId)) {
+      unlikeMutation.mutate(messageId);
+    } else {
+      likeMutation.mutate(messageId);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -155,9 +242,28 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                         {formatTime(message.timestamp)}
                       </span>
                     </div>
-                    <p className="text-sm text-neutral-700 break-words">
+                    <p className="text-sm text-neutral-700 break-words mb-1">
                       {message.message}
                     </p>
+                    {userId && (
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleLikeToggle(message.id)}
+                          className={`flex items-center space-x-1 text-xs rounded-full px-2 py-1 transition-colors ${
+                            likedMessages.has(message.id)
+                              ? 'text-red-500 bg-red-50 hover:bg-red-100'
+                              : 'text-neutral-500 hover:text-red-500 hover:bg-red-50'
+                          }`}
+                          disabled={likeMutation.isPending || unlikeMutation.isPending}
+                        >
+                          <Heart 
+                            size={12} 
+                            className={likedMessages.has(message.id) ? 'fill-current' : ''}
+                          />
+                          <span>{messageLikes[message.id] || 0}</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
