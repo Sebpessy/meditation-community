@@ -361,7 +361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const likeCount = await storage.getMessageLikes(messageId);
         res.json({ success: true, likes: likeCount });
       } else {
-        res.status(409).json({ error: 'Message already liked' });
+        res.status(500).json({ error: 'Failed to like message' });
       }
     } catch (error) {
       res.status(500).json({ error: 'Failed to like message' });

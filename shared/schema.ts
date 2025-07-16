@@ -50,9 +50,7 @@ export const messageLikes = pgTable("message_likes", {
   messageId: integer("message_id").references(() => chatMessages.id),
   userId: integer("user_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  uniqueLike: unique().on(table.messageId, table.userId),
-}));
+});
 
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,

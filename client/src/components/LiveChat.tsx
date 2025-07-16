@@ -19,6 +19,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
   const [hoveredUser, setHoveredUser] = useState<number | null>(null);
   const [messageLikes, setMessageLikes] = useState<{ [messageId: number]: number }>({});
   const [likedMessages, setLikedMessages] = useState<Set<number>>(new Set());
+  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, onlineCount, onlineUsers, isConnected, sendMessage } = useWebSocket(userId, sessionDate);
   const queryClient = useQueryClient();
@@ -71,46 +72,25 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
     fetchLikes();
   }, [messages]);
 
-  // Like mutation
+  // Like mutation (positive-only)
   const likeMutation = useMutation({
     mutationFn: async (messageId: number) => {
       return await apiRequest('POST', `/api/messages/${messageId}/like`);
     },
     onSuccess: (data, messageId) => {
       setMessageLikes(prev => ({ ...prev, [messageId]: data.likes }));
-      setLikedMessages(prev => new Set([...prev, messageId]));
+      // Trigger heart animation
+      setShowHeartAnimation(true);
+      setTimeout(() => setShowHeartAnimation(false), 2000);
     },
     onError: (error) => {
       console.error('Failed to like message:', error);
     },
   });
 
-  // Unlike mutation
-  const unlikeMutation = useMutation({
-    mutationFn: async (messageId: number) => {
-      return await apiRequest('DELETE', `/api/messages/${messageId}/like`);
-    },
-    onSuccess: (data, messageId) => {
-      setMessageLikes(prev => ({ ...prev, [messageId]: data.likes }));
-      setLikedMessages(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(messageId);
-        return newSet;
-      });
-    },
-    onError: (error) => {
-      console.error('Failed to unlike message:', error);
-    },
-  });
-
-  const handleLikeToggle = (messageId: number) => {
+  const handleLike = (messageId: number) => {
     if (!userId) return;
-    
-    if (likedMessages.has(messageId)) {
-      unlikeMutation.mutate(messageId);
-    } else {
-      likeMutation.mutate(messageId);
-    }
+    likeMutation.mutate(messageId);
   };
 
   const scrollToBottom = () => {
@@ -219,7 +199,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
           </div>
 
           {/* Desktop Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 relative">
             {messages.length === 0 ? (
               <div className="text-center text-neutral-500 py-8">
                 <p>No messages yet. Start the conversation!</p>
@@ -248,17 +228,13 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                     {userId && (
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => handleLikeToggle(message.id)}
-                          className={`flex items-center space-x-1 text-xs rounded-full px-2 py-1 transition-colors ${
-                            likedMessages.has(message.id)
-                              ? 'text-red-500 bg-red-50 hover:bg-red-100'
-                              : 'text-neutral-500 hover:text-red-500 hover:bg-red-50'
-                          }`}
-                          disabled={likeMutation.isPending || unlikeMutation.isPending}
+                          onClick={() => handleLike(message.id)}
+                          className="flex items-center space-x-1 text-xs rounded-full px-2 py-1 transition-colors text-neutral-500 hover:text-red-500 hover:bg-red-50"
+                          disabled={likeMutation.isPending}
                         >
                           <Heart 
                             size={12} 
-                            className={likedMessages.has(message.id) ? 'fill-current' : ''}
+                            className="fill-current text-red-500"
                           />
                           <span>{messageLikes[message.id] || 0}</span>
                         </button>
@@ -269,6 +245,33 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
               ))
             )}
             <div ref={messagesEndRef} />
+            
+            {/* Heart Animation Effect */}
+            {showHeartAnimation && (
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                {[...Array(8)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute animate-pulse"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 100}%`,
+                      animationDelay: `${Math.random() * 0.5}s`,
+                      animationDuration: `${1 + Math.random() * 1}s`,
+                    }}
+                  >
+                    <Heart 
+                      size={16 + Math.random() * 8} 
+                      className="fill-current text-red-500 animate-bounce"
+                      style={{
+                        animationDelay: `${Math.random() * 0.5}s`,
+                        animationDuration: `${0.5 + Math.random() * 0.5}s`,
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Desktop Chat Input */}

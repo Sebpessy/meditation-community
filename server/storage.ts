@@ -315,7 +315,6 @@ export class DatabaseStorage implements IStorage {
       });
       return true;
     } catch (error) {
-      // Handle unique constraint violation (user already liked this message)
       console.error('Error liking message:', error);
       return false;
     }
