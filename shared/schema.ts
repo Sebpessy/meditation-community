@@ -32,6 +32,8 @@ export const schedules = pgTable("schedules", {
   templateId: integer("template_id").references(() => meditationTemplates.id),
   scheduledTime: text("scheduled_time").notNull(), // HH:MM format
   isActive: boolean("is_active").default(true),
+  repeatWeeks: integer("repeat_weeks").default(0), // 0 = no repeat, > 0 = repeat every x weeks
+  repeatCount: integer("repeat_count").default(1), // 1-4 times to repeat
   createdAt: timestamp("created_at").defaultNow(),
 });
 

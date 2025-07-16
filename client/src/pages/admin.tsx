@@ -67,7 +67,9 @@ export default function AdminPage() {
     date: "",
     templateId: "",
     scheduledTime: "",
-    isActive: true
+    isActive: true,
+    repeatWeeks: 0,
+    repeatCount: 1
   });
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
@@ -342,7 +344,9 @@ export default function AdminPage() {
       date: "",
       templateId: "",
       scheduledTime: "",
-      isActive: true
+      isActive: true,
+      repeatWeeks: 0,
+      repeatCount: 1
     });
   };
 
@@ -487,12 +491,49 @@ export default function AdminPage() {
     const scheduleData = {
       ...scheduleForm,
       templateId: parseInt(scheduleForm.templateId),
+      repeatWeeks: parseInt(scheduleForm.repeatWeeks.toString()),
+      repeatCount: parseInt(scheduleForm.repeatCount.toString())
     };
 
     if (editingSchedule) {
       updateScheduleMutation.mutate({ id: editingSchedule.id, data: scheduleData });
     } else {
-      createScheduleMutation.mutate(scheduleData);
+      // If repeat is enabled, create multiple schedules
+      if (scheduleData.repeatWeeks > 0 && scheduleData.repeatCount > 1) {
+        const schedules = [];
+        const startDate = new Date(scheduleData.date);
+        
+        for (let i = 0; i < scheduleData.repeatCount; i++) {
+          const currentDate = new Date(startDate);
+          currentDate.setDate(startDate.getDate() + (i * scheduleData.repeatWeeks * 7));
+          
+          schedules.push({
+            ...scheduleData,
+            date: currentDate.toISOString().split('T')[0]
+          });
+        }
+        
+        // Create multiple schedules
+        Promise.all(schedules.map(schedule => 
+          apiRequest("POST", "/api/admin/schedules", schedule)
+        )).then(() => {
+          queryClient.invalidateQueries({ queryKey: ["/api/admin/schedules"] });
+          setIsScheduleModalOpen(false);
+          resetScheduleForm();
+          toast({
+            title: "Schedules created",
+            description: `Successfully created ${schedules.length} repeated schedules.`
+          });
+        }).catch(() => {
+          toast({
+            title: "Error",
+            description: "Failed to create repeated schedules. Please try again.",
+            variant: "destructive"
+          });
+        });
+      } else {
+        createScheduleMutation.mutate(scheduleData);
+      }
     }
   };
 
@@ -502,7 +543,9 @@ export default function AdminPage() {
       date: schedule.date,
       templateId: schedule.templateId?.toString() || "",
       scheduledTime: schedule.scheduledTime,
-      isActive: schedule.isActive || true
+      isActive: schedule.isActive || true,
+      repeatWeeks: schedule.repeatWeeks || 0,
+      repeatCount: schedule.repeatCount || 1
     });
     setIsScheduleModalOpen(true);
   };
@@ -1108,6 +1151,66 @@ export default function AdminPage() {
                       className="rounded border-gray-300"
                     />
                     <Label htmlFor="schedule-active">Active</Label>
+                  </div>
+
+                  {/* Repeat Options */}
+                  <div className="border-t pt-4">
+                    <h3 className="font-medium mb-3">Repeat Options</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="repeat-weeks">Repeat Every (weeks)</Label>
+                        <Select 
+                          value={scheduleForm.repeatWeeks.toString()} 
+                          onValueChange={(value) => handleScheduleInputChange("repeatWeeks", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="No repeat" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">No repeat</SelectItem>
+                            <SelectItem value="1">1 week</SelectItem>
+                            <SelectItem value="2">2 weeks</SelectItem>
+                            <SelectItem value="3">3 weeks</SelectItem>
+                            <SelectItem value="4">4 weeks</SelectItem>
+                            <SelectItem value="5">5 weeks</SelectItem>
+                            <SelectItem value="6">6 weeks</SelectItem>
+                            <SelectItem value="7">7 weeks</SelectItem>
+                            <SelectItem value="8">8 weeks</SelectItem>
+                            <SelectItem value="9">9 weeks</SelectItem>
+                            <SelectItem value="10">10 weeks</SelectItem>
+                            <SelectItem value="11">11 weeks</SelectItem>
+                            <SelectItem value="12">12 weeks</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="repeat-count">Number of Repetitions</Label>
+                        <Select 
+                          value={scheduleForm.repeatCount.toString()} 
+                          onValueChange={(value) => handleScheduleInputChange("repeatCount", value)}
+                          disabled={scheduleForm.repeatWeeks === 0}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="1 time" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1 time</SelectItem>
+                            <SelectItem value="2">2 times</SelectItem>
+                            <SelectItem value="3">3 times</SelectItem>
+                            <SelectItem value="4">4 times</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {scheduleForm.repeatWeeks > 0 && scheduleForm.repeatCount > 1 && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                        <p className="text-sm text-blue-700">
+                          This will create {scheduleForm.repeatCount} schedules, starting from the selected date and repeating every {scheduleForm.repeatWeeks} week{scheduleForm.repeatWeeks === 1 ? '' : 's'}.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-end space-x-3">

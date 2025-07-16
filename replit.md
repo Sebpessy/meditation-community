@@ -77,6 +77,11 @@ Preferred communication style: Simple, everyday language.
 - ✅ Implemented template duplication feature in admin panel
 - ✅ Added duplicate button with copy icon to template management interface
 - ✅ Created API endpoint for duplicating meditation templates with "(Copy)" suffix
+- ✅ Added schedule repeat functionality with configurable week intervals (1-12 weeks)
+- ✅ Implemented repeat count option (1-4 times) for schedule repetition
+- ✅ Enhanced schedule creation to automatically generate multiple schedules when repeat is enabled
+- ✅ Updated database schema with repeatWeeks and repeatCount fields
+- ✅ Added repeat options UI to schedule modal with preview information
 
 ### July 14, 2025
 - ✅ Fixed TypeScript compilation errors in storage layer
