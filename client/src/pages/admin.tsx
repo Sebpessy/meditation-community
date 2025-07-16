@@ -514,9 +514,11 @@ export default function AdminPage() {
         }
         
         // Create multiple schedules
+        console.log("Creating schedules:", schedules);
         Promise.all(schedules.map(schedule => 
           apiRequest("POST", "/api/admin/schedules", schedule)
-        )).then(() => {
+        )).then((responses) => {
+          console.log("All schedules created:", responses);
           queryClient.invalidateQueries({ queryKey: ["/api/admin/schedules"] });
           setIsScheduleModalOpen(false);
           resetScheduleForm();
@@ -524,7 +526,8 @@ export default function AdminPage() {
             title: "Schedules created",
             description: `Successfully created ${schedules.length} repeated schedules.`
           });
-        }).catch(() => {
+        }).catch((error) => {
+          console.error("Error creating schedules:", error);
           toast({
             title: "Error",
             description: "Failed to create repeated schedules. Please try again.",
