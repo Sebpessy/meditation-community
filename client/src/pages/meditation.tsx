@@ -209,6 +209,8 @@ export default function MeditationPage() {
       // Trigger heart animation
       setShowHeartAnimation(true);
       setTimeout(() => setShowHeartAnimation(false), 2000);
+      // Invalidate cache for this message's likes
+      queryClient.invalidateQueries({ queryKey: ['liked-messages', currentUserId] });
     },
     onError: (error) => {
       console.error('Failed to like message:', error);
@@ -443,7 +445,7 @@ export default function MeditationPage() {
                       >
                         <Heart 
                           size={12} 
-                          className="fill-current text-red-500"
+                          className="text-red-500"
                         />
                         <span>{messageLikes[message.id] || 0}</span>
                       </button>
@@ -454,6 +456,28 @@ export default function MeditationPage() {
             ))
           )}
           <div ref={messagesEndRef} />
+          
+          {/* Heart Animation Effect - Mobile */}
+          {showHeartAnimation && (
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute"
+                  style={{
+                    left: `${20 + Math.random() * 60}%`,
+                    bottom: '20px',
+                    animation: `heartFloat 2s ease-out ${i * 0.2}s forwards`,
+                  }}
+                >
+                  <Heart 
+                    size={16 + Math.random() * 8} 
+                    className="fill-current text-red-500"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
           
           {/* Heart Animation Effect */}
           {showHeartAnimation && (

@@ -82,6 +82,8 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
       // Trigger heart animation
       setShowHeartAnimation(true);
       setTimeout(() => setShowHeartAnimation(false), 2000);
+      // Invalidate cache for this message's likes
+      queryClient.invalidateQueries({ queryKey: ['liked-messages', userId] });
     },
     onError: (error) => {
       console.error('Failed to like message:', error);
@@ -234,7 +236,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                         >
                           <Heart 
                             size={12} 
-                            className="fill-current text-red-500"
+                            className="text-red-500"
                           />
                           <span>{messageLikes[message.id] || 0}</span>
                         </button>
@@ -249,24 +251,19 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
             {/* Heart Animation Effect */}
             {showHeartAnimation && (
               <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                {[...Array(8)].map((_, i) => (
+                {[...Array(6)].map((_, i) => (
                   <div
                     key={i}
-                    className="absolute animate-pulse"
+                    className="absolute"
                     style={{
-                      left: `${Math.random() * 100}%`,
-                      top: `${Math.random() * 100}%`,
-                      animationDelay: `${Math.random() * 0.5}s`,
-                      animationDuration: `${1 + Math.random() * 1}s`,
+                      left: `${20 + Math.random() * 60}%`,
+                      bottom: '20px',
+                      animation: `heartFloat 2s ease-out ${i * 0.2}s forwards`,
                     }}
                   >
                     <Heart 
                       size={16 + Math.random() * 8} 
-                      className="fill-current text-red-500 animate-bounce"
-                      style={{
-                        animationDelay: `${Math.random() * 0.5}s`,
-                        animationDuration: `${0.5 + Math.random() * 0.5}s`,
-                      }}
+                      className="fill-current text-red-500"
                     />
                   </div>
                 ))}
