@@ -87,7 +87,6 @@ export default function MeditationPage() {
   const [hoveredUser, setHoveredUser] = useState<number | null>(null);
   const [messageLikes, setMessageLikes] = useState<{ [messageId: number]: number }>({});
   const [likedMessages, setLikedMessages] = useState<Set<number>>(new Set());
-  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
@@ -205,10 +204,8 @@ export default function MeditationPage() {
       return await apiRequest('POST', `/api/messages/${messageId}/like`);
     },
     onSuccess: (data, messageId) => {
+      console.log('Like success:', data, 'for message:', messageId);
       setMessageLikes(prev => ({ ...prev, [messageId]: data.likes }));
-      // Trigger heart animation
-      setShowHeartAnimation(true);
-      setTimeout(() => setShowHeartAnimation(false), 2000);
       // Invalidate cache for this message's likes
       queryClient.invalidateQueries({ queryKey: ['liked-messages', currentUserId] });
     },
@@ -440,12 +437,12 @@ export default function MeditationPage() {
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => handleLike(message.id)}
-                        className="flex items-center space-x-1 text-xs rounded-full px-2 py-1 transition-colors text-neutral-500 hover:text-red-500 hover:bg-red-50"
+                        className="flex items-center space-x-1 text-xs rounded-full px-2 py-1 transition-colors text-neutral-400 hover:text-red-500 hover:bg-red-50"
                         disabled={likeMutation.isPending}
                       >
                         <Heart 
                           size={12} 
-                          className="text-red-500"
+                          className="text-neutral-400 hover:text-red-500"
                         />
                         <span>{messageLikes[message.id] || 0}</span>
                       </button>
@@ -456,55 +453,6 @@ export default function MeditationPage() {
             ))
           )}
           <div ref={messagesEndRef} />
-          
-          {/* Heart Animation Effect - Mobile */}
-          {showHeartAnimation && (
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute"
-                  style={{
-                    left: `${20 + Math.random() * 60}%`,
-                    bottom: '20px',
-                    animation: `heartFloat 2s ease-out ${i * 0.2}s forwards`,
-                  }}
-                >
-                  <Heart 
-                    size={16 + Math.random() * 8} 
-                    className="fill-current text-red-500"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {/* Heart Animation Effect */}
-          {showHeartAnimation && (
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute animate-pulse"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                    animationDelay: `${Math.random() * 0.5}s`,
-                    animationDuration: `${1 + Math.random() * 1}s`,
-                  }}
-                >
-                  <Heart 
-                    size={16 + Math.random() * 8} 
-                    className="fill-current text-red-500 animate-bounce"
-                    style={{
-                      animationDelay: `${Math.random() * 0.5}s`,
-                      animationDuration: `${0.5 + Math.random() * 0.5}s`,
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Fixed Chat Input - Always at bottom */}

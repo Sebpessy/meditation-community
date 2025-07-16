@@ -19,7 +19,6 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
   const [hoveredUser, setHoveredUser] = useState<number | null>(null);
   const [messageLikes, setMessageLikes] = useState<{ [messageId: number]: number }>({});
   const [likedMessages, setLikedMessages] = useState<Set<number>>(new Set());
-  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, onlineCount, onlineUsers, isConnected, sendMessage } = useWebSocket(userId, sessionDate);
   const queryClient = useQueryClient();
@@ -79,9 +78,6 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
     },
     onSuccess: (data, messageId) => {
       setMessageLikes(prev => ({ ...prev, [messageId]: data.likes }));
-      // Trigger heart animation
-      setShowHeartAnimation(true);
-      setTimeout(() => setShowHeartAnimation(false), 2000);
       // Invalidate cache for this message's likes
       queryClient.invalidateQueries({ queryKey: ['liked-messages', userId] });
     },
@@ -231,12 +227,12 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleLike(message.id)}
-                          className="flex items-center space-x-1 text-xs rounded-full px-2 py-1 transition-colors text-neutral-500 hover:text-red-500 hover:bg-red-50"
+                          className="flex items-center space-x-1 text-xs rounded-full px-2 py-1 transition-colors text-neutral-400 hover:text-red-500 hover:bg-red-50"
                           disabled={likeMutation.isPending}
                         >
                           <Heart 
                             size={12} 
-                            className="text-red-500"
+                            className="text-neutral-400 hover:text-red-500"
                           />
                           <span>{messageLikes[message.id] || 0}</span>
                         </button>
@@ -248,27 +244,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
             )}
             <div ref={messagesEndRef} />
             
-            {/* Heart Animation Effect */}
-            {showHeartAnimation && (
-              <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                {[...Array(6)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="absolute"
-                    style={{
-                      left: `${20 + Math.random() * 60}%`,
-                      bottom: '20px',
-                      animation: `heartFloat 2s ease-out ${i * 0.2}s forwards`,
-                    }}
-                  >
-                    <Heart 
-                      size={16 + Math.random() * 8} 
-                      className="fill-current text-red-500"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+
           </div>
 
           {/* Desktop Chat Input */}
