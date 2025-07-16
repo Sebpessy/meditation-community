@@ -85,6 +85,11 @@ Preferred communication style: Simple, everyday language.
 - ✅ Implemented schedule sorting functionality with date and template options
 - ✅ Added sorting controls to schedule management interface
 - ✅ Enhanced schedule display to show sorted results in admin dashboard
+- ✅ Implemented calendar view with week, month, and year options
+- ✅ Added view mode toggle between list and calendar views
+- ✅ Created interactive calendar navigation with previous/next controls
+- ✅ Added clickable schedule items in calendar view for easy editing
+- ✅ Enhanced calendar display with proper date formatting and schedule visualization
 
 ### July 14, 2025
 - ✅ Fixed TypeScript compilation errors in storage layer

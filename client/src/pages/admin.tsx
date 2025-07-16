@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Loading } from "@/components/ui/loading";
-import { Plus, Edit, Trash2, Calendar, Users, Search, BarChart3, Activity, Clock, Target, Copy, Upload, FileText } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, Users, Search, BarChart3, Activity, Clock, Target, Copy, Upload, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
@@ -74,6 +74,8 @@ export default function AdminPage() {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
   const [scheduleSortBy, setScheduleSortBy] = useState<"date" | "template">("date");
+  const [scheduleViewMode, setScheduleViewMode] = useState<"list" | "calendar">("list");
+  const [calendarView, setCalendarView] = useState<"week" | "month" | "year">("month");
   const [userSearchTerm, setUserSearchTerm] = useState("");
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -614,6 +616,71 @@ export default function AdminPage() {
     }
     return 0;
   }) || [];
+
+  // Calendar view helper functions
+  const [calendarDate, setCalendarDate] = useState(new Date());
+
+  const getWeekDays = (date: Date) => {
+    const week = [];
+    const startOfWeek = new Date(date);
+    startOfWeek.setDate(date.getDate() - date.getDay());
+    
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(startOfWeek);
+      day.setDate(startOfWeek.getDate() + i);
+      week.push(day);
+    }
+    return week;
+  };
+
+  const getMonthDays = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - startDate.getDay());
+    
+    const days = [];
+    const current = new Date(startDate);
+    
+    while (current <= lastDay || current.getDay() !== 0) {
+      days.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+    
+    return days;
+  };
+
+  const getYearMonths = (date: Date) => {
+    const year = date.getFullYear();
+    const months = [];
+    
+    for (let i = 0; i < 12; i++) {
+      months.push(new Date(year, i, 1));
+    }
+    
+    return months;
+  };
+
+  const getSchedulesForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return sortedSchedules.filter(schedule => schedule.date === dateStr);
+  };
+
+  const navigateCalendar = (direction: 'prev' | 'next') => {
+    const newDate = new Date(calendarDate);
+    
+    if (calendarView === 'week') {
+      newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+    } else if (calendarView === 'month') {
+      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+    } else if (calendarView === 'year') {
+      newDate.setFullYear(newDate.getFullYear() + (direction === 'next' ? 1 : -1));
+    }
+    
+    setCalendarDate(newDate);
+  };
 
   const filteredUsers = users?.filter(user => 
     user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
@@ -1266,52 +1333,207 @@ export default function AdminPage() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Upcoming Schedules</CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <Label htmlFor="sort-select" className="text-sm font-medium">Sort by:</Label>
-                    <Select value={scheduleSortBy} onValueChange={(value: "date" | "template") => setScheduleSortBy(value)}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="date">Date</SelectItem>
-                        <SelectItem value="template">Template</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <CardTitle>Schedules</CardTitle>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <Label className="text-sm font-medium">View:</Label>
+                      <div className="flex border rounded-lg">
+                        <Button
+                          size="sm"
+                          variant={scheduleViewMode === "list" ? "default" : "ghost"}
+                          onClick={() => setScheduleViewMode("list")}
+                          className="rounded-r-none"
+                        >
+                          List
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={scheduleViewMode === "calendar" ? "default" : "ghost"}
+                          onClick={() => setScheduleViewMode("calendar")}
+                          className="rounded-l-none"
+                        >
+                          Calendar
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {scheduleViewMode === "list" && (
+                      <div className="flex items-center space-x-2">
+                        <Label className="text-sm font-medium">Sort by:</Label>
+                        <Select value={scheduleSortBy} onValueChange={(value: "date" | "template") => setScheduleSortBy(value)}>
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="date">Date</SelectItem>
+                            <SelectItem value="template">Template</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    
+                    {scheduleViewMode === "calendar" && (
+                      <div className="flex items-center space-x-2">
+                        <Label className="text-sm font-medium">View:</Label>
+                        <Select value={calendarView} onValueChange={(value: "week" | "month" | "year") => setCalendarView(value)}>
+                          <SelectTrigger className="w-24">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="week">Week</SelectItem>
+                            <SelectItem value="month">Month</SelectItem>
+                            <SelectItem value="year">Year</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {sortedSchedules?.length === 0 ? (
-                    <p className="text-center text-neutral-500 py-8">No schedules found</p>
-                  ) : (
-                    sortedSchedules?.map((schedule) => {
-                      const template = templates?.find(t => t.id === schedule.templateId);
-                      return (
-                        <div key={schedule.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div>
-                            <p className="font-medium">{schedule.date}</p>
-                            <p className="text-sm text-neutral-600">Time: {schedule.scheduledTime}</p>
-                            <p className="text-sm text-neutral-600">
-                              Template: {template ? `${template.title} (${template.duration} min)` : 'Unknown Template'}
-                            </p>
+                {scheduleViewMode === "list" ? (
+                  <div className="space-y-4">
+                    {sortedSchedules?.length === 0 ? (
+                      <p className="text-center text-neutral-500 py-8">No schedules found</p>
+                    ) : (
+                      sortedSchedules?.map((schedule) => {
+                        const template = templates?.find(t => t.id === schedule.templateId);
+                        return (
+                          <div key={schedule.id} className="flex items-center justify-between p-4 border rounded-lg">
+                            <div>
+                              <p className="font-medium">{schedule.date}</p>
+                              <p className="text-sm text-neutral-600">Time: {schedule.scheduledTime}</p>
+                              <p className="text-sm text-neutral-600">
+                                Template: {template ? `${template.title} (${template.duration} min)` : 'Unknown Template'}
+                              </p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant={schedule.isActive ? "default" : "secondary"}>
+                                {schedule.isActive ? "Active" : "Inactive"}
+                              </Badge>
+                              <Button size="sm" variant="ghost" onClick={() => handleEditSchedule(schedule)}>
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600" onClick={() => handleDeleteSchedule(schedule.id)}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={schedule.isActive ? "default" : "secondary"}>
-                            {schedule.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                          <Button size="sm" variant="ghost" onClick={() => handleEditSchedule(schedule)}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-600" onClick={() => handleDeleteSchedule(schedule.id)}>
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+                        )
+                      })
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Calendar Navigation */}
+                    <div className="flex items-center justify-between">
+                      <Button variant="outline" size="sm" onClick={() => navigateCalendar('prev')}>
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      <h3 className="text-lg font-medium">
+                        {calendarView === 'week' && 
+                          `Week of ${calendarDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+                        }
+                        {calendarView === 'month' && 
+                          calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                        }
+                        {calendarView === 'year' && 
+                          calendarDate.getFullYear()
+                        }
+                      </h3>
+                      <Button variant="outline" size="sm" onClick={() => navigateCalendar('next')}>
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    {/* Calendar Grid */}
+                    {calendarView === 'week' && (
+                      <div className="grid grid-cols-7 gap-2">
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                          <div key={day} className="text-center text-sm font-medium py-2 border-b">
+                            {day}
+                          </div>
+                        ))}
+                        {getWeekDays(calendarDate).map(day => {
+                          const daySchedules = getSchedulesForDate(day);
+                          return (
+                            <div key={day.toISOString()} className="min-h-24 p-2 border rounded-lg">
+                              <div className="text-sm font-medium mb-1">{day.getDate()}</div>
+                              {daySchedules.map(schedule => {
+                                const template = templates?.find(t => t.id === schedule.templateId);
+                                return (
+                                  <div key={schedule.id} className="text-xs p-1 bg-blue-100 rounded mb-1 cursor-pointer" 
+                                       onClick={() => handleEditSchedule(schedule)}>
+                                    {schedule.scheduledTime} - {template?.title || 'Unknown'}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
                       </div>
-                    )})
-                  )}
-                </div>
+                    )}
+                    
+                    {calendarView === 'month' && (
+                      <div className="grid grid-cols-7 gap-2">
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                          <div key={day} className="text-center text-sm font-medium py-2 border-b">
+                            {day}
+                          </div>
+                        ))}
+                        {getMonthDays(calendarDate).map(day => {
+                          const daySchedules = getSchedulesForDate(day);
+                          const isCurrentMonth = day.getMonth() === calendarDate.getMonth();
+                          return (
+                            <div key={day.toISOString()} className={`min-h-20 p-2 border rounded-lg ${!isCurrentMonth ? 'bg-gray-50 text-gray-400' : ''}`}>
+                              <div className="text-sm font-medium mb-1">{day.getDate()}</div>
+                              {daySchedules.map(schedule => {
+                                const template = templates?.find(t => t.id === schedule.templateId);
+                                return (
+                                  <div key={schedule.id} className="text-xs p-1 bg-blue-100 rounded mb-1 cursor-pointer" 
+                                       onClick={() => handleEditSchedule(schedule)}>
+                                    {template?.title || 'Unknown'}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    
+                    {calendarView === 'year' && (
+                      <div className="grid grid-cols-3 gap-4">
+                        {getYearMonths(calendarDate).map(month => {
+                          const monthSchedules = sortedSchedules.filter(schedule => {
+                            const scheduleDate = new Date(schedule.date);
+                            return scheduleDate.getMonth() === month.getMonth() && 
+                                   scheduleDate.getFullYear() === month.getFullYear();
+                          });
+                          return (
+                            <div key={month.toISOString()} className="border rounded-lg p-4">
+                              <h4 className="font-medium mb-2">{month.toLocaleDateString('en-US', { month: 'long' })}</h4>
+                              <div className="space-y-1">
+                                {monthSchedules.slice(0, 3).map(schedule => {
+                                  const template = templates?.find(t => t.id === schedule.templateId);
+                                  return (
+                                    <div key={schedule.id} className="text-xs p-1 bg-blue-100 rounded cursor-pointer" 
+                                         onClick={() => handleEditSchedule(schedule)}>
+                                      {new Date(schedule.date).getDate()} - {template?.title || 'Unknown'}
+                                    </div>
+                                  );
+                                })}
+                                {monthSchedules.length > 3 && (
+                                  <div className="text-xs text-gray-500">+{monthSchedules.length - 3} more</div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
