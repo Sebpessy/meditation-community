@@ -495,26 +495,29 @@ export default function AdminPage() {
       repeatCount: parseInt(scheduleForm.repeatCount.toString())
     };
 
-    if (editingSchedule) {
-      updateScheduleMutation.mutate({ id: editingSchedule.id, data: scheduleData });
-    } else {
-      // If repeat is enabled, create multiple schedules
-      if (scheduleData.repeatWeeks > 0 && scheduleData.repeatCount > 1) {
-        const schedules = [];
-        const startDate = new Date(scheduleData.date);
+    console.log("Schedule form data:", scheduleForm);
+    console.log("Processed schedule data:", scheduleData);
+    console.log("Repeat check:", scheduleData.repeatWeeks > 0 && scheduleData.repeatCount > 1);
+
+    // Handle repeat functionality for both create and edit
+    if (scheduleData.repeatWeeks > 0 && scheduleData.repeatCount > 1) {
+      const schedules = [];
+      const startDate = new Date(scheduleData.date);
+      
+      for (let i = 0; i < scheduleData.repeatCount; i++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + (i * scheduleData.repeatWeeks * 7));
         
-        for (let i = 0; i < scheduleData.repeatCount; i++) {
-          const currentDate = new Date(startDate);
-          currentDate.setDate(startDate.getDate() + (i * scheduleData.repeatWeeks * 7));
-          
-          schedules.push({
-            ...scheduleData,
-            date: currentDate.toISOString().split('T')[0]
-          });
-        }
-        
-        // Create multiple schedules
-        console.log("Creating schedules:", schedules);
+        schedules.push({
+          ...scheduleData,
+          date: currentDate.toISOString().split('T')[0]
+        });
+      }
+      
+      console.log("Creating schedules:", schedules);
+      
+      // Create multiple schedules
+      const createSchedules = () => {
         Promise.all(schedules.map(schedule => 
           apiRequest("POST", "/api/admin/schedules", schedule)
         )).then((responses) => {
@@ -534,6 +537,29 @@ export default function AdminPage() {
             variant: "destructive"
           });
         });
+      };
+      
+      // If editing, delete the existing schedule first
+      if (editingSchedule) {
+        apiRequest("DELETE", `/api/admin/schedules/${editingSchedule.id}`)
+          .then(() => {
+            createSchedules();
+          })
+          .catch((error) => {
+            console.error("Error deleting schedule:", error);
+            toast({
+              title: "Error",
+              description: "Failed to delete existing schedule. Please try again.",
+              variant: "destructive"
+            });
+          });
+      } else {
+        createSchedules();
+      }
+    } else {
+      // Single schedule creation or update
+      if (editingSchedule) {
+        updateScheduleMutation.mutate({ id: editingSchedule.id, data: scheduleData });
       } else {
         createScheduleMutation.mutate(scheduleData);
       }
