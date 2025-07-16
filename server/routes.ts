@@ -408,6 +408,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/admin/templates/import', async (req, res) => {
+    try {
+      const { templates } = req.body;
+      
+      if (!templates || !Array.isArray(templates)) {
+        return res.status(400).json({ error: 'Templates array is required' });
+      }
+      
+      const imported = [];
+      const errors = [];
+      
+      for (const template of templates) {
+        try {
+          // Validate template data
+          const validatedTemplate = insertMeditationTemplateSchema.parse(template);
+          const createdTemplate = await storage.createTemplate(validatedTemplate);
+          imported.push(createdTemplate);
+        } catch (error) {
+          errors.push({
+            template: template.title || 'Unknown',
+            error: error.message
+          });
+        }
+      }
+      
+      res.json({
+        imported: imported.length,
+        errors: errors,
+        templates: imported
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to import templates' });
+    }
+  });
+
   app.get('/api/admin/schedules', async (req, res) => {
     try {
       const schedules = await storage.getAllSchedules();
