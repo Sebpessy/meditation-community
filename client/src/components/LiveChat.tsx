@@ -58,7 +58,8 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
       for (const message of messages) {
         try {
           const response = await apiRequest('GET', `/api/messages/${message.id}/likes`);
-          likesData[message.id] = response.likes || 0;
+          const data = await response.json();
+          likesData[message.id] = data.likes || 0;
         } catch (error) {
           console.error('Failed to fetch likes for message:', message.id, error);
           likesData[message.id] = 0;
@@ -75,7 +76,8 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
   // Like mutation (positive-only)
   const likeMutation = useMutation({
     mutationFn: async (messageId: number) => {
-      return await apiRequest('POST', `/api/messages/${messageId}/like`);
+      const response = await apiRequest('POST', `/api/messages/${messageId}/like`);
+      return await response.json();
     },
     onSuccess: (data, messageId) => {
       console.log('Like success:', data, 'for message:', messageId);
