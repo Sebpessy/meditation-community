@@ -854,91 +854,93 @@ export default function AdminPage() {
               </Dialog>
               
               {/* Import CSV Modal */}
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Import Templates from CSV</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-blue-900 mb-2">CSV Format Instructions</h3>
-                    <p className="text-sm text-blue-700 mb-2">
-                      Your CSV should contain the following columns (in any order):
-                    </p>
-                    <ul className="text-sm text-blue-700 space-y-1">
-                      <li>• <strong>Template Title</strong> - The name of the meditation template</li>
-                      <li>• <strong>Instructor</strong> - The instructor name</li>
-                      <li>• <strong>Instructor Title</strong> - The instructor's title</li>
-                      <li>• <strong>Week Name</strong> - Will be used as the description</li>
-                      <li>• <strong>duration</strong> - Duration in minutes (number)</li>
-                      <li>• <strong>video Url</strong> - URL to the meditation video</li>
-                      <li>• <strong>Thumbnail URL (optional)</strong> - URL to the thumbnail image</li>
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="csv-data">Paste CSV Data</Label>
-                    <Textarea
-                      id="csv-data"
-                      value={csvData}
-                      onChange={(e) => setCsvData(e.target.value)}
-                      placeholder="Paste your CSV data here..."
-                      rows={10}
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <Button 
-                      type="button" 
-                      onClick={processCsvData}
-                      disabled={!csvData.trim()}
-                      variant="outline"
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Preview Templates
-                    </Button>
-                    <div className="flex space-x-3">
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => {
-                          setIsImportModalOpen(false);
-                          setCsvData("");
-                          setImportPreview([]);
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button 
-                        type="button" 
-                        onClick={handleImport}
-                        disabled={importPreview.length === 0 || importTemplatesMutation.isPending}
-                      >
-                        {importTemplatesMutation.isPending ? "Importing..." : `Import ${importPreview.length} Templates`}
-                      </Button>
+              <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Import Templates from CSV</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h3 className="font-medium text-blue-900 mb-2">CSV Format Instructions</h3>
+                      <p className="text-sm text-blue-700 mb-2">
+                        Your CSV should contain the following columns (in any order):
+                      </p>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li>• <strong>Template Title</strong> - The name of the meditation template</li>
+                        <li>• <strong>Instructor</strong> - The instructor name</li>
+                        <li>• <strong>Instructor Title</strong> - The instructor's title</li>
+                        <li>• <strong>Week Name</strong> - Will be used as the description</li>
+                        <li>• <strong>duration</strong> - Duration in minutes (number)</li>
+                        <li>• <strong>video Url</strong> - URL to the meditation video</li>
+                        <li>• <strong>Thumbnail URL (optional)</strong> - URL to the thumbnail image</li>
+                      </ul>
                     </div>
-                  </div>
-                  
-                  {importPreview.length > 0 && (
-                    <div className="border-t pt-4">
-                      <h3 className="font-medium mb-3">Preview ({importPreview.length} templates)</h3>
-                      <div className="max-h-60 overflow-y-auto space-y-2">
-                        {importPreview.map((template, index) => (
-                          <div key={index} className="bg-gray-50 p-3 rounded-lg">
-                            <div className="font-medium">{template.title}</div>
-                            <div className="text-sm text-gray-600">
-                              {template.instructor} • {template.duration} min • {template.difficulty}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {template.description}
-                            </div>
-                          </div>
-                        ))}
+                    
+                    <div>
+                      <Label htmlFor="csv-data">Paste CSV Data</Label>
+                      <Textarea
+                        id="csv-data"
+                        value={csvData}
+                        onChange={(e) => setCsvData(e.target.value)}
+                        placeholder="Paste your CSV data here..."
+                        rows={10}
+                        className="font-mono text-sm"
+                      />
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <Button 
+                        type="button" 
+                        onClick={processCsvData}
+                        disabled={!csvData.trim()}
+                        variant="outline"
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Preview Templates
+                      </Button>
+                      <div className="flex space-x-3">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => {
+                            setIsImportModalOpen(false);
+                            setCsvData("");
+                            setImportPreview([]);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          type="button" 
+                          onClick={handleImport}
+                          disabled={importPreview.length === 0 || importTemplatesMutation.isPending}
+                        >
+                          {importTemplatesMutation.isPending ? "Importing..." : `Import ${importPreview.length} Templates`}
+                        </Button>
                       </div>
                     </div>
-                  )}
-                </div>
-              </DialogContent>
+                    
+                    {importPreview.length > 0 && (
+                      <div className="border-t pt-4">
+                        <h3 className="font-medium mb-3">Preview ({importPreview.length} templates)</h3>
+                        <div className="max-h-60 overflow-y-auto space-y-2">
+                          {importPreview.map((template, index) => (
+                            <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                              <div className="font-medium">{template.title}</div>
+                              <div className="text-sm text-gray-600">
+                                {template.instructor} • {template.duration} min • {template.difficulty}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {template.description}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
