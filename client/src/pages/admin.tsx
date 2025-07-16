@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Loading } from "@/components/ui/loading";
-import { Plus, Edit, Trash2, Calendar, Users, Search, BarChart3, Activity, Clock, Target } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, Users, Search, BarChart3, Activity, Clock, Target, Copy } from "lucide-react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
@@ -161,6 +161,24 @@ export default function AdminPage() {
       toast({
         title: "Error",
         description: "Failed to delete template. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const duplicateTemplateMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("POST", `/api/admin/templates/${id}/duplicate`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/templates"] });
+      toast({
+        title: "Template duplicated",
+        description: "The meditation template has been duplicated successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to duplicate template. Please try again.",
         variant: "destructive"
       });
     }
@@ -356,6 +374,10 @@ export default function AdminPage() {
     if (confirm("Are you sure you want to delete this template?")) {
       deleteTemplateMutation.mutate(id);
     }
+  };
+
+  const handleDuplicate = (id: number) => {
+    duplicateTemplateMutation.mutate(id);
   };
 
   const handleScheduleInputChange = (field: string, value: string | boolean) => {
@@ -799,6 +821,15 @@ export default function AdminPage() {
                           onClick={() => handleEdit(template)}
                         >
                           <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDuplicate(template.id)}
+                          className="text-blue-500 hover:text-blue-600"
+                          title="Duplicate template"
+                        >
+                          <Copy className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"

@@ -379,6 +379,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/admin/templates/:id/duplicate', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const originalTemplate = await storage.getTemplate(id);
+      
+      if (!originalTemplate) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      // Create a copy of the template without the ID
+      const duplicateData = {
+        title: `${originalTemplate.title} (Copy)`,
+        description: originalTemplate.description,
+        duration: originalTemplate.duration,
+        difficulty: originalTemplate.difficulty,
+        videoUrl: originalTemplate.videoUrl,
+        thumbnailUrl: originalTemplate.thumbnailUrl,
+        instructor: originalTemplate.instructor,
+        instructorTitle: originalTemplate.instructorTitle,
+        sessionSteps: originalTemplate.sessionSteps
+      };
+      
+      const duplicatedTemplate = await storage.createTemplate(duplicateData);
+      res.json(duplicatedTemplate);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to duplicate template' });
+    }
+  });
+
   app.get('/api/admin/schedules', async (req, res) => {
     try {
       const schedules = await storage.getAllSchedules();
