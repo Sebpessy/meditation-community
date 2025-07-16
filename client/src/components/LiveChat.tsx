@@ -119,8 +119,8 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Desktop Chat Messages */}
