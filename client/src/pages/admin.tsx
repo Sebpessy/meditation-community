@@ -73,6 +73,7 @@ export default function AdminPage() {
   });
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
+  const [scheduleSortBy, setScheduleSortBy] = useState<"date" | "template">("date");
   const [userSearchTerm, setUserSearchTerm] = useState("");
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -495,10 +496,6 @@ export default function AdminPage() {
       repeatCount: parseInt(scheduleForm.repeatCount.toString())
     };
 
-    console.log("Schedule form data:", scheduleForm);
-    console.log("Processed schedule data:", scheduleData);
-    console.log("Repeat check:", scheduleData.repeatWeeks > 0 && scheduleData.repeatCount > 1);
-
     // Handle repeat functionality for both create and edit
     if (scheduleData.repeatWeeks > 0 && scheduleData.repeatCount > 1) {
       const schedules = [];
@@ -514,14 +511,11 @@ export default function AdminPage() {
         });
       }
       
-      console.log("Creating schedules:", schedules);
-      
       // Create multiple schedules
       const createSchedules = () => {
         Promise.all(schedules.map(schedule => 
           apiRequest("POST", "/api/admin/schedules", schedule)
-        )).then((responses) => {
-          console.log("All schedules created:", responses);
+        )).then(() => {
           queryClient.invalidateQueries({ queryKey: ["/api/admin/schedules"] });
           setIsScheduleModalOpen(false);
           resetScheduleForm();
@@ -529,8 +523,7 @@ export default function AdminPage() {
             title: "Schedules created",
             description: `Successfully created ${schedules.length} repeated schedules.`
           });
-        }).catch((error) => {
-          console.error("Error creating schedules:", error);
+        }).catch(() => {
           toast({
             title: "Error",
             description: "Failed to create repeated schedules. Please try again.",
@@ -545,8 +538,7 @@ export default function AdminPage() {
           .then(() => {
             createSchedules();
           })
-          .catch((error) => {
-            console.error("Error deleting schedule:", error);
+          .catch(() => {
             toast({
               title: "Error",
               description: "Failed to delete existing schedule. Please try again.",
@@ -609,6 +601,19 @@ export default function AdminPage() {
     template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.instructor.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+
+  const sortedSchedules = schedules?.sort((a, b) => {
+    if (scheduleSortBy === "date") {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    } else if (scheduleSortBy === "template") {
+      const templateA = templates?.find(t => t.id === a.templateId);
+      const templateB = templates?.find(t => t.id === b.templateId);
+      const titleA = templateA?.title || "";
+      const titleB = templateB?.title || "";
+      return titleA.localeCompare(titleB);
+    }
+    return 0;
+  }) || [];
 
   const filteredUsers = users?.filter(user => 
     user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
@@ -1260,14 +1265,28 @@ export default function AdminPage() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Upcoming Schedules</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Upcoming Schedules</CardTitle>
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor="sort-select" className="text-sm font-medium">Sort by:</Label>
+                    <Select value={scheduleSortBy} onValueChange={(value: "date" | "template") => setScheduleSortBy(value)}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="date">Date</SelectItem>
+                        <SelectItem value="template">Template</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {schedules?.length === 0 ? (
+                  {sortedSchedules?.length === 0 ? (
                     <p className="text-center text-neutral-500 py-8">No schedules found</p>
                   ) : (
-                    schedules?.map((schedule) => {
+                    sortedSchedules?.map((schedule) => {
                       const template = templates?.find(t => t.id === schedule.templateId);
                       return (
                         <div key={schedule.id} className="flex items-center justify-between p-4 border rounded-lg">
