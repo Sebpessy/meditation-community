@@ -5,6 +5,24 @@ import { storage } from "./storage";
 import { insertUserSchema, insertMeditationTemplateSchema, insertScheduleSchema, insertChatMessageSchema } from "@shared/schema";
 import { z } from "zod";
 
+// Helper function to get current user from request
+async function getCurrentUser(req: any) {
+  // For now, we'll use a simple approach - the frontend should send the Firebase UID
+  const firebaseUid = req.body.firebaseUid || req.headers['x-firebase-uid'];
+  
+  if (!firebaseUid) {
+    return null;
+  }
+  
+  try {
+    const user = await storage.getUserByFirebaseUid(firebaseUid);
+    return user;
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return null;
+  }
+}
+
 // WebSocket connection management
 const activeConnections = new Map<WebSocket, { userId?: number, sessionDate?: string }>();
 const sessionUsers = new Map<string, Set<number>>(); // sessionDate -> Set of userIds
