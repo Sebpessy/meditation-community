@@ -412,9 +412,13 @@ export default function AdminPage() {
     const rows = lines.slice(1).map(line => {
       const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
       const row: any = {};
+      
+      // Create both header-based and index-based access
       headers.forEach((header, index) => {
         row[header] = values[index] || '';
+        row[index] = values[index] || ''; // Also store by index
       });
+      
       return row;
     });
     return rows;
@@ -425,9 +429,18 @@ export default function AdminPage() {
     
     try {
       const parsedData = parseCSV(csvData);
+      console.log('Parsed CSV data:', parsedData);
+      
       const processedTemplates = parsedData.map((row, index) => {
         // Map CSV columns to template format - Template Title is column G, Description is column B
         const duration = parseFloat(row['duration']) || 0;
+        
+        console.log(`Row ${index}:`, {
+          columnB: row[1],
+          columnG: row[6],
+          duration: row['duration'],
+          instructor: row['Instructor']
+        });
         
         return {
           title: row[6] || `Imported Template ${index + 1}`, // Column G (index 6)
@@ -446,8 +459,10 @@ export default function AdminPage() {
         };
       });
       
+      console.log('Processed templates:', processedTemplates);
       setImportPreview(processedTemplates);
     } catch (error) {
+      console.error('CSV parsing error:', error);
       toast({
         title: "Error",
         description: "Failed to parse CSV data. Please check the format.",
