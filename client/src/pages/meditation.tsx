@@ -192,6 +192,7 @@ export default function MeditationPage() {
         }
       }
       
+      console.log('Fetched likes data:', likesData);
       setMessageLikes(likesData);
     };
 
@@ -442,7 +443,11 @@ export default function MeditationPage() {
                       >
                         <Heart 
                           size={12} 
-                          className="text-neutral-400 hover:text-red-500"
+                          className={`transition-colors ${
+                            (messageLikes[message.id] || 0) > 0 
+                              ? "text-red-500 fill-current" 
+                              : "text-neutral-400 hover:text-red-500"
+                          }`}
                         />
                         <span>{messageLikes[message.id] || 0}</span>
                       </button>

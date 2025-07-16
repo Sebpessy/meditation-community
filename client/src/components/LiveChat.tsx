@@ -65,6 +65,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
         }
       }
       
+      console.log('Fetched likes data:', likesData);
       setMessageLikes(likesData);
     };
 
@@ -77,6 +78,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
       return await apiRequest('POST', `/api/messages/${messageId}/like`);
     },
     onSuccess: (data, messageId) => {
+      console.log('Like success:', data, 'for message:', messageId);
       setMessageLikes(prev => ({ ...prev, [messageId]: data.likes }));
       // Invalidate cache for this message's likes
       queryClient.invalidateQueries({ queryKey: ['liked-messages', userId] });
@@ -232,7 +234,11 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                         >
                           <Heart 
                             size={12} 
-                            className="text-neutral-400 hover:text-red-500"
+                            className={`transition-colors ${
+                              (messageLikes[message.id] || 0) > 0 
+                                ? "text-red-500 fill-current" 
+                                : "text-neutral-400 hover:text-red-500"
+                            }`}
                           />
                           <span>{messageLikes[message.id] || 0}</span>
                         </button>
