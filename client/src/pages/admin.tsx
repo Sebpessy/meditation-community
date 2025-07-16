@@ -426,12 +426,12 @@ export default function AdminPage() {
     try {
       const parsedData = parseCSV(csvData);
       const processedTemplates = parsedData.map((row, index) => {
-        // Map CSV columns to template format based on the screenshot
+        // Map CSV columns to template format - Template Title is column G, Description is column B
         const duration = parseFloat(row['duration']) || 0;
         
         return {
-          title: row['Template Title'] || `Imported Template ${index + 1}`,
-          description: row['Week Name'] || 'Imported meditation template',
+          title: row[6] || `Imported Template ${index + 1}`, // Column G (index 6)
+          description: row[1] || 'Imported meditation template', // Column B (index 1)
           duration: duration,
           difficulty: 'Beginner', // Default difficulty
           videoUrl: row['video Url'] || '',
@@ -863,16 +863,16 @@ export default function AdminPage() {
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <h3 className="font-medium text-blue-900 mb-2">CSV Format Instructions</h3>
                       <p className="text-sm text-blue-700 mb-2">
-                        Your CSV should contain the following columns (in any order):
+                        Your CSV should have columns in the following positions:
                       </p>
                       <ul className="text-sm text-blue-700 space-y-1">
-                        <li>• <strong>Template Title</strong> - The name of the meditation template</li>
-                        <li>• <strong>Instructor</strong> - The instructor name</li>
-                        <li>• <strong>Instructor Title</strong> - The instructor's title</li>
-                        <li>• <strong>Week Name</strong> - Will be used as the description</li>
-                        <li>• <strong>duration</strong> - Duration in minutes (number)</li>
-                        <li>• <strong>video Url</strong> - URL to the meditation video</li>
-                        <li>• <strong>Thumbnail URL (optional)</strong> - URL to the thumbnail image</li>
+                        <li>• <strong>Column B</strong> - Description of the meditation template</li>
+                        <li>• <strong>Column G</strong> - Template Title (name of the meditation)</li>
+                        <li>• <strong>Instructor</strong> - The instructor name (named column)</li>
+                        <li>• <strong>Instructor Title</strong> - The instructor's title (named column)</li>
+                        <li>• <strong>duration</strong> - Duration in minutes (named column)</li>
+                        <li>• <strong>video Url</strong> - URL to the meditation video (named column)</li>
+                        <li>• <strong>Thumbnail URL (optional)</strong> - URL to the thumbnail image (named column)</li>
                       </ul>
                     </div>
                     
