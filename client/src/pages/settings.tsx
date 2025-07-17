@@ -44,10 +44,10 @@ export default function SettingsPage() {
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>({
     unit: '%',
-    width: 80,
-    height: 80,
-    x: 10,
-    y: 10,
+    width: 60,
+    height: 60,
+    x: 20,
+    y: 20,
     aspect: 1 // Force square/round crop
   });
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
@@ -167,12 +167,14 @@ export default function SettingsPage() {
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
 
-    canvas.width = crop.width;
-    canvas.height = crop.height;
+    // Make canvas perfectly square to ensure circular crop
+    const size = Math.min(crop.width, crop.height);
+    canvas.width = size;
+    canvas.height = size;
 
     // Create circular clipping path
     ctx.beginPath();
-    ctx.arc(crop.width / 2, crop.height / 2, crop.width / 2, 0, 2 * Math.PI);
+    ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI);
     ctx.clip();
 
     ctx.drawImage(
@@ -183,8 +185,8 @@ export default function SettingsPage() {
       crop.height * scaleY,
       0,
       0,
-      crop.width,
-      crop.height
+      size,
+      size
     );
 
     return new Promise((resolve) => {
