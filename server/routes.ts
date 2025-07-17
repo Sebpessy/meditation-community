@@ -233,8 +233,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(existingUser);
       }
 
-      const user = await storage.createUser(userData);
-      console.log('User created successfully:', user);
+      // Assign random default avatar for new users
+      const defaultAvatars = ['🧘‍♀️', '🧘‍♂️', '🕉️', '🌸', '🪷', '🌺', '🌻', '🌷', '🌹', '🌼', '🌙', '⭐', '🌟', '✨', '💫', '🌅', '🌄', '🏔️', '🌊', '🏖️', '🌴', '🌲', '🌳', '🍃', '🌿', '🌱', '🌾', '🦋', '🐝', '🌈', '☀️', '🌤️', '⛅', '🌥️', '🌦️', '🌩️', '⛈️', '🌨️', '❄️', '💧', '💎', '🔮', '🎨', '🎭', '🎪', '🎨', '🎬', '🎵', '🎶', '🎼', '🎹', '🎸', '🥁', '🎺', '🎷', '🎻', '🎤', '🎧', '📻', '🎵', '🎶', '🎼', '🎹', '🎸', '🥁', '🎺', '🎷', '🎻', '🎤', '🎧', '📻', '🕯️', '🔥', '💝', '💖', '💗', '💓', '💞', '💕', '💘', '💝', '💖', '💗', '💓', '💞', '💕', '💘', '🌟', '✨', '💫', '🌅', '🌄', '🏔️', '🌊', '🏖️', '🌴', '🌲', '🌳', '🍃', '🌿', '🌱', '🌾', '🦋', '🐝', '🌈', '☀️', '🌤️', '⛅', '🌥️', '🌦️', '🌩️', '⛈️', '🌨️', '❄️', '💧'];
+      const randomAvatar = defaultAvatars[Math.floor(Math.random() * defaultAvatars.length)];
+      
+      const userWithAvatar = {
+        ...userData,
+        profilePicture: randomAvatar
+      };
+
+      const user = await storage.createUser(userWithAvatar);
+      console.log('User created successfully with random avatar:', user);
       res.json(user);
     } catch (error) {
       console.error('Registration error:', error);

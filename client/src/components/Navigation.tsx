@@ -64,6 +64,9 @@ export function Navigation({ onlineCount }: NavigationProps) {
     fetchUser();
   }, [user]);
 
+  // Check if user needs to complete profile setup
+  const isFirstTimeUser = backendUser && (!backendUser.profilePicture || backendUser.profilePicture.trim() === "");
+
   const handleSignOut = async () => {
     try {
       await signOut(auth);
@@ -94,17 +97,19 @@ export function Navigation({ onlineCount }: NavigationProps) {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/meditation">
-              <span className={`font-medium transition-colors cursor-pointer ${
-                isActive("/meditation") 
-                  ? "text-primary border-b-2 border-primary pb-1" 
-                  : "text-neutral-600 hover:text-neutral-800"
-              }`}>
-                Meditation
-              </span>
-            </Link>
+            {!isFirstTimeUser && (
+              <Link href="/meditation">
+                <span className={`font-medium transition-colors cursor-pointer ${
+                  isActive("/meditation") 
+                    ? "text-primary border-b-2 border-primary pb-1" 
+                    : "text-neutral-600 hover:text-neutral-800"
+                }`}>
+                  Meditation
+                </span>
+              </Link>
+            )}
 
-            {user && (
+            {user && !isFirstTimeUser && (
               <Link href="/mood-analytics">
                 <span className={`font-medium transition-colors cursor-pointer ${
                   isActive("/mood-analytics") 
@@ -116,7 +121,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
               </Link>
             )}
 
-            {user && backendUser?.isAdmin && (
+            {user && backendUser?.isAdmin && !isFirstTimeUser && (
               <Link href="/admin">
                 <span className={`font-medium transition-colors cursor-pointer ${
                   isActive("/admin") 
@@ -188,16 +193,18 @@ export function Navigation({ onlineCount }: NavigationProps) {
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-neutral-200">
             <div className="space-y-2">
-              <Link href="/meditation">
-                <span 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
-                >
-                  Meditation
-                </span>
-              </Link>
+              {!isFirstTimeUser && (
+                <Link href="/meditation">
+                  <span 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
+                  >
+                    Meditation
+                  </span>
+                </Link>
+              )}
 
-              {user && (
+              {user && !isFirstTimeUser && (
                 <Link href="/mood-analytics">
                   <span 
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -208,7 +215,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                 </Link>
               )}
 
-              {user && backendUser?.isAdmin && (
+              {user && backendUser?.isAdmin && !isFirstTimeUser && (
                 <Link href="/admin">
                   <span 
                     onClick={() => setIsMobileMenuOpen(false)}

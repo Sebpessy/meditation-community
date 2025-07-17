@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navigation } from "@/components/Navigation";
+import { RouteGuard } from "@/components/RouteGuard";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { useQuery } from "@tanstack/react-query";
@@ -45,18 +46,20 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {location !== "/auth" && <Navigation onlineCount={onlineCount} />}
-      <Switch>
-        <Route path="/auth" component={AuthPage} />
-        <Route path="/meditation" component={MeditationPage} />
-        <Route path="/admin" component={AdminPage} />
-        <Route path="/settings" component={SettingsPage} />
-        <Route path="/mood-analytics" component={MoodAnalyticsPage} />
-        <Route path="/" component={MeditationPage} />
-        <Route component={NotFound} />
-      </Switch>
-    </div>
+    <RouteGuard>
+      <div className="min-h-screen bg-neutral-50">
+        {location !== "/auth" && <Navigation onlineCount={onlineCount} />}
+        <Switch>
+          <Route path="/auth" component={AuthPage} />
+          <Route path="/meditation" component={MeditationPage} />
+          <Route path="/admin" component={AdminPage} />
+          <Route path="/settings" component={SettingsPage} />
+          <Route path="/mood-analytics" component={MoodAnalyticsPage} />
+          <Route path="/" component={MeditationPage} />
+          <Route component={NotFound} />
+        </Switch>
+      </div>
+    </RouteGuard>
   );
 }
 

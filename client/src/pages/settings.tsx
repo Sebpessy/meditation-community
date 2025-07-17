@@ -12,11 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Loading } from "@/components/ui/loading";
-import { Camera, Save, User, Crop as CropIcon } from "lucide-react";
+import { Camera, Save, User, Crop as CropIcon, Shuffle } from "lucide-react";
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { updateUserSchema } from "@shared/schema";
 import { z } from "zod";
+import { defaultAvatars, getRandomAvatar, emojiToDataURL } from "@/data/defaultAvatars";
 
 type UpdateUserData = z.infer<typeof updateUserSchema>;
 
@@ -32,14 +33,20 @@ export default function SettingsPage() {
     profilePicture: ""
   });
 
-  // Image cropping state
+  // First-time user setup state
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<string>("");
+  const [showAvatarSelection, setShowAvatarSelection] = useState(false);
+
+  // Image cropping state - force round crop
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>({
     unit: '%',
-    width: 50,
-    height: 50,
-    x: 25,
-    y: 25
+    width: 80,
+    height: 80,
+    x: 10,
+    y: 10,
+    aspect: 1 // Force square/round crop
   });
   const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
   const [isCropDialogOpen, setIsCropDialogOpen] = useState(false);
@@ -54,13 +61,42 @@ export default function SettingsPage() {
   // Update form data when user data is loaded
   useEffect(() => {
     if (currentUser) {
-      setFormData({
-        name: currentUser.name || "",
-        email: currentUser.email || "",
-        profilePicture: currentUser.profilePicture || ""
-      });
+      const hasProfilePicture = currentUser.profilePicture && currentUser.profilePicture.trim() !== "";
+      
+      // Check if this is a first-time user (no profile picture)
+      if (!hasProfilePicture) {
+        setIsFirstTimeUser(true);
+        const randomAvatar = getRandomAvatar();
+        setSelectedAvatar(randomAvatar);
+        const avatarDataURL = emojiToDataURL(randomAvatar);
+        setFormData({
+          name: currentUser.name || "",
+          email: currentUser.email || "",
+          profilePicture: avatarDataURL
+        });
+      } else {
+        setIsFirstTimeUser(false);
+        setFormData({
+          name: currentUser.name || "",
+          email: currentUser.email || "",
+          profilePicture: currentUser.profilePicture || ""
+        });
+      }
     }
   }, [currentUser]);
+
+  // Function to handle avatar selection
+  const handleAvatarSelection = (avatar: string) => {
+    setSelectedAvatar(avatar);
+    const avatarDataURL = emojiToDataURL(avatar);
+    setFormData(prev => ({ ...prev, profilePicture: avatarDataURL }));
+  };
+
+  // Function to generate new random avatar
+  const generateRandomAvatar = () => {
+    const randomAvatar = getRandomAvatar();
+    handleAvatarSelection(randomAvatar);
+  };
 
   const updateUserMutation = useMutation({
     mutationFn: async (userData: UpdateUserData) => {
@@ -71,6 +107,7 @@ export default function SettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setIsFirstTimeUser(false);
       toast({
         title: "Profile Updated",
         description: "Your profile has been successfully updated.",
@@ -113,6 +150,11 @@ export default function SettingsPage() {
 
     canvas.width = crop.width;
     canvas.height = crop.height;
+
+    // Create circular clipping path
+    ctx.beginPath();
+    ctx.arc(crop.width / 2, crop.height / 2, crop.width / 2, 0, 2 * Math.PI);
+    ctx.clip();
 
     ctx.drawImage(
       image,
@@ -189,9 +231,29 @@ export default function SettingsPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-neutral-800">Settings</h1>
-        <p className="text-neutral-600 mt-2">Manage your account settings and preferences</p>
+        <h1 className="text-3xl font-bold text-neutral-800">
+          {isFirstTimeUser ? "Welcome! Complete Your Profile" : "Settings"}
+        </h1>
+        <p className="text-neutral-600 mt-2">
+          {isFirstTimeUser 
+            ? "Please choose a profile picture to continue. You can upload your own or select from our collection."
+            : "Manage your account settings and preferences"
+          }
+        </p>
       </div>
+
+      {isFirstTimeUser && (
+        <Card className="mb-6 border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 text-blue-700">
+              <User className="w-5 h-5" />
+              <p className="text-sm">
+                You must select a profile picture before accessing the app. Choose one from our collection or upload your own.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -221,6 +283,24 @@ export default function SettingsPage() {
                   >
                     <Camera className="w-4 h-4 mr-2" />
                     Upload Photo
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAvatarSelection(true)}
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Choose Avatar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generateRandomAvatar}
+                  >
+                    <Shuffle className="w-4 h-4 mr-2" />
+                    Random
                   </Button>
                   <p className="text-xs text-neutral-500">
                     JPG, PNG or GIF (max 5MB)
@@ -280,7 +360,7 @@ export default function SettingsPage() {
                 ) : (
                   <>
                     <Save className="w-4 h-4" />
-                    Save Changes
+                    {isFirstTimeUser ? "Complete Setup" : "Save Changes"}
                   </>
                 )}
               </Button>
@@ -379,6 +459,55 @@ export default function SettingsPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Avatar Selection Dialog */}
+      <Dialog open={showAvatarSelection} onOpenChange={setShowAvatarSelection}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Choose Your Avatar
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-3 max-h-96 overflow-y-auto">
+              {defaultAvatars.map((avatar, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => {
+                    handleAvatarSelection(avatar);
+                    setShowAvatarSelection(false);
+                  }}
+                  className={`p-2 rounded-full border-2 transition-all hover:scale-110 ${
+                    selectedAvatar === avatar
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <span className="text-2xl">{avatar}</span>
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={generateRandomAvatar}
+                className="flex items-center gap-2"
+              >
+                <Shuffle className="w-4 h-4" />
+                Random Pick
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowAvatarSelection(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
