@@ -1583,6 +1583,8 @@ export default function AdminPage() {
                           <th className="text-left p-4 font-medium text-neutral-700">Email</th>
                           <th className="text-left p-4 font-medium text-neutral-700">Role</th>
                           <th className="text-left p-4 font-medium text-neutral-700">Joined</th>
+                          <th className="text-left p-4 font-medium text-neutral-700">Last Login</th>
+                          <th className="text-left p-4 font-medium text-neutral-700">Time Spent</th>
                           <th className="text-left p-4 font-medium text-neutral-700">Actions</th>
                         </tr>
                       </thead>
@@ -1614,6 +1616,39 @@ export default function AdminPage() {
                               <p className="text-neutral-600">
                                 {new Date(user.createdAt).toLocaleDateString()}
                               </p>
+                            </td>
+                            <td className="p-4">
+                              <div className="text-neutral-600 text-sm">
+                                {user.lastLogin ? (
+                                  <div>
+                                    <p>{new Date(user.lastLogin).toLocaleDateString('en-US', { 
+                                      weekday: 'short', 
+                                      month: 'short', 
+                                      day: 'numeric',
+                                      timeZone: 'America/Chicago'
+                                    })}</p>
+                                    <p className="text-xs text-neutral-500">
+                                      {new Date(user.lastLogin).toLocaleTimeString('en-US', { 
+                                        hour: 'numeric', 
+                                        minute: '2-digit',
+                                        hour12: true,
+                                        timeZone: 'America/Chicago'
+                                      })} CST
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <span className="text-neutral-400">Never</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="text-neutral-600 text-sm">
+                                {user.totalTimeSpent > 0 ? (
+                                  <span>{user.totalTimeSpent} min</span>
+                                ) : (
+                                  <span className="text-neutral-400">0 min</span>
+                                )}
+                              </div>
                             </td>
                             <td className="p-4">
                               <div className="flex items-center space-x-2">
@@ -1673,6 +1708,23 @@ export default function AdminPage() {
                         <p className="text-xs text-neutral-500">
                           ID: {user.id} • Joined: {new Date(user.createdAt).toLocaleDateString()}
                         </p>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-neutral-500">
+                          <div>
+                            <span className="font-medium">Last Login:</span> {user.lastLogin ? 
+                              new Date(user.lastLogin).toLocaleDateString('en-US', { 
+                                weekday: 'short', 
+                                month: 'short', 
+                                day: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                timeZone: 'America/Chicago'
+                              }) + ' CST' : 'Never'
+                            }
+                          </div>
+                          <div>
+                            <span className="font-medium">Time:</span> {user.totalTimeSpent || 0} min
+                          </div>
+                        </div>
                         <div className="flex items-center space-x-2 mt-3">
                           <Button 
                             size="sm" 

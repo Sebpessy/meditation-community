@@ -126,6 +126,18 @@ export type Schedule = typeof schedules.$inferSelect;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+
+// Extended ChatMessage type with user info for frontend display
+export interface ChatMessageWithUser {
+  id: number;
+  message: string;
+  timestamp: Date | null;
+  user: {
+    id: number | null;
+    name: string;
+    profilePicture: string | null;
+  };
+}
 export type MessageLike = typeof messageLikes.$inferSelect;
 export type InsertMessageLike = z.infer<typeof insertMessageLikeSchema>;
 export type MoodEntry = typeof moodEntries.$inferSelect;

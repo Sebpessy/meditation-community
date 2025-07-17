@@ -1,6 +1,6 @@
-import { users, meditationTemplates, schedules, chatMessages, messageLikes, moodEntries, meditationSessions, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type InsertChatMessage, type MessageLike, type InsertMessageLike, type MoodEntry, type InsertMoodEntry, type MeditationSession, type InsertMeditationSession } from "@shared/schema";
+import { users, meditationTemplates, schedules, chatMessages, messageLikes, moodEntries, meditationSessions, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type ChatMessageWithUser, type InsertChatMessage, type MessageLike, type InsertMessageLike, type MoodEntry, type InsertMoodEntry, type MeditationSession, type InsertMeditationSession } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, count, and } from "drizzle-orm";
+import { eq, desc, count, and, sql, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -26,8 +26,8 @@ export interface IStorage {
   deleteSchedule(id: number): Promise<boolean>;
   
   // Chat operations
-  getChatMessages(sessionDate: string, limit?: number): Promise<ChatMessage[]>;
-  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  getChatMessages(sessionDate: string, limit?: number): Promise<ChatMessageWithUser[]>;
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessageWithUser>;
   flushChatMessages(sessionDate: string): Promise<boolean>;
   
   // Like operations
@@ -46,6 +46,10 @@ export interface IStorage {
   getMeditationSessions(userId: number, sessionDate?: string): Promise<MeditationSession[]>;
   updateMeditationSession(id: number, session: Partial<MeditationSession>): Promise<MeditationSession | undefined>;
   getSessionDuration(userId: number, sessionDate: string): Promise<number>;
+  
+  // User analytics
+  getUserLastLogin(userId: number): Promise<Date | null>;
+  getUserTotalTimeSpent(userId: number): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -254,7 +258,7 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
-  async getChatMessages(sessionDate: string, limit: number = 50): Promise<ChatMessage[]> {
+  async getChatMessages(sessionDate: string, limit: number = 50): Promise<ChatMessageWithUser[]> {
     console.log('getChatMessages called for session:', sessionDate);
     
     const messages = await db.select({
@@ -292,23 +296,23 @@ export class DatabaseStorage implements IStorage {
     return transformedMessages.reverse(); // Return in chronological order
   }
 
-  async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+  async createChatMessage(message: InsertChatMessage): Promise<ChatMessageWithUser> {
     const [newMessage] = await db
       .insert(chatMessages)
       .values(message)
       .returning();
     
     // Get the user information including profile picture
-    const user = await this.getUser(newMessage.userId);
+    const user = await this.getUser(newMessage.userId || 0);
     
     return {
       id: newMessage.id,
       message: newMessage.message,
       timestamp: newMessage.timestamp,
       user: {
-        id: user!.id,
-        name: user!.name,
-        profilePicture: user!.profilePicture
+        id: user?.id || null,
+        name: user?.name || 'Unknown',
+        profilePicture: user?.profilePicture || null
       }
     };
   }
@@ -354,7 +358,7 @@ export class DatabaseStorage implements IStorage {
       .select({ messageId: messageLikes.messageId })
       .from(messageLikes)
       .where(eq(messageLikes.userId, userId));
-    return likes.map(like => like.messageId);
+    return likes.map(like => like.messageId).filter(id => id !== null);
   }
 
   async createMoodEntry(entry: InsertMoodEntry): Promise<MoodEntry> {
@@ -426,6 +430,34 @@ export class DatabaseStorage implements IStorage {
   async getSessionDuration(userId: number, sessionDate: string): Promise<number> {
     const sessions = await this.getMeditationSessions(userId, sessionDate);
     return sessions.reduce((total, session) => total + (session.duration || 0), 0);
+  }
+
+  // Get user's last login date and time
+  async getUserLastLogin(userId: number): Promise<Date | null> {
+    const lastSession = await db.select({
+      startTime: meditationSessions.startTime
+    })
+    .from(meditationSessions)
+    .where(eq(meditationSessions.userId, userId))
+    .orderBy(desc(meditationSessions.startTime))
+    .limit(1);
+
+    return lastSession.length > 0 ? lastSession[0].startTime : null;
+  }
+
+  // Get user's total time spent in meditation (in minutes)
+  async getUserTotalTimeSpent(userId: number): Promise<number> {
+    const totalDuration = await db.select({
+      totalDuration: sql<number>`COALESCE(SUM(${meditationSessions.duration}), 0)`
+    })
+    .from(meditationSessions)
+    .where(and(
+      eq(meditationSessions.userId, userId),
+      isNotNull(meditationSessions.duration)
+    ));
+
+    // Convert seconds to minutes
+    return Math.round((totalDuration[0]?.totalDuration || 0) / 60);
   }
 }
 

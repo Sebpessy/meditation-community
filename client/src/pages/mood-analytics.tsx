@@ -104,8 +104,7 @@ export default function MoodAnalyticsPage() {
     enabled: !!currentUser && !!moodEntries,
   });
 
-  // Log session durations for debugging
-  console.log('Session durations data:', sessionDurations);
+  // Session durations loaded successfully
 
   const processedData = useMemo(() => {
     if (!moodEntries || !Array.isArray(moodEntries)) return [];
@@ -128,7 +127,6 @@ export default function MoodAnalyticsPage() {
       // Get session duration from API data
       const sessionDuration = sessionDurations?.find((d: any) => d.sessionDate === sessionDate)?.duration || 0;
       session.timeSpent = Math.round(sessionDuration / 60); // Convert seconds to minutes
-      console.log('Session date:', sessionDate, 'Duration:', sessionDuration, 'seconds (', session.timeSpent, 'minutes)');
       
       if (entry.moodType === 'pre') {
         // Keep the most recent pre entry for this session

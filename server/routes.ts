@@ -882,7 +882,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/users', async (req, res) => {
     try {
       const users = await storage.getAllUsers();
-      res.json(users);
+      
+      // Get user analytics (last login and total time spent)
+      const usersWithAnalytics = await Promise.all(users.map(async (user) => {
+        const lastLogin = await storage.getUserLastLogin(user.id);
+        const totalTimeSpent = await storage.getUserTotalTimeSpent(user.id);
+        
+        return {
+          ...user,
+          lastLogin,
+          totalTimeSpent
+        };
+      }));
+      
+      res.json(usersWithAnalytics);
     } catch (error) {
       console.error('Error in /api/admin/users:', error);
       res.status(500).json({ error: 'Failed to fetch users' });
