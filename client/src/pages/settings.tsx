@@ -282,10 +282,10 @@ export default function SettingsPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-neutral-800">
+        <h1 className="text-3xl font-bold text-neutral-800 dark:text-neutral-200">
           {isFirstTimeUser ? "Welcome! Complete Your Profile" : "Settings"}
         </h1>
-        <p className="text-neutral-600 mt-2">
+        <p className="text-neutral-600 dark:text-neutral-400 mt-2">
           {isFirstTimeUser 
             ? "Please choose a profile picture to continue. You can upload your own or select from our collection."
             : "Manage your account settings and preferences"
@@ -294,9 +294,9 @@ export default function SettingsPage() {
       </div>
 
       {isFirstTimeUser && (
-        <Card className="mb-6 border-blue-200 bg-blue-50">
+        <Card className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-3 text-blue-700">
+            <div className="flex items-center gap-3 text-blue-700 dark:text-blue-300">
               <User className="w-5 h-5" />
               <p className="text-sm">
                 You must select a profile picture before accessing the app. Choose one from our collection or upload your own.

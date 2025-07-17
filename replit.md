@@ -49,6 +49,11 @@ Preferred communication style: Simple, everyday language.
 - ✅ Enhanced system to support multiple file uploads simultaneously
 - ✅ Updated profile picture selection to use original filenames automatically
 - ✅ Modified settings page to fetch and display custom profile pictures from database instead of emoji avatars
+- ✅ Fixed circular crop functionality to ensure perfect circles instead of ovals with proper canvas calculations
+- ✅ Updated existing user profile to prevent forced profile setup, only new users required to complete setup
+- ✅ Added dark mode toggle feature in settings with theme context and localStorage persistence
+- ✅ Implemented comprehensive dark mode with improved color scheme and proper contrast
+- ✅ Enhanced dark mode styling with better visual hierarchy and readability
 
 ### July 15, 2025
 - ✅ Implemented admin page protection with authentication checks
