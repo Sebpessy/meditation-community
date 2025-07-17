@@ -115,7 +115,7 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
             </Button>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8">
+          <div className="flex flex-col sm:flex-row items-start justify-center space-y-4 sm:space-y-0 sm:space-x-8">
             {/* Left side: Slider and Chakra visualization */}
             <div className="flex items-center justify-center space-x-4 sm:space-x-6">
               {/* Vertical Slider - always on left */}
@@ -135,7 +135,7 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
                 />
               </div>
 
-              {/* Energy Conduit Visualization - always in middle */}
+              {/* Energy Conduit Visualization - in middle */}
               <div className="relative w-16 sm:w-20 h-60 sm:h-80">
                 {/* Vertical energy line */}
                 <div className="absolute left-1/2 top-0 w-1 h-full bg-gradient-to-t from-purple-400 to-purple-600 transform -translate-x-1/2 rounded-full opacity-30" />
@@ -175,38 +175,38 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
                   ))}
                 </div>
               </div>
-            </div>
 
-            {/* Right side: Stacked text and comment field */}
-            <div className="flex flex-col space-y-4 w-full sm:w-64">
-              {/* Current Selection Display - moved higher */}
-              <div className="text-center space-y-2">
-                <div className="text-xl sm:text-2xl font-bold" style={{ color: chakraColors[selectedLevel].color }}>
-                  {chakraColors[selectedLevel].name}
+              {/* Right side: Stacked text and comment field */}
+              <div className="flex flex-col space-y-4 w-full sm:w-64">
+                {/* Current Selection Display - on right, stacked on top */}
+                <div className="text-center space-y-2">
+                  <div className="text-xl sm:text-2xl font-bold" style={{ color: chakraColors[selectedLevel].color }}>
+                    {chakraColors[selectedLevel].name}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {chakraColors[selectedLevel].description}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Level {selectedLevel + 1} of 7
+                  </div>
                 </div>
-                <div className="text-sm text-gray-600">
-                  {chakraColors[selectedLevel].description}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Level {selectedLevel + 1} of 7
-                </div>
-              </div>
 
-              {/* Comment Field - stacked underneath */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Share your thoughts (optional)
-                </label>
-                <textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="How are you feeling? What's on your mind?"
-                  className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                  rows={3}
-                  maxLength={500}
-                />
-                <div className="text-xs text-gray-500 text-right">
-                  {comment.length}/500 characters
+                {/* Comment Field - stacked underneath on right */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Share your thoughts (optional)
+                  </label>
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="How are you feeling? What's on your mind?"
+                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                    rows={3}
+                    maxLength={500}
+                  />
+                  <div className="text-xs text-gray-500 text-right">
+                    {comment.length}/500 characters
+                  </div>
                 </div>
               </div>
             </div>
