@@ -583,6 +583,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Development route to add sample mood data
+  app.post('/api/mood/sample-data', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Generate sample data for the past 5 days
+      const sampleEntries = [];
+      const comments = [
+        'Feeling anxious about work today',
+        'Had a good morning but stressed about upcoming meeting',
+        'Feeling tired but hopeful',
+        'Ready to start the day with intention',
+        'Mind feels clearer after meditation',
+        'Grateful for this moment of stillness',
+        'Ready to face the day with calm energy',
+        'Feeling more balanced and grounded',
+        'Noticed my breathing becoming deeper',
+        'Heart feels more open and connected'
+      ];
+
+      for (let i = 1; i <= 5; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const sessionDate = date.toISOString().split('T')[0];
+        
+        // Generate random mood levels and comments
+        const preMoodLevel = Math.floor(Math.random() * 4); // 0-3 (lower levels)
+        const postMoodLevel = Math.floor(Math.random() * 3) + 4; // 4-6 (higher levels)
+        
+        // Pre-meditation entry
+        sampleEntries.push({
+          sessionDate,
+          emotionLevel: preMoodLevel,
+          moodType: 'pre',
+          comment: comments[Math.floor(Math.random() * 5)], // First 5 are pre-meditation
+          notes: null,
+          userId: user.id
+        });
+        
+        // Post-meditation entry
+        sampleEntries.push({
+          sessionDate,
+          emotionLevel: postMoodLevel,
+          moodType: 'post',
+          comment: comments[Math.floor(Math.random() * 5) + 5], // Last 5 are post-meditation
+          notes: null,
+          userId: user.id
+        });
+      }
+
+      // Insert sample entries
+      for (const entry of sampleEntries) {
+        await storage.createMoodEntry(entry);
+      }
+
+      res.json({ message: 'Sample mood data added successfully', count: sampleEntries.length });
+    } catch (error) {
+      console.error('Error adding sample mood data:', error);
+      res.status(500).json({ error: 'Failed to add sample mood data' });
+    }
+  });
+
   app.get('/api/mood/latest/:userId/:sessionDate/:moodType', async (req, res) => {
     try {
       const user = await getCurrentUser(req);

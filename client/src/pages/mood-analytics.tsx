@@ -27,6 +27,7 @@ interface MoodEntry {
   moodType: 'pre' | 'post';
   createdAt: string;
   timeSpent?: number;
+  comment?: string;
 }
 
 interface SessionAnalytics {
@@ -258,6 +259,22 @@ export default function MoodAnalyticsPage() {
               </Button>
             ))}
           </div>
+          
+          {/* Sample Data Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                await apiRequest('POST', '/api/mood/sample-data', {});
+                window.location.reload();
+              } catch (error) {
+                console.error('Failed to add sample data:', error);
+              }
+            }}
+          >
+            Add Sample Data
+          </Button>
         </div>
       </div>
 
@@ -310,64 +327,84 @@ export default function MoodAnalyticsPage() {
         <CardContent>
           <div className="space-y-4">
             {filteredData.map((session, index) => (
-              <div key={session.sessionDate} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="text-center">
-                    <div className="text-sm font-medium">{formatDate(session.sessionDate)}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatTime(session.timeSpent)} spent
+              <div key={session.sessionDate} className="p-4 border rounded-lg space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-center">
+                      <div className="text-sm font-medium">{formatDate(session.sessionDate)}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatTime(session.timeSpent)} spent
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      {session.preEntry && (
+                        <div className="text-center">
+                          <div className="text-xs text-muted-foreground">Before</div>
+                          <Badge 
+                            variant="outline" 
+                            style={{ 
+                              borderColor: chakraColors[session.preEntry.emotionLevel]?.color || '#E53E3E',
+                              color: chakraColors[session.preEntry.emotionLevel]?.color || '#E53E3E'
+                            }}
+                          >
+                            {chakraColors[session.preEntry.emotionLevel]?.name || 'Root Center'}
+                          </Badge>
+                        </div>
+                      )}
+                      
+                      {session.preEntry && session.postEntry && (
+                        <div className="text-muted-foreground">→</div>
+                      )}
+                      
+                      {session.postEntry && (
+                        <div className="text-center">
+                          <div className="text-xs text-muted-foreground">After</div>
+                          <Badge 
+                            variant="outline" 
+                            style={{ 
+                              borderColor: chakraColors[session.postEntry.emotionLevel]?.color || '#E53E3E',
+                              color: chakraColors[session.postEntry.emotionLevel]?.color || '#E53E3E'
+                            }}
+                          >
+                            {chakraColors[session.postEntry.emotionLevel]?.name || 'Root Center'}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
-                    {session.preEntry && (
-                      <div className="text-center">
-                        <div className="text-xs text-muted-foreground">Before</div>
-                        <Badge 
-                          variant="outline" 
-                          style={{ 
-                            borderColor: chakraColors[session.preEntry.emotionLevel]?.color || '#E53E3E',
-                            color: chakraColors[session.preEntry.emotionLevel]?.color || '#E53E3E'
-                          }}
-                        >
-                          {chakraColors[session.preEntry.emotionLevel]?.name || 'Root Center'}
-                        </Badge>
+                  <div className="text-right">
+                    {session.improvement !== 0 && (
+                      <div className={`text-sm font-medium ${
+                        session.improvement > 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {session.improvement > 0 ? '+' : ''}{session.improvement} levels
                       </div>
                     )}
-                    
-                    {session.preEntry && session.postEntry && (
-                      <div className="text-muted-foreground">→</div>
-                    )}
-                    
-                    {session.postEntry && (
-                      <div className="text-center">
-                        <div className="text-xs text-muted-foreground">After</div>
-                        <Badge 
-                          variant="outline" 
-                          style={{ 
-                            borderColor: chakraColors[session.postEntry.emotionLevel]?.color || '#E53E3E',
-                            color: chakraColors[session.postEntry.emotionLevel]?.color || '#E53E3E'
-                          }}
-                        >
-                          {chakraColors[session.postEntry.emotionLevel]?.name || 'Root Center'}
-                        </Badge>
-                      </div>
-                    )}
+                    <div className="text-xs text-muted-foreground">
+                      {session.preEntry && session.postEntry ? 'Complete' : 'Partial'}
+                    </div>
                   </div>
                 </div>
                 
-                <div className="text-right">
-                  {session.improvement !== 0 && (
-                    <div className={`text-sm font-medium ${
-                      session.improvement > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {session.improvement > 0 ? '+' : ''}{session.improvement} levels
-                    </div>
-                  )}
-                  <div className="text-xs text-muted-foreground">
-                    {session.preEntry && session.postEntry ? 'Complete' : 'Partial'}
+                {/* Comments Display */}
+                {(session.preEntry?.comment || session.postEntry?.comment) && (
+                  <div className="space-y-2 border-t pt-3">
+                    {session.preEntry?.comment && (
+                      <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                        <span className="font-medium">Before: </span>
+                        <span className="italic">"{session.preEntry.comment}"</span>
+                      </div>
+                    )}
+                    {session.postEntry?.comment && (
+                      <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                        <span className="font-medium">After: </span>
+                        <span className="italic">"{session.postEntry.comment}"</span>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
               </div>
             ))}
             

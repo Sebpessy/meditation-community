@@ -116,7 +116,24 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-6 sm:space-y-0 sm:space-x-8">
-            {/* Energy Conduit Visualization */}
+            {/* Vertical Slider - moved to left */}
+            <div className="relative h-60 sm:h-80 w-6 sm:w-8 flex items-center justify-center">
+              <input
+                type="range"
+                min="0"
+                max="6"
+                value={selectedLevel}
+                onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
+                className="slider-vertical h-full w-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                style={{
+                  writingMode: 'bt-lr',
+                  WebkitAppearance: 'slider-vertical',
+                  background: `linear-gradient(to top, ${chakraColors[selectedLevel].color} 0%, ${chakraColors[selectedLevel].color} ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 100%)`
+                }}
+              />
+            </div>
+
+            {/* Energy Conduit Visualization - moved to right */}
             <div className="relative w-16 sm:w-20 h-60 sm:h-80">
               {/* Vertical energy line */}
               <div className="absolute left-1/2 top-0 w-1 h-full bg-gradient-to-t from-purple-400 to-purple-600 transform -translate-x-1/2 rounded-full opacity-30" />
@@ -155,23 +172,6 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
                   </div>
                 ))}
               </div>
-            </div>
-
-            {/* Vertical Slider */}
-            <div className="relative h-60 sm:h-80 w-6 sm:w-8 flex items-center justify-center">
-              <input
-                type="range"
-                min="0"
-                max="6"
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
-                className="slider-vertical h-full w-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                style={{
-                  writingMode: 'bt-lr',
-                  WebkitAppearance: 'slider-vertical',
-                  background: `linear-gradient(to top, ${chakraColors[selectedLevel].color} 0%, ${chakraColors[selectedLevel].color} ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 100%)`
-                }}
-              />
             </div>
 
             {/* Current Selection Display */}
