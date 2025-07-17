@@ -91,7 +91,7 @@ export function MoodTrackerIcon({ sessionDate, className = '' }: MoodTrackerIcon
         />
       )}
 
-      <style jsx>{`
+      <style>{`
         @keyframes spin {
           from {
             transform: translate(-50%, -50%) rotate(0deg);

@@ -73,6 +73,12 @@ export default function MoodAnalyticsPage() {
     enabled: !!currentUser,
   });
 
+  // Debug logging
+  console.log('Current user:', currentUser);
+  console.log('Mood entries raw data:', moodEntries);
+  console.log('Is loading:', isLoading);
+  console.log('Error:', error);
+
   // For now, we'll use placeholder session times since the analytics endpoint doesn't exist
   const sessionTimes = [];
 

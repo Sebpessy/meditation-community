@@ -1,0 +1,40 @@
+
+DOMException {}
+
+Warning: Received &#x60;true&#x60; for a non-boolean attribute &#x60;jsx&#x60;.
+
+If you want to write it to the DOM, pass a string instead: jsx=&quot;true&quot; or jsx={value.toString()}.
+    at style
+    at MoodTrackerIcon (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/src/components/MoodTrackerIcon.tsx:20:35)
+    at div
+    at div
+    at div
+    at div
+    at nav
+    at Navigation (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/src/components/Navigation.tsx:40:30)
+    at div
+    at AppContent (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/src/App.tsx?v=hzZioCIdxL72vjUMtBXK9:36:27)
+    at Provider (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5AJU3CG7.js?v=ca1367ed:38:15)
+    at TooltipProvider (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ca1367ed:61:5)
+    at QueryClientProvider (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ca1367ed:2805:3)
+    at App
+
+If you want to write it to the DOM, pass a string instead: jsx=&amp;quot;true&amp;quot; or jsx={value.toString()}.
+at style
+at MoodTrackerIcon (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/src/components/MoodTrackerIcon.tsx:20:35)
+at div
+at div
+at div
+at div
+at nav
+at Navigation (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/src/components/Navigation.tsx:40:30)
+at div
+at AppContent (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/src/App.tsx?v=hzZioCIdxL72vjUMtBXK9:36:27)
+at Provider (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5AJU3CG7.js?v=ca1367ed:38:15)
+at TooltipProvider (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ca1367ed:61:5)
+at QueryClientProvider (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ca1367ed:2805:3)
+at App
+at t.value (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://a53cb4cc-7a28-4d34-8cc9-08e2635067aa-00-1kkqjwnz275se.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
