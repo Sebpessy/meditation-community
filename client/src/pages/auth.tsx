@@ -13,6 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthState } from "react-firebase-hooks/auth";
 import logoImg from "@/assets/logo.png";
+import backgroundImg from "@/assets/bg4_1752712109766.jpg";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
@@ -170,8 +171,18 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-neutral-50">
-      <Card className="w-full max-w-md">
+    <div 
+      className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-neutral-50 relative"
+      style={{
+        backgroundImage: `url(${backgroundImg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Background overlay for better readability */}
+      <div className="absolute inset-0 bg-black/40"></div>
+      <Card className="w-full max-w-md relative z-10">
         <CardHeader className="text-center">
           <div className="w-40 h-40 mx-auto mb-4 flex items-center justify-center">
             <img 

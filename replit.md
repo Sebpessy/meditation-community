@@ -10,6 +10,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 17, 2025
+- ✅ Fixed message duplication by implementing proper WebSocket deduplication
+- ✅ Fixed heart functionality - hearts now properly show grey by default and turn red when clicked
+- ✅ Fixed like counter - now correctly displays and updates the like count
+- ✅ Cleaned up debug logs for better performance
+- ✅ Added beautiful waterfall background image to authentication page
+- ✅ Enhanced auth page with dark overlay for better text readability
+
 ### July 15, 2025
 - ✅ Implemented admin page protection with authentication checks
 - ✅ Enhanced video player with dual functionality (MP4 + YouTube support)
