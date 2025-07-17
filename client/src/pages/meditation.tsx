@@ -464,7 +464,7 @@ export default function MeditationPage() {
         </div>
 
         {/* Scrollable Chat Messages - Only this part scrolls */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white dark:bg-[var(--chat-background)] min-h-0 relative">
+        <div className="flex-1 overflow-y-auto p-4 space-y-1 bg-white dark:bg-[var(--chat-background)] min-h-0 relative">
           {messages.length === 0 ? (
             <div className="text-center text-neutral-500 dark:text-neutral-400 py-8">
               <p>No messages yet. Start the conversation!</p>
@@ -487,7 +487,7 @@ export default function MeditationPage() {
                       {formatTime(message.timestamp)}
                     </span>
                   </div>
-                  <p className="text-sm text-neutral-700 dark:text-neutral-300 break-words mb-1">
+                  <p className="text-sm text-neutral-700 dark:text-neutral-300 break-words mb-0.5">
                     {message.message}
                   </p>
                   {currentUserId && (
