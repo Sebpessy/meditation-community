@@ -181,7 +181,7 @@ export default function AuthPage() {
     >
       {/* Background overlay for better readability */}
       <div className="absolute inset-0 bg-black/40"></div>
-      <Card className="w-full max-w-md relative z-10">
+      <Card className="w-full max-w-md relative z-10 bg-white dark:bg-[#1C1C1C] border-neutral-200 dark:border-[#333333]">
         <CardHeader className="text-center">
           <div className="w-40 h-40 mx-auto mb-4 flex items-center justify-center">
             <img 
@@ -190,10 +190,10 @@ export default function AuthPage() {
               className="w-40 h-40 object-contain"
             />
           </div>
-          <CardTitle className="text-2xl font-bold text-neutral-800">
+          <CardTitle className="text-2xl font-bold text-neutral-800 dark:text-white">
             Welcome to Evolving Hearts
           </CardTitle>
-          <p className="text-neutral-600">Join our meditation community</p>
+          <p className="text-neutral-600 dark:text-neutral-300">Join our meditation community</p>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -217,18 +217,18 @@ export default function AuthPage() {
           )}
 
           {/* Auth Toggle */}
-          <div className="bg-neutral-100 p-1 rounded-lg flex">
+          <div className="bg-neutral-100 dark:bg-[#2A2A2A] p-1 rounded-lg flex">
             <Button
               variant={!isSignUp ? "default" : "ghost"}
               onClick={() => setIsSignUp(false)}
-              className="flex-1 text-sm"
+              className="flex-1 text-sm dark:text-white"
             >
               Sign In
             </Button>
             <Button
               variant={isSignUp ? "default" : "ghost"}
               onClick={() => setIsSignUp(true)}
-              className="flex-1 text-sm"
+              className="flex-1 text-sm dark:text-white"
             >
               Sign Up
             </Button>
@@ -244,7 +244,7 @@ export default function AuthPage() {
           {/* Auth Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="email">Email address</Label>
+              <Label htmlFor="email" className="text-neutral-700 dark:text-neutral-200">Email address</Label>
               <Input
                 id="email"
                 type="email"
@@ -252,31 +252,31 @@ export default function AuthPage() {
                 onChange={(e) => handleInputChange("email", e.target.value)}
                 onFocus={() => setError("")}
                 required
-                className="mt-1"
+                className="mt-1 bg-white dark:bg-[#2A2A2A] border-neutral-300 dark:border-[#444444] text-neutral-900 dark:text-white placeholder:text-neutral-500 dark:placeholder:text-neutral-400"
               />
             </div>
 
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-neutral-700 dark:text-neutral-200">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
                 required
-                className="mt-1"
+                className="mt-1 bg-white dark:bg-[#2A2A2A] border-neutral-300 dark:border-[#444444] text-neutral-900 dark:text-white placeholder:text-neutral-500 dark:placeholder:text-neutral-400"
               />
             </div>
 
             {isSignUp && (
               <div>
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name" className="text-neutral-700 dark:text-neutral-200">Full Name</Label>
                 <Input
                   id="name"
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  className="mt-1"
+                  className="mt-1 bg-white dark:bg-[#2A2A2A] border-neutral-300 dark:border-[#444444] text-neutral-900 dark:text-white placeholder:text-neutral-500 dark:placeholder:text-neutral-400"
                 />
               </div>
             )}
@@ -287,8 +287,9 @@ export default function AuthPage() {
                   id="remember"
                   checked={formData.remember}
                   onCheckedChange={(checked) => handleInputChange("remember", checked)}
+                  className="border-neutral-300 dark:border-[#444444] data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                 />
-                <Label htmlFor="remember" className="text-sm">
+                <Label htmlFor="remember" className="text-sm text-neutral-700 dark:text-neutral-200">
                   Remember me
                 </Label>
               </div>
@@ -297,7 +298,7 @@ export default function AuthPage() {
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={loading}
-                  className="text-sm text-primary hover:text-primary/80 disabled:opacity-50"
+                  className="text-sm text-primary dark:text-primary hover:text-primary/80 dark:hover:text-primary/60 disabled:opacity-50 font-medium"
                 >
                   Forgot password?
                 </button>
@@ -320,7 +321,7 @@ export default function AuthPage() {
                 <Separator className="w-full" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-neutral-500">Or continue with</span>
+                <span className="px-2 bg-white dark:bg-[#1C1C1C] text-neutral-500 dark:text-neutral-400">Or continue with</span>
               </div>
             </div>
 
@@ -328,7 +329,7 @@ export default function AuthPage() {
               variant="outline"
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="w-full"
+              className="w-full bg-white dark:bg-[#2A2A2A] border-neutral-300 dark:border-[#444444] text-neutral-900 dark:text-white hover:bg-neutral-50 dark:hover:bg-[#333333]"
             >
               <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
