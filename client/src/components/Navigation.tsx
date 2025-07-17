@@ -14,6 +14,13 @@ import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { apiRequest } from "@/lib/queryClient";
 import logoImg from "@/assets/logo.png";
+import { MoodTrackerIcon } from "./MoodTrackerIcon";
+
+function getCSTDate(): string {
+  const now = new Date();
+  const cstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
+  return cstTime.toISOString().split('T')[0];
+}
 
 interface NavigationProps {
   onlineCount: number;
@@ -80,6 +87,11 @@ export function Navigation({ onlineCount }: NavigationProps) {
               className="w-12 h-12 md:w-20 md:h-20 object-contain"
             />
             <h1 className="text-lg md:text-xl font-semibold text-neutral-800">Evolving Hearts</h1>
+            {location === "/" && (
+              <div className="ml-4">
+                <MoodTrackerIcon sessionDate={getCSTDate()} />
+              </div>
+            )}
           </div>
 
           {/* Desktop Navigation */}

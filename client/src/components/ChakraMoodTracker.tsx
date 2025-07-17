@@ -13,13 +13,13 @@ interface ChakraMoodTrackerProps {
 }
 
 const chakraColors = [
-  { color: '#E53E3E', name: 'Root', description: 'Grounded & Stable' },      // Red
-  { color: '#FF8C00', name: 'Sacral', description: 'Creative & Flowing' },    // Orange
-  { color: '#FFD700', name: 'Solar Plexus', description: 'Confident & Powerful' }, // Yellow
-  { color: '#38A169', name: 'Heart', description: 'Loving & Compassionate' }, // Green
-  { color: '#3182CE', name: 'Throat', description: 'Expressive & Clear' },    // Blue
-  { color: '#553C9A', name: 'Third Eye', description: 'Intuitive & Wise' },   // Indigo
-  { color: '#805AD5', name: 'Crown', description: 'Spiritual & Connected' },  // Violet
+  { color: '#E53E3E', name: 'Root Center', description: 'Grounded & Stable' },      // Red
+  { color: '#FF8C00', name: 'Sacral Center', description: 'Creative & Flowing' },    // Orange
+  { color: '#FFD700', name: 'Solar Plexus Center', description: 'Confident & Powerful' }, // Yellow
+  { color: '#38A169', name: 'Heart Center', description: 'Loving & Compassionate' }, // Green
+  { color: '#3182CE', name: 'Throat Center', description: 'Expressive & Clear' },    // Blue
+  { color: '#553C9A', name: 'Third Eye Center', description: 'Intuitive & Wise' },   // Indigo
+  { color: '#805AD5', name: 'Crown Center', description: 'Spiritual & Connected' },  // Violet
 ];
 
 export function ChakraMoodTracker({ sessionDate, moodType, onClose }: ChakraMoodTrackerProps) {
@@ -87,7 +87,7 @@ export function ChakraMoodTracker({ sessionDate, moodType, onClose }: ChakraMood
             </Button>
           </div>
 
-          <div className="flex flex-col items-center space-y-4">
+          <div className="flex items-center justify-center space-x-8">
             {/* Energy Conduit Visualization */}
             <div className="relative w-20 h-80">
               {/* Vertical energy line */}
@@ -129,10 +129,27 @@ export function ChakraMoodTracker({ sessionDate, moodType, onClose }: ChakraMood
               </div>
             </div>
 
+            {/* Vertical Slider */}
+            <div className="relative h-80 w-8 flex items-center justify-center">
+              <input
+                type="range"
+                min="0"
+                max="6"
+                value={selectedLevel}
+                onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
+                className="slider-vertical h-full w-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                style={{
+                  writingMode: 'bt-lr',
+                  WebkitAppearance: 'slider-vertical',
+                  background: `linear-gradient(to top, ${chakraColors[selectedLevel].color} 0%, ${chakraColors[selectedLevel].color} ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 100%)`
+                }}
+              />
+            </div>
+
             {/* Current Selection Display */}
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-2 w-48">
               <div className="text-2xl font-bold" style={{ color: chakraColors[selectedLevel].color }}>
-                {chakraColors[selectedLevel].name} Chakra
+                {chakraColors[selectedLevel].name}
               </div>
               <div className="text-sm text-gray-600">
                 {chakraColors[selectedLevel].description}
@@ -141,41 +158,26 @@ export function ChakraMoodTracker({ sessionDate, moodType, onClose }: ChakraMood
                 Level {selectedLevel + 1} of 7
               </div>
             </div>
+          </div>
 
-            {/* Slider for fine-tuning */}
-            <div className="w-full max-w-xs">
-              <input
-                type="range"
-                min="0"
-                max="6"
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                style={{
-                  background: `linear-gradient(to right, ${chakraColors[selectedLevel].color} 0%, ${chakraColors[selectedLevel].color} ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 100%)`
-                }}
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-3 mt-6">
-              <Button
-                variant="outline"
-                onClick={onClose}
-                disabled={isSubmitting}
-                className="flex-1"
-              >
-                Skip
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex-1"
-                style={{ backgroundColor: chakraColors[selectedLevel].color }}
-              >
-                {isSubmitting ? 'Saving...' : 'Save'}
-              </Button>
-            </div>
+          {/* Action Buttons */}
+          <div className="flex space-x-3 mt-6">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="flex-1"
+            >
+              Skip
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="flex-1"
+              style={{ backgroundColor: chakraColors[selectedLevel].color }}
+            >
+              {isSubmitting ? 'Saving...' : 'Save'}
+            </Button>
           </div>
         </CardContent>
       </Card>
