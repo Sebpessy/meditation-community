@@ -63,8 +63,9 @@ export default function MoodAnalyticsPage() {
   const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'all'>('week');
 
   const { data: currentUser } = useQuery({
-    queryKey: ['/api/user'],
-    enabled: !!user,
+    queryKey: ['/api/auth/user', user?.uid],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: !!user?.uid,
   });
 
   const { data: moodEntries, isLoading, error } = useQuery({
@@ -74,6 +75,7 @@ export default function MoodAnalyticsPage() {
   });
 
   // Debug logging
+  console.log('Firebase user:', user);
   console.log('Current user:', currentUser);
   console.log('Mood entries raw data:', moodEntries);
   console.log('Is loading:', isLoading);
