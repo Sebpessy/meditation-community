@@ -69,6 +69,10 @@ Preferred communication style: Simple, everyday language.
 - ✅ Fixed meditation page statistics labels with better visibility (Active Now, Minutes, Level, Instructor)
 - ✅ Improved admin template cards with bright white titles and readable text in dark mode
 - ✅ Enhanced template duration and instructor labels with better contrast ratios
+- ✅ Added bright green pulsing dot for online counter visibility in both navigation and chat
+- ✅ Fixed mobile chat interface with proper dark mode styling and high contrast text
+- ✅ Enhanced message text, usernames, and timestamps with bright white text in dark mode
+- ✅ Improved chat input field with proper dark mode background and text contrast
 
 ### July 15, 2025
 - ✅ Implemented admin page protection with authentication checks

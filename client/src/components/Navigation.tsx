@@ -137,9 +137,9 @@ export function Navigation({ onlineCount }: NavigationProps) {
           {/* Right Side */}
           <div className="flex items-center space-x-4">
             {/* Online Count */}
-            <div className="hidden sm:flex items-center space-x-2 text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">
-              <div className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
-              <span>{onlineCount} online</span>
+            <div className="hidden sm:flex items-center space-x-2 text-sm text-neutral-600 dark:text-white">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="font-medium">{onlineCount} online</span>
             </div>
 
             {/* User Menu or Auth Button */}

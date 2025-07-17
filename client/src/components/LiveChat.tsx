@@ -159,8 +159,8 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-neutral-800 dark:text-[var(--text-high-contrast)]">Live Chat</h3>
               <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400 dark:bg-neutral-600'}`} />
-                <span className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">
+                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-neutral-400 dark:bg-neutral-600'}`} />
+                <span className="text-sm text-neutral-600 dark:text-white font-medium">
                   {onlineCount} online
                 </span>
               </div>

@@ -420,12 +420,12 @@ export default function MeditationPage() {
 
 
         {/* Fixed Chat Header - Below titles */}
-        <div className="flex-shrink-0 p-4 bg-white border-b border-neutral-200">
+        <div className="flex-shrink-0 p-4 bg-white dark:bg-[var(--chat-background)] border-b border-neutral-200 dark:border-[var(--border)]">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-neutral-800">Live Chat</h3>
+            <h3 className="font-semibold text-neutral-800 dark:text-white">Live Chat</h3>
             <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400'}`} />
-              <span className="text-sm text-neutral-600">
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-neutral-400 dark:bg-neutral-600'}`} />
+              <span className="text-sm text-neutral-600 dark:text-white font-medium">
                 {Math.max(onlineCount, wsOnlineCount)} online
               </span>
             </div>
@@ -464,9 +464,9 @@ export default function MeditationPage() {
         </div>
 
         {/* Scrollable Chat Messages - Only this part scrolls */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white min-h-0 relative">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white dark:bg-[var(--chat-background)] min-h-0 relative">
           {messages.length === 0 ? (
-            <div className="text-center text-neutral-500 py-8">
+            <div className="text-center text-neutral-500 dark:text-neutral-400 py-8">
               <p>No messages yet. Start the conversation!</p>
             </div>
           ) : (
@@ -480,21 +480,21 @@ export default function MeditationPage() {
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-neutral-800">
+                    <span className="text-sm font-medium text-neutral-800 dark:text-white">
                       {message.user.name}
                     </span>
-                    <span className="text-xs text-neutral-500">
+                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
                       {formatTime(message.timestamp)}
                     </span>
                   </div>
-                  <p className="text-sm text-neutral-700 break-words mb-1">
+                  <p className="text-sm text-neutral-700 dark:text-neutral-300 break-words mb-1">
                     {message.message}
                   </p>
                   {currentUserId && (
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => handleLike(message.id)}
-                        className="flex items-center space-x-1 text-xs rounded-full px-2 py-1 transition-colors text-neutral-400 hover:text-red-500 hover:bg-red-50"
+                        className="flex items-center space-x-1 text-xs rounded-full px-2 py-1 transition-colors text-neutral-400 dark:text-neutral-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
                         disabled={likeMutation.isPending}
                       >
                         <Heart 
@@ -502,10 +502,10 @@ export default function MeditationPage() {
                           className={`transition-colors ${
                             (messageLikes[message.id] || 0) > 0 
                               ? "text-red-500 fill-current" 
-                              : "text-neutral-400 hover:text-red-500"
+                              : "text-neutral-400 dark:text-neutral-500 hover:text-red-500"
                           }`}
                         />
-                        <span>{messageLikes[message.id] || 0}</span>
+                        <span className="dark:text-neutral-400">{messageLikes[message.id] || 0}</span>
                       </button>
                     </div>
                   )}
@@ -517,7 +517,7 @@ export default function MeditationPage() {
         </div>
 
         {/* Fixed Chat Input - Always at bottom */}
-        <div className="flex-shrink-0 p-4 bg-white border-t border-neutral-200">
+        <div className="flex-shrink-0 p-4 bg-white dark:bg-[var(--chat-background)] border-t border-neutral-200 dark:border-[var(--border)]">
           {currentUserId ? (
             <div className="flex items-center space-x-2">
               <Input
@@ -525,7 +525,7 @@ export default function MeditationPage() {
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Share your thoughts..."
-                className="flex-1"
+                className="flex-1 bg-white dark:bg-[var(--input)] border-neutral-300 dark:border-[var(--border)] text-neutral-900 dark:text-[var(--text-high-contrast)] placeholder-neutral-500 dark:placeholder-[var(--text-low-contrast)]"
                 disabled={!isConnected}
               />
               <Button
@@ -538,7 +538,7 @@ export default function MeditationPage() {
               </Button>
             </div>
           ) : (
-            <div className="text-center text-neutral-500 py-2">
+            <div className="text-center text-neutral-500 dark:text-neutral-400 py-2">
               <p>Please sign in to join the chat</p>
             </div>
           )}
