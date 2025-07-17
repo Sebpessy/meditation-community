@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   firebaseUid: text("firebase_uid").notNull().unique(),
   profilePicture: text("profile_picture"),
   isAdmin: boolean("is_admin").default(false),
+  profileCompleted: boolean("profile_completed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -95,6 +96,7 @@ export const updateUserSchema = createInsertSchema(users).pick({
   email: true,
   name: true,
   profilePicture: true,
+  profileCompleted: true,
 });
 
 export const insertMeditationTemplateSchema = createInsertSchema(meditationTemplates).omit({

@@ -69,12 +69,12 @@ export default function SettingsPage() {
   // Update form data when user data is loaded
   useEffect(() => {
     if (currentUser) {
-      const hasProfilePicture = currentUser.profilePicture && currentUser.profilePicture.trim() !== "";
+      // Check if this is a first-time user (profile not completed)
+      const isFirstTime = !currentUser.profileCompleted;
+      setIsFirstTimeUser(isFirstTime);
       
-      // Check if this is a first-time user (no profile picture)
-      if (!hasProfilePicture) {
-        setIsFirstTimeUser(true);
-        // Select a random default picture if available
+      if (isFirstTime) {
+        // For first-time users, set up default profile picture if available
         if (profilePictures && profilePictures.length > 0) {
           const randomPicture = profilePictures[Math.floor(Math.random() * profilePictures.length)];
           setSelectedPictureId(randomPicture.id);
@@ -83,9 +83,14 @@ export default function SettingsPage() {
             email: currentUser.email || "",
             profilePicture: randomPicture.imageData
           });
+        } else {
+          setFormData({
+            name: currentUser.name || "",
+            email: currentUser.email || "",
+            profilePicture: currentUser.profilePicture || ""
+          });
         }
       } else {
-        setIsFirstTimeUser(false);
         setFormData({
           name: currentUser.name || "",
           email: currentUser.email || "",
@@ -241,7 +246,12 @@ export default function SettingsPage() {
     
     try {
       const validatedData = updateUserSchema.parse(formData);
-      updateUserMutation.mutate(validatedData);
+      // Mark profile as completed for first-time users
+      const dataToSubmit = {
+        ...validatedData,
+        profileCompleted: true
+      };
+      updateUserMutation.mutate(dataToSubmit);
     } catch (error) {
       toast({
         title: "Validation Error",

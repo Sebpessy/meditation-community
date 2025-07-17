@@ -41,7 +41,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
   });
 
   // Check if user needs to complete profile setup
-  const isFirstTimeUser = backendUser && (!backendUser.profilePicture || backendUser.profilePicture.trim() === "");
+  const isFirstTimeUser = backendUser && !backendUser.profileCompleted;
 
   // Redirect first-time users to settings page
   useEffect(() => {
