@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMeditationTemplateSchema, insertScheduleSchema, insertChatMessageSchema } from "@shared/schema";
+import { insertUserSchema, insertMeditationTemplateSchema, insertScheduleSchema, insertChatMessageSchema, insertMoodEntrySchema } from "@shared/schema";
 import { z } from "zod";
 
 // Helper function to get current user from request
@@ -416,6 +416,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ likedMessages });
     } catch (error) {
       res.status(500).json({ error: 'Failed to get liked messages' });
+    }
+  });
+
+  // Mood tracking routes
+  app.post('/api/mood/entry', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const entryData = insertMoodEntrySchema.parse({
+        ...req.body,
+        userId: user.id
+      });
+
+      const entry = await storage.createMoodEntry(entryData);
+      res.json(entry);
+    } catch (error) {
+      console.error('Error creating mood entry:', error);
+      res.status(400).json({ error: 'Invalid mood entry data' });
+    }
+  });
+
+  app.get('/api/mood/entries/:userId', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const userId = parseInt(req.params.userId);
+      // Users can only see their own mood entries
+      if (user.id !== userId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const sessionDate = req.query.sessionDate as string;
+      const entries = await storage.getMoodEntries(userId, sessionDate);
+      res.json(entries);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get mood entries' });
+    }
+  });
+
+  app.get('/api/mood/latest/:userId/:sessionDate/:moodType', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const userId = parseInt(req.params.userId);
+      // Users can only see their own mood entries
+      if (user.id !== userId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const { sessionDate, moodType } = req.params;
+      const entry = await storage.getLatestMoodEntry(userId, sessionDate, moodType);
+      res.json(entry || null);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get latest mood entry' });
     }
   });
 

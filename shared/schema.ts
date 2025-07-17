@@ -52,6 +52,16 @@ export const messageLikes = pgTable("message_likes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const moodEntries = pgTable("mood_entries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  sessionDate: text("session_date").notNull(), // YYYY-MM-DD format
+  chakraLevel: integer("chakra_level").notNull(), // 1-7 representing the 7 chakras
+  moodType: text("mood_type").notNull(), // 'pre' or 'post' meditation
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   name: true,
@@ -85,6 +95,11 @@ export const insertMessageLikeSchema = createInsertSchema(messageLikes).omit({
   createdAt: true,
 });
 
+export const insertMoodEntrySchema = createInsertSchema(moodEntries).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type MeditationTemplate = typeof meditationTemplates.$inferSelect;
@@ -95,3 +110,5 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type MessageLike = typeof messageLikes.$inferSelect;
 export type InsertMessageLike = z.infer<typeof insertMessageLikeSchema>;
+export type MoodEntry = typeof moodEntries.$inferSelect;
+export type InsertMoodEntry = z.infer<typeof insertMoodEntrySchema>;

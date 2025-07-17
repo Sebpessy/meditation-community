@@ -10,6 +10,7 @@ import { Send, Heart } from "lucide-react";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { LiveChat } from "@/components/LiveChat";
 import { Loading } from "@/components/ui/loading";
+import { MoodTrackerIcon } from "@/components/MoodTrackerIcon";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
@@ -313,12 +314,15 @@ export default function MeditationPage() {
     <div className="h-screen flex flex-col md:max-w-7xl md:mx-auto md:px-4 md:sm:px-6 md:lg:px-8 md:py-8">
       {/* Desktop Header */}
       <div className="hidden md:block text-center mb-8">
-        <Badge variant="outline" className="mb-4">
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          {formatDate(meditation.date)}
-        </Badge>
+        <div className="flex items-center justify-center space-x-4 mb-4">
+          <Badge variant="outline">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {formatDate(meditation.date)}
+          </Badge>
+          <MoodTrackerIcon sessionDate={meditation.date} />
+        </div>
         
         <CountdownTimer />
         <h1 className="text-3xl sm:text-4xl font-bold text-neutral-800 mb-2">
@@ -367,11 +371,14 @@ export default function MeditationPage() {
         <div className="flex-shrink-0 p-4 bg-white border-b border-neutral-200">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-neutral-800">Live Chat</h3>
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400'}`} />
-              <span className="text-sm text-neutral-600">
-                {Math.max(onlineCount, wsOnlineCount)} online
-              </span>
+            <div className="flex items-center space-x-3">
+              <MoodTrackerIcon sessionDate={meditation.date} />
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400'}`} />
+                <span className="text-sm text-neutral-600">
+                  {Math.max(onlineCount, wsOnlineCount)} online
+                </span>
+              </div>
             </div>
           </div>
           

@@ -1,4 +1,4 @@
-import { users, meditationTemplates, schedules, chatMessages, messageLikes, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type InsertChatMessage, type MessageLike, type InsertMessageLike } from "@shared/schema";
+import { users, meditationTemplates, schedules, chatMessages, messageLikes, moodEntries, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type InsertChatMessage, type MessageLike, type InsertMessageLike, type MoodEntry, type InsertMoodEntry } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, count, and } from "drizzle-orm";
 
@@ -35,6 +35,11 @@ export interface IStorage {
   unlikeMessage(messageId: number, userId: number): Promise<boolean>;
   getMessageLikes(messageId: number): Promise<number>;
   getUserLikedMessages(userId: number): Promise<number[]>;
+  
+  // Mood tracking operations
+  createMoodEntry(entry: InsertMoodEntry): Promise<MoodEntry>;
+  getMoodEntries(userId: number, sessionDate?: string): Promise<MoodEntry[]>;
+  getLatestMoodEntry(userId: number, sessionDate: string, moodType: string): Promise<MoodEntry | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -344,6 +349,41 @@ export class DatabaseStorage implements IStorage {
       .from(messageLikes)
       .where(eq(messageLikes.userId, userId));
     return likes.map(like => like.messageId);
+  }
+
+  async createMoodEntry(entry: InsertMoodEntry): Promise<MoodEntry> {
+    const [newEntry] = await db
+      .insert(moodEntries)
+      .values(entry)
+      .returning();
+    return newEntry;
+  }
+
+  async getMoodEntries(userId: number, sessionDate?: string): Promise<MoodEntry[]> {
+    const conditions = [eq(moodEntries.userId, userId)];
+    if (sessionDate) {
+      conditions.push(eq(moodEntries.sessionDate, sessionDate));
+    }
+    
+    return await db
+      .select()
+      .from(moodEntries)
+      .where(and(...conditions))
+      .orderBy(desc(moodEntries.createdAt));
+  }
+
+  async getLatestMoodEntry(userId: number, sessionDate: string, moodType: string): Promise<MoodEntry | undefined> {
+    const [entry] = await db
+      .select()
+      .from(moodEntries)
+      .where(and(
+        eq(moodEntries.userId, userId),
+        eq(moodEntries.sessionDate, sessionDate),
+        eq(moodEntries.moodType, moodType)
+      ))
+      .orderBy(desc(moodEntries.createdAt))
+      .limit(1);
+    return entry;
   }
 }
 
