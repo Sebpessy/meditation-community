@@ -233,8 +233,8 @@ export function VideoPlayer({
                   <span className="text-secondary font-semibold">{instructor.charAt(0)}</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-neutral-800">{instructor}</h3>
-                  <p className="text-sm text-neutral-600">{instructorTitle}</p>
+                  <h3 className="font-semibold text-neutral-800 dark:text-white">{instructor}</h3>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-300">{instructorTitle}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
@@ -251,7 +251,7 @@ export function VideoPlayer({
               </div>
             </div>
             
-            <div className="flex items-center space-x-6 text-sm text-neutral-600 mb-2 md:mb-4">
+            <div className="flex items-center space-x-6 text-sm text-neutral-600 dark:text-neutral-300 mb-2 md:mb-4">
               <div className="flex items-center space-x-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
