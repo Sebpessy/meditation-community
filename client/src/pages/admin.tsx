@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Loading } from "@/components/ui/loading";
 import { Plus, Edit, Trash2, Calendar, Users, Search, BarChart3, Activity, Clock, Target, Copy, Upload, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { ProfilePictureManager } from "@/components/ProfilePictureManager";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
@@ -83,6 +84,7 @@ export default function AdminPage() {
   const [csvData, setCsvData] = useState("");
   const [importPreview, setImportPreview] = useState<any[]>([]);
   const [isProcessingImport, setIsProcessingImport] = useState(false);
+  const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
 
   const [templateForm, setTemplateForm] = useState({
     title: "",
@@ -712,11 +714,12 @@ export default function AdminPage() {
       </div>
 
       <Tabs defaultValue="dashboard" className="space-y-8">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="schedules">Schedules</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="profile-pictures">Profile Pictures</TabsTrigger>
         </TabsList>
 
         {/* Dashboard Tab */}
@@ -1813,6 +1816,19 @@ export default function AdminPage() {
               )}
             </DialogContent>
           </Dialog>
+        </TabsContent>
+
+        {/* Profile Pictures Tab */}
+        <TabsContent value="profile-pictures" className="space-y-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold">Profile Picture Management</h2>
+            <Button onClick={() => setIsProfilePictureModalOpen(true)}>
+              <Upload className="w-4 h-4 mr-2" />
+              Upload New Picture
+            </Button>
+          </div>
+          
+          <ProfilePictureManager />
         </TabsContent>
       </Tabs>
     </div>

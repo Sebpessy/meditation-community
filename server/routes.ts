@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMeditationTemplateSchema, insertScheduleSchema, insertChatMessageSchema, insertMoodEntrySchema, insertMeditationSessionSchema } from "@shared/schema";
+import { insertUserSchema, insertMeditationTemplateSchema, insertScheduleSchema, insertChatMessageSchema, insertMoodEntrySchema, insertMeditationSessionSchema, insertProfilePictureSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Helper function to get current user from request
@@ -939,6 +939,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: 'Failed to delete user' });
+    }
+  });
+
+  // Profile Picture Management Routes
+  app.get('/api/profile-pictures', async (req, res) => {
+    try {
+      const pictures = await storage.getActiveProfilePictures();
+      res.json(pictures);
+    } catch (error) {
+      console.error('Error fetching profile pictures:', error);
+      res.status(500).json({ error: 'Failed to fetch profile pictures' });
+    }
+  });
+
+  app.get('/api/admin/profile-pictures', async (req, res) => {
+    try {
+      const pictures = await storage.getAllProfilePictures();
+      res.json(pictures);
+    } catch (error) {
+      console.error('Error fetching all profile pictures:', error);
+      res.status(500).json({ error: 'Failed to fetch profile pictures' });
+    }
+  });
+
+  app.post('/api/admin/profile-pictures', async (req, res) => {
+    try {
+      const pictureData = insertProfilePictureSchema.parse(req.body);
+      const picture = await storage.createProfilePicture(pictureData);
+      res.json(picture);
+    } catch (error) {
+      console.error('Error creating profile picture:', error);
+      res.status(400).json({ error: 'Invalid profile picture data' });
+    }
+  });
+
+  app.put('/api/admin/profile-pictures/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const pictureData = req.body;
+      const picture = await storage.updateProfilePicture(id, pictureData);
+      
+      if (!picture) {
+        return res.status(404).json({ error: 'Profile picture not found' });
+      }
+      
+      res.json(picture);
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      res.status(400).json({ error: 'Invalid profile picture data' });
+    }
+  });
+
+  app.delete('/api/admin/profile-pictures/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteProfilePicture(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Profile picture not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting profile picture:', error);
+      res.status(500).json({ error: 'Failed to delete profile picture' });
     }
   });
 

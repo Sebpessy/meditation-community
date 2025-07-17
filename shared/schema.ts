@@ -75,6 +75,15 @@ export const meditationSessions = pgTable("meditation_sessions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const profilePictures = pgTable("profile_pictures", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  imageData: text("image_data").notNull(), // Base64 encoded image
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   name: true,
@@ -118,6 +127,12 @@ export const insertMeditationSessionSchema = createInsertSchema(meditationSessio
   createdAt: true,
 });
 
+export const insertProfilePictureSchema = createInsertSchema(profilePictures).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type MeditationTemplate = typeof meditationTemplates.$inferSelect;
@@ -144,3 +159,5 @@ export type MoodEntry = typeof moodEntries.$inferSelect;
 export type InsertMoodEntry = z.infer<typeof insertMoodEntrySchema>;
 export type MeditationSession = typeof meditationSessions.$inferSelect;
 export type InsertMeditationSession = z.infer<typeof insertMeditationSessionSchema>;
+export type ProfilePicture = typeof profilePictures.$inferSelect;
+export type InsertProfilePicture = z.infer<typeof insertProfilePictureSchema>;

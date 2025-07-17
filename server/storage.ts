@@ -1,4 +1,4 @@
-import { users, meditationTemplates, schedules, chatMessages, messageLikes, moodEntries, meditationSessions, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type ChatMessageWithUser, type InsertChatMessage, type MessageLike, type InsertMessageLike, type MoodEntry, type InsertMoodEntry, type MeditationSession, type InsertMeditationSession } from "@shared/schema";
+import { users, meditationTemplates, schedules, chatMessages, messageLikes, moodEntries, meditationSessions, profilePictures, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type ChatMessageWithUser, type InsertChatMessage, type MessageLike, type InsertMessageLike, type MoodEntry, type InsertMoodEntry, type MeditationSession, type InsertMeditationSession, type ProfilePicture, type InsertProfilePicture } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, count, and, sql, isNotNull } from "drizzle-orm";
 
@@ -50,6 +50,14 @@ export interface IStorage {
   // User analytics
   getUserLastLogin(userId: number): Promise<Date | null>;
   getUserTotalTimeSpent(userId: number): Promise<number>;
+  
+  // Profile picture operations
+  getAllProfilePictures(): Promise<ProfilePicture[]>;
+  getActiveProfilePictures(): Promise<ProfilePicture[]>;
+  getProfilePicture(id: number): Promise<ProfilePicture | undefined>;
+  createProfilePicture(picture: InsertProfilePicture): Promise<ProfilePicture>;
+  updateProfilePicture(id: number, picture: Partial<InsertProfilePicture>): Promise<ProfilePicture | undefined>;
+  deleteProfilePicture(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -458,6 +466,57 @@ export class DatabaseStorage implements IStorage {
 
     // Convert seconds to minutes
     return Math.round((totalDuration[0]?.totalDuration || 0) / 60);
+  }
+
+  // Profile picture operations
+  async getAllProfilePictures(): Promise<ProfilePicture[]> {
+    return await db
+      .select()
+      .from(profilePictures)
+      .orderBy(desc(profilePictures.createdAt));
+  }
+
+  async getActiveProfilePictures(): Promise<ProfilePicture[]> {
+    return await db
+      .select()
+      .from(profilePictures)
+      .where(eq(profilePictures.isActive, true))
+      .orderBy(desc(profilePictures.createdAt));
+  }
+
+  async getProfilePicture(id: number): Promise<ProfilePicture | undefined> {
+    const [picture] = await db
+      .select()
+      .from(profilePictures)
+      .where(eq(profilePictures.id, id));
+    return picture;
+  }
+
+  async createProfilePicture(picture: InsertProfilePicture): Promise<ProfilePicture> {
+    const [newPicture] = await db
+      .insert(profilePictures)
+      .values(picture)
+      .returning();
+    return newPicture;
+  }
+
+  async updateProfilePicture(id: number, picture: Partial<InsertProfilePicture>): Promise<ProfilePicture | undefined> {
+    const [updatedPicture] = await db
+      .update(profilePictures)
+      .set({
+        ...picture,
+        updatedAt: new Date()
+      })
+      .where(eq(profilePictures.id, id))
+      .returning();
+    return updatedPicture;
+  }
+
+  async deleteProfilePicture(id: number): Promise<boolean> {
+    const result = await db
+      .delete(profilePictures)
+      .where(eq(profilePictures.id, id));
+    return result.rowCount > 0;
   }
 }
 
