@@ -1453,19 +1453,19 @@ export default function AdminPage() {
                     {calendarView === 'week' && (
                       <div className="grid grid-cols-7 gap-2">
                         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                          <div key={day} className="text-center text-sm font-medium py-2 border-b">
+                          <div key={day} className="text-center text-sm font-medium py-2 border-b dark:border-[var(--border)] text-neutral-800 dark:text-[var(--text-high-contrast)]">
                             {day}
                           </div>
                         ))}
                         {getWeekDays(calendarDate).map(day => {
                           const daySchedules = getSchedulesForDate(day);
                           return (
-                            <div key={day.toISOString()} className="min-h-24 p-2 border rounded-lg">
-                              <div className="text-sm font-medium mb-1">{day.getDate()}</div>
+                            <div key={day.toISOString()} className="min-h-24 p-2 border dark:border-[var(--border)] rounded-lg bg-white dark:bg-[var(--card)]">
+                              <div className="text-sm font-medium mb-1 text-neutral-900 dark:text-[var(--text-high-contrast)]">{day.getDate()}</div>
                               {daySchedules.map(schedule => {
                                 const template = templates?.find(t => t.id === schedule.templateId);
                                 return (
-                                  <div key={schedule.id} className="text-xs p-1 bg-blue-100 rounded mb-1 cursor-pointer" 
+                                  <div key={schedule.id} className="text-xs p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-200 rounded mb-1 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors" 
                                        onClick={() => handleEditSchedule(schedule)}>
                                     {schedule.scheduledTime} - {template?.title || 'Unknown'}
                                   </div>
@@ -1480,7 +1480,7 @@ export default function AdminPage() {
                     {calendarView === 'month' && (
                       <div className="grid grid-cols-7 gap-2">
                         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                          <div key={day} className="text-center text-sm font-medium py-2 border-b">
+                          <div key={day} className="text-center text-sm font-medium py-2 border-b dark:border-[var(--border)] text-neutral-800 dark:text-[var(--text-high-contrast)]">
                             {day}
                           </div>
                         ))}
@@ -1488,12 +1488,12 @@ export default function AdminPage() {
                           const daySchedules = getSchedulesForDate(day);
                           const isCurrentMonth = day.getMonth() === calendarDate.getMonth();
                           return (
-                            <div key={day.toISOString()} className={`min-h-20 p-2 border rounded-lg ${!isCurrentMonth ? 'bg-gray-50 text-gray-400' : ''}`}>
-                              <div className="text-sm font-medium mb-1">{day.getDate()}</div>
+                            <div key={day.toISOString()} className={`min-h-20 p-2 border dark:border-[var(--border)] rounded-lg ${!isCurrentMonth ? 'bg-gray-50 dark:bg-[var(--muted)] text-gray-400 dark:text-[var(--text-low-contrast)]' : 'bg-white dark:bg-[var(--card)]'}`}>
+                              <div className="text-sm font-medium mb-1 text-neutral-900 dark:text-[var(--text-high-contrast)]">{day.getDate()}</div>
                               {daySchedules.map(schedule => {
                                 const template = templates?.find(t => t.id === schedule.templateId);
                                 return (
-                                  <div key={schedule.id} className="text-xs p-1 bg-blue-100 rounded mb-1 cursor-pointer" 
+                                  <div key={schedule.id} className="text-xs p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-200 rounded mb-1 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors" 
                                        onClick={() => handleEditSchedule(schedule)}>
                                     {template?.title || 'Unknown'}
                                   </div>
@@ -1514,20 +1514,20 @@ export default function AdminPage() {
                                    scheduleDate.getFullYear() === month.getFullYear();
                           });
                           return (
-                            <div key={month.toISOString()} className="border rounded-lg p-4">
-                              <h4 className="font-medium mb-2">{month.toLocaleDateString('en-US', { month: 'long' })}</h4>
+                            <div key={month.toISOString()} className="border dark:border-[var(--border)] rounded-lg p-4 bg-white dark:bg-[var(--card)]">
+                              <h4 className="font-medium mb-2 text-neutral-900 dark:text-[var(--text-high-contrast)]">{month.toLocaleDateString('en-US', { month: 'long' })}</h4>
                               <div className="space-y-1">
                                 {monthSchedules.slice(0, 3).map(schedule => {
                                   const template = templates?.find(t => t.id === schedule.templateId);
                                   return (
-                                    <div key={schedule.id} className="text-xs p-1 bg-blue-100 rounded cursor-pointer" 
+                                    <div key={schedule.id} className="text-xs p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-200 rounded cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors" 
                                          onClick={() => handleEditSchedule(schedule)}>
                                       {new Date(schedule.date).getDate()} - {template?.title || 'Unknown'}
                                     </div>
                                   );
                                 })}
                                 {monthSchedules.length > 3 && (
-                                  <div className="text-xs text-gray-500">+{monthSchedules.length - 3} more</div>
+                                  <div className="text-xs text-gray-500 dark:text-[var(--text-low-contrast)]">+{monthSchedules.length - 3} more</div>
                                 )}
                               </div>
                             </div>
@@ -1568,8 +1568,8 @@ export default function AdminPage() {
               <CardContent className="p-0">
                 <div className="text-center py-12">
                   <Users className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-neutral-800 mb-2">No Users Found</h3>
-                  <p className="text-neutral-600">No users match your search criteria.</p>
+                  <h3 className="text-lg font-medium text-neutral-800 dark:text-[var(--text-high-contrast)] mb-2">No Users Found</h3>
+                  <p className="text-neutral-600 dark:text-[var(--text-medium-contrast)]">No users match your search criteria.</p>
                 </div>
               </CardContent>
             </Card>
@@ -1581,22 +1581,22 @@ export default function AdminPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-4 font-medium text-neutral-700">User</th>
-                          <th className="text-left p-4 font-medium text-neutral-700">Email</th>
-                          <th className="text-left p-4 font-medium text-neutral-700">Role</th>
-                          <th className="text-left p-4 font-medium text-neutral-700">Joined</th>
-                          <th className="text-left p-4 font-medium text-neutral-700">Last Login</th>
-                          <th className="text-left p-4 font-medium text-neutral-700">Time Spent</th>
-                          <th className="text-left p-4 font-medium text-neutral-700">Actions</th>
+                        <tr className="border-b dark:border-[var(--border)]">
+                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">User</th>
+                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Email</th>
+                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Role</th>
+                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Joined</th>
+                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Last Login</th>
+                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Time Spent</th>
+                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredUsers.map((user) => (
-                          <tr key={user.id} className="border-b hover:bg-neutral-50">
+                          <tr key={user.id} className="border-b dark:border-[var(--border)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors">
                             <td className="p-4">
                               <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
+                                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 dark:border-[var(--border)] flex items-center justify-center bg-gray-50 dark:bg-[var(--muted)]">
                                   {user.profilePicture ? (
                                     <img
                                       src={user.profilePicture}
@@ -1610,13 +1610,13 @@ export default function AdminPage() {
                                   )}
                                 </div>
                                 <div>
-                                  <p className="font-medium text-neutral-800">{user.name}</p>
-                                  <p className="text-sm text-neutral-600">ID: {user.id}</p>
+                                  <p className="font-medium text-neutral-800 dark:text-[var(--text-high-contrast)]">{user.name}</p>
+                                  <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">ID: {user.id}</p>
                                 </div>
                               </div>
                             </td>
                             <td className="p-4">
-                              <p className="text-neutral-800">{user.email}</p>
+                              <p className="text-neutral-800 dark:text-[var(--text-high-contrast)]">{user.email}</p>
                             </td>
                             <td className="p-4">
                               <Badge variant={user.isAdmin ? "default" : "secondary"}>
@@ -1624,12 +1624,12 @@ export default function AdminPage() {
                               </Badge>
                             </td>
                             <td className="p-4">
-                              <p className="text-neutral-600">
+                              <p className="text-neutral-600 dark:text-[var(--text-medium-contrast)]">
                                 {new Date(user.createdAt).toLocaleDateString()}
                               </p>
                             </td>
                             <td className="p-4">
-                              <div className="text-neutral-600 text-sm">
+                              <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
                                 {user.lastLogin ? (
                                   <div>
                                     <p>{new Date(user.lastLogin).toLocaleDateString('en-US', { 
@@ -1638,7 +1638,7 @@ export default function AdminPage() {
                                       day: 'numeric',
                                       timeZone: 'America/Chicago'
                                     })}</p>
-                                    <p className="text-xs text-neutral-500">
+                                    <p className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">
                                       {new Date(user.lastLogin).toLocaleTimeString('en-US', { 
                                         hour: 'numeric', 
                                         minute: '2-digit',
@@ -1648,16 +1648,16 @@ export default function AdminPage() {
                                     </p>
                                   </div>
                                 ) : (
-                                  <span className="text-neutral-400">Never</span>
+                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">Never</span>
                                 )}
                               </div>
                             </td>
                             <td className="p-4">
-                              <div className="text-neutral-600 text-sm">
+                              <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
                                 {user.totalTimeSpent > 0 ? (
                                   <span>{user.totalTimeSpent} min</span>
                                 ) : (
-                                  <span className="text-neutral-400">0 min</span>
+                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">0 min</span>
                                 )}
                               </div>
                             </td>
