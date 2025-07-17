@@ -13,7 +13,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthState } from "react-firebase-hooks/auth";
 import logoImg from "@/assets/logo.png";
-import backgroundImg from "@/assets/bg4_1752712109766.jpg";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
@@ -174,7 +173,7 @@ export default function AuthPage() {
     <div 
       className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-neutral-50 relative"
       style={{
-        backgroundImage: `url(${backgroundImg})`,
+        backgroundImage: `url(/bg4.jpg)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
