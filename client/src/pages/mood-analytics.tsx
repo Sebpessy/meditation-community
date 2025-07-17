@@ -77,7 +77,7 @@ function formatTime(minutes: number) {
 }
 
 export default function MoodAnalyticsPage() {
-  const [user] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
   const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'all'>('week');
   const [viewMode, setViewMode] = useState<'analytics' | 'journey'>('analytics');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -95,13 +95,11 @@ export default function MoodAnalyticsPage() {
     enabled: !!currentUser,
   });
 
-  // Remove debug logging for production
-
-  // Fetch session durations for each day
+  // Fetch session durations for each day - wait for Firebase auth to be ready
   const { data: sessionDurations } = useQuery({
     queryKey: ['/api/session/durations', currentUser?.id],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    enabled: !!currentUser && !!moodEntries && !!user,
+    enabled: !loading && !!currentUser && !!user,
   });
 
   // Session durations loaded successfully
