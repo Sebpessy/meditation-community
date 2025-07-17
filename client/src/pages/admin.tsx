@@ -1596,10 +1596,18 @@ export default function AdminPage() {
                           <tr key={user.id} className="border-b hover:bg-neutral-50">
                             <td className="p-4">
                               <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                                  <span className="text-primary font-medium">
-                                    {user.name.charAt(0).toUpperCase()}
-                                  </span>
+                                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
+                                  {user.profilePicture ? (
+                                    <img
+                                      src={user.profilePicture}
+                                      alt={user.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <span className="text-primary font-medium">
+                                      {user.name.charAt(0).toUpperCase()}
+                                    </span>
+                                  )}
                                 </div>
                                 <div>
                                   <p className="font-medium text-neutral-800">{user.name}</p>
@@ -1695,10 +1703,18 @@ export default function AdminPage() {
                 {filteredUsers.map((user) => (
                   <Card key={user.id} className="p-4">
                     <div className="flex items-start space-x-3">
-                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span className="text-primary font-medium text-lg">
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
+                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
+                        {user.profilePicture ? (
+                          <img
+                            src={user.profilePicture}
+                            alt={user.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-primary font-medium text-lg">
+                            {user.name.charAt(0).toUpperCase()}
+                          </span>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
