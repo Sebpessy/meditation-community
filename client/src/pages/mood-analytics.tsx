@@ -223,9 +223,11 @@ export default function MoodAnalyticsPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-neutral-800">Mood Analytics</h1>
-        <div className="flex space-x-2">
+      <div className="flex flex-col space-y-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-neutral-800">Mood Analytics</h1>
+        
+        {/* Mobile Responsive Controls */}
+        <div className="flex flex-col sm:flex-row gap-2">
           {/* View Mode Toggle */}
           <div className="flex space-x-1 bg-muted p-1 rounded-lg">
             <Button

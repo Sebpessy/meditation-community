@@ -503,6 +503,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Support PUT method for updating session
+  app.put('/api/session/:id', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const sessionId = parseInt(req.params.id);
+      const updatedSession = await storage.updateMeditationSession(sessionId, req.body);
+      
+      if (!updatedSession) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      res.json(updatedSession);
+    } catch (error) {
+      console.error('Error updating meditation session:', error);
+      res.status(500).json({ error: 'Failed to update session' });
+    }
+  });
+
+  // Support POST for sendBeacon API
+  app.post('/api/session/:id', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const sessionId = parseInt(req.params.id);
+      const updatedSession = await storage.updateMeditationSession(sessionId, req.body);
+      
+      if (!updatedSession) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      res.json(updatedSession);
+    } catch (error) {
+      console.error('Error updating meditation session:', error);
+      res.status(500).json({ error: 'Failed to update session' });
+    }
+  });
+
   app.get('/api/session/duration/:userId/:sessionDate', async (req, res) => {
     try {
       const user = await getCurrentUser(req);

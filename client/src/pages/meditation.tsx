@@ -89,6 +89,11 @@ export default function MeditationPage() {
   const [likedMessages, setLikedMessages] = useState<Set<number>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  
+  // Session tracking refs
+  const sessionStartTime = useRef<number>(Date.now());
+  const sessionId = useRef<number | null>(null);
+  const updateInterval = useRef<NodeJS.Timeout | null>(null);
 
   const { data: meditation, isLoading, error } = useQuery<TodaysMeditation>({
     queryKey: ["/api/meditation/today"],
@@ -174,6 +179,54 @@ export default function MeditationPage() {
       setLikedMessages(new Set(userLikedMessages));
     }
   }, [userLikedMessages]);
+
+  // Session tracking - start session when user enters page
+  useEffect(() => {
+    const startSession = async () => {
+      if (currentUserId && !sessionId.current) {
+        try {
+          const response = await apiRequest('POST', '/api/session/start', {
+            userId: currentUserId,
+            sessionDate: getCSTDate()
+          });
+          if (response.ok) {
+            const data = await response.json();
+            sessionId.current = data.id;
+            sessionStartTime.current = Date.now();
+            
+            // Update session every 30 seconds
+            updateInterval.current = setInterval(async () => {
+              if (sessionId.current) {
+                const duration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
+                await apiRequest('PUT', `/api/session/${sessionId.current}`, {
+                  duration
+                });
+              }
+            }, 30000);
+          }
+        } catch (error) {
+          console.error('Failed to start session:', error);
+        }
+      }
+    };
+
+    startSession();
+
+    // Cleanup function to update session on unmount
+    return () => {
+      if (updateInterval.current) {
+        clearInterval(updateInterval.current);
+      }
+      
+      if (sessionId.current) {
+        const duration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
+        // Use sendBeacon for reliable unload tracking
+        navigator.sendBeacon(`/api/session/${sessionId.current}`, JSON.stringify({
+          duration
+        }));
+      }
+    };
+  }, [currentUserId]);
 
   // Fetch likes for all messages
   useEffect(() => {
