@@ -377,10 +377,10 @@ export default function MeditationPage() {
         </Badge>
         
         <CountdownTimer />
-        <h1 className="text-3xl sm:text-4xl font-bold text-neutral-800 mb-2">
+        <h1 className="text-3xl sm:text-4xl font-bold text-neutral-800 dark:text-white mb-2">
           {meditation.title}
         </h1>
-        <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+        <p className="text-lg text-neutral-600 dark:text-neutral-200 max-w-2xl mx-auto">
           {meditation.description}
         </p>
       </div>
@@ -388,7 +388,7 @@ export default function MeditationPage() {
       {/* Mobile Content */}
       <div className="md:hidden h-screen flex flex-col">
         {/* Fixed Video Player - Below banner, reduced height */}
-        <div className="flex-shrink-0 bg-white" style={{ height: '35vh' }}>
+        <div className="flex-shrink-0 bg-white dark:bg-[var(--background)]" style={{ height: '35vh' }}>
           <div className="h-full">
             <VideoPlayer
               videoUrl={meditation.videoUrl}
@@ -404,7 +404,7 @@ export default function MeditationPage() {
         </div>
 
         {/* Fixed Date and Timer - Below video */}
-        <div className="flex-shrink-0 flex items-center justify-between p-3 bg-white border-b border-neutral-200">
+        <div className="flex-shrink-0 flex items-center justify-between p-3 bg-white dark:bg-[var(--background)] border-b border-neutral-200 dark:border-[var(--border)]">
           <Badge variant="outline" className="text-xs">
             <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -580,25 +580,25 @@ export default function MeditationPage() {
             <div className="text-2xl font-bold text-primary mb-2">
               {Math.max(onlineCount, wsOnlineCount)}
             </div>
-            <div className="text-sm text-neutral-600">Active Now</div>
+            <div className="text-sm text-neutral-600 dark:text-neutral-300">Active Now</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-primary mb-2">
               {meditation.duration}
             </div>
-            <div className="text-sm text-neutral-600">Minutes</div>
+            <div className="text-sm text-neutral-600 dark:text-neutral-300">Minutes</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-primary mb-2">
               {meditation.difficulty}
             </div>
-            <div className="text-sm text-neutral-600">Level</div>
+            <div className="text-sm text-neutral-600 dark:text-neutral-300">Level</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-primary mb-2">
               {meditation.instructor}
             </div>
-            <div className="text-sm text-neutral-600">Instructor</div>
+            <div className="text-sm text-neutral-600 dark:text-neutral-300">Instructor</div>
           </div>
         </div>
       </div>

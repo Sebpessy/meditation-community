@@ -1138,7 +1138,7 @@ export default function AdminPage() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-neutral-500">No thumbnail</span>
+                        <span className="text-neutral-500 dark:text-neutral-400">No thumbnail</span>
                       </div>
                     )}
                     <div className="absolute top-2 right-2">
@@ -1148,12 +1148,12 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <CardContent className="p-4">
-                    <h3 className="font-semibold text-neutral-800 mb-2">{template.title}</h3>
-                    <p className="text-sm text-neutral-600 mb-3 line-clamp-2">{template.description}</p>
+                    <h3 className="font-semibold text-neutral-800 dark:text-white mb-2">{template.title}</h3>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-300 mb-3 line-clamp-2">{template.description}</p>
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center space-x-4">
-                        <span className="text-neutral-500">{template.duration} min</span>
-                        <span className="text-neutral-500">{template.instructor}</span>
+                        <span className="text-neutral-500 dark:text-neutral-400">{template.duration} min</span>
+                        <span className="text-neutral-500 dark:text-neutral-400">{template.instructor}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button
@@ -1192,7 +1192,7 @@ export default function AdminPage() {
         {/* Schedules Tab */}
         <TabsContent value="schedules" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-neutral-800">Schedule Management</h2>
+            <h2 className="text-xl font-semibold text-neutral-800 dark:text-[var(--text-high-contrast)]">Schedule Management</h2>
             <Dialog open={isScheduleModalOpen} onOpenChange={setIsScheduleModalOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => { resetScheduleForm(); setEditingSchedule(null); }}>
