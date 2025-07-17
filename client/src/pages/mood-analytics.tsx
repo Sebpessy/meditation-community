@@ -3,10 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, TrendingUp, BarChart3, Activity } from "lucide-react";
+import { Calendar, Clock, TrendingUp, BarChart3, Activity, Play, Pause, SkipBack, SkipForward } from "lucide-react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
+import { EnergyFlowAnimation } from "@/components/EnergyFlowAnimation";
 
 const chakraColors = [
   { color: '#E53E3E', name: 'Root Center', description: 'Grounded & Stable' },
@@ -77,6 +78,9 @@ function formatTime(minutes: number) {
 export default function MoodAnalyticsPage() {
   const [user] = useAuthState(auth);
   const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'all'>('week');
+  const [viewMode, setViewMode] = useState<'analytics' | 'journey'>('analytics');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentSessionIndex, setCurrentSessionIndex] = useState(0);
 
   const { data: currentUser } = useQuery({
     queryKey: ['/api/auth/user', user?.uid],
@@ -159,6 +163,40 @@ export default function MoodAnalyticsPage() {
     ? filteredData.reduce((sum, session) => sum + (session.improvement || 0), 0) / filteredData.length
     : 0;
 
+  // Auto-play functionality for journey mode
+  useEffect(() => {
+    if (!isPlaying || filteredData.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSessionIndex(prev => {
+        if (prev >= filteredData.length - 1) {
+          setIsPlaying(false);
+          return 0;
+        }
+        return prev + 1;
+      });
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [isPlaying, filteredData.length]);
+
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  const handlePrevious = () => {
+    setCurrentSessionIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentSessionIndex(prev => Math.min(filteredData.length - 1, prev + 1));
+  };
+
+  const handleReset = () => {
+    setCurrentSessionIndex(0);
+    setIsPlaying(false);
+  };
+
   const avgTimeSpent = filteredData.length > 0
     ? filteredData.reduce((sum, session) => sum + session.timeSpent, 0) / filteredData.length
     : 0;
@@ -178,16 +216,39 @@ export default function MoodAnalyticsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-neutral-800">Mood Analytics</h1>
         <div className="flex space-x-2">
-          {(['week', 'month', 'all'] as const).map((filter) => (
+          {/* View Mode Toggle */}
+          <div className="flex space-x-1 bg-muted p-1 rounded-lg">
             <Button
-              key={filter}
-              variant={timeFilter === filter ? 'default' : 'outline'}
+              variant={viewMode === 'analytics' ? 'default' : 'ghost'}
               size="sm"
-              onClick={() => setTimeFilter(filter)}
+              onClick={() => setViewMode('analytics')}
             >
-              {filter === 'all' ? 'All Time' : `Last ${filter}`}
+              <BarChart3 className="w-4 h-4 mr-1" />
+              Analytics
             </Button>
-          ))}
+            <Button
+              variant={viewMode === 'journey' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('journey')}
+            >
+              <Activity className="w-4 h-4 mr-1" />
+              Journey
+            </Button>
+          </div>
+          
+          {/* Time Filter */}
+          <div className="flex space-x-1">
+            {(['week', 'month', 'all'] as const).map((filter) => (
+              <Button
+                key={filter}
+                variant={timeFilter === filter ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setTimeFilter(filter)}
+              >
+                {filter === 'all' ? 'All Time' : `Last ${filter}`}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -309,6 +370,82 @@ export default function MoodAnalyticsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Energy Centers Journey Mode */}
+      {viewMode === 'journey' && filteredData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Activity className="h-5 w-5 mr-2" />
+                Energy Centers Flow Journey
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReset}
+                  disabled={currentSessionIndex === 0 && !isPlaying}
+                >
+                  <SkipBack className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrevious}
+                  disabled={currentSessionIndex === 0}
+                >
+                  <SkipBack className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePlayPause}
+                >
+                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNext}
+                  disabled={currentSessionIndex >= filteredData.length - 1}
+                >
+                  <SkipForward className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4">
+              <p className="text-sm text-muted-foreground mb-2">
+                Watch your energy flow through the chakra centers as you progress through meditation sessions.
+                Energy moves up the spine, blockages dissolve, and balance improves over time.
+              </p>
+              {filteredData[currentSessionIndex] && (
+                <div className="flex items-center space-x-4 text-sm">
+                  <Badge variant="outline">
+                    {formatDate(filteredData[currentSessionIndex].sessionDate)}
+                  </Badge>
+                  <span className="text-muted-foreground">
+                    Session {currentSessionIndex + 1} of {filteredData.length}
+                  </span>
+                  {filteredData[currentSessionIndex].improvement > 0 && (
+                    <Badge variant="secondary" className="text-green-600">
+                      +{filteredData[currentSessionIndex].improvement} levels improved
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <EnergyFlowAnimation
+              sessionData={filteredData}
+              isPlaying={isPlaying}
+              currentSessionIndex={currentSessionIndex}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
