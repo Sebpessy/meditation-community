@@ -101,7 +101,7 @@ export default function MoodAnalyticsPage() {
   const { data: sessionDurations } = useQuery({
     queryKey: ['/api/session/durations', currentUser?.id],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    enabled: !!currentUser && !!moodEntries,
+    enabled: !!currentUser && !!moodEntries && !!user,
   });
 
   // Session durations loaded successfully
