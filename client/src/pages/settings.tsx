@@ -79,7 +79,7 @@ export default function SettingsPage() {
           setFormData({
             name: currentUser.name || "",
             email: currentUser.email || "",
-            profilePicture: randomPicture.url
+            profilePicture: randomPicture.imageData
           });
         }
       } else {
@@ -96,7 +96,7 @@ export default function SettingsPage() {
   // Function to handle avatar selection
   const handleAvatarSelection = (picture: ProfilePicture) => {
     setSelectedPictureId(picture.id);
-    setFormData(prev => ({ ...prev, profilePicture: picture.url }));
+    setFormData(prev => ({ ...prev, profilePicture: picture.imageData }));
   };
 
   // Function to generate new random avatar
@@ -497,7 +497,7 @@ export default function SettingsPage() {
                   }`}
                 >
                   <img
-                    src={picture.url}
+                    src={picture.imageData}
                     alt={picture.name}
                     className="w-16 h-16 object-cover"
                   />
