@@ -37,6 +37,8 @@ export default function SettingsPage() {
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const [selectedPictureId, setSelectedPictureId] = useState<number | null>(null);
   const [showAvatarSelection, setShowAvatarSelection] = useState(false);
+  const [selectedImageForCrop, setSelectedImageForCrop] = useState<string | null>(null);
+  const [cropPreview, setCropPreview] = useState<string | null>(null);
 
   // Image cropping state - force round crop
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
@@ -93,10 +95,13 @@ export default function SettingsPage() {
     }
   }, [currentUser, profilePictures]);
 
-  // Function to handle avatar selection
+  // Function to handle avatar selection with crop option
   const handleAvatarSelection = (picture: ProfilePicture) => {
     setSelectedPictureId(picture.id);
-    setFormData(prev => ({ ...prev, profilePicture: picture.imageData }));
+    setSelectedImageForCrop(picture.imageData);
+    setShowAvatarSelection(false);
+    setImageToCrop(picture.imageData);
+    setIsCropDialogOpen(true);
   };
 
   // Function to generate new random avatar
@@ -198,6 +203,8 @@ export default function SettingsPage() {
         }));
         setIsCropDialogOpen(false);
         setImageToCrop(null);
+        setSelectedImageForCrop(null);
+        setCropPreview(null);
       } catch (error) {
         console.error('Error cropping image:', error);
         toast({
@@ -208,6 +215,26 @@ export default function SettingsPage() {
       }
     }
   };
+
+  // Generate preview of cropped image in real-time
+  const updateCropPreview = async () => {
+    if (completedCrop && imgRef.current) {
+      try {
+        const croppedImageUrl = await getCroppedImg(imgRef.current, completedCrop);
+        setCropPreview(croppedImageUrl);
+      } catch (error) {
+        console.error('Error generating crop preview:', error);
+        setCropPreview(null);
+      }
+    }
+  };
+
+  // Update preview when crop changes
+  useEffect(() => {
+    if (completedCrop && imgRef.current) {
+      updateCropPreview();
+    }
+  }, [completedCrop]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -430,26 +457,51 @@ export default function SettingsPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CropIcon className="w-5 h-5" />
-              Crop Profile Picture
+              Crop Your Profile Picture
             </DialogTitle>
+            <p className="text-sm text-gray-600 mt-1">
+              Drag to reposition and resize the crop area. The profile picture will be circular.
+            </p>
           </DialogHeader>
           {imageToCrop && (
             <div className="space-y-4">
-              <div className="relative">
-                <ReactCrop
-                  crop={crop}
-                  onChange={(c) => setCrop(c)}
-                  onComplete={(c) => setCompletedCrop(c)}
-                  aspect={1}
-                  circularCrop
-                >
-                  <img
-                    ref={imgRef}
-                    src={imageToCrop}
-                    alt="Crop"
-                    className="max-w-full max-h-96 object-contain"
-                  />
-                </ReactCrop>
+              <div className="flex gap-6">
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium mb-2">Original Image</h3>
+                  <div className="relative border rounded-lg overflow-hidden">
+                    <ReactCrop
+                      crop={crop}
+                      onChange={(c) => setCrop(c)}
+                      onComplete={(c) => setCompletedCrop(c)}
+                      aspect={1}
+                      circularCrop
+                    >
+                      <img
+                        ref={imgRef}
+                        src={imageToCrop}
+                        alt="Crop"
+                        className="max-w-full max-h-80 object-contain"
+                      />
+                    </ReactCrop>
+                  </div>
+                </div>
+                <div className="w-32">
+                  <h3 className="text-sm font-medium mb-2">Preview</h3>
+                  <div className="w-24 h-24 rounded-full border-2 border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center">
+                    {cropPreview ? (
+                      <img
+                        src={cropPreview}
+                        alt="Crop preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-8 h-8 text-gray-400" />
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    This is how your profile picture will appear
+                  </p>
+                </div>
               </div>
               <div className="flex justify-end gap-2">
                 <Button
@@ -457,6 +509,7 @@ export default function SettingsPage() {
                   onClick={() => {
                     setIsCropDialogOpen(false);
                     setImageToCrop(null);
+                    setCropPreview(null);
                   }}
                 >
                   Cancel
@@ -486,10 +539,7 @@ export default function SettingsPage() {
                 <button
                   key={picture.id}
                   type="button"
-                  onClick={() => {
-                    handleAvatarSelection(picture);
-                    setShowAvatarSelection(false);
-                  }}
+                  onClick={() => handleAvatarSelection(picture)}
                   className={`relative group overflow-hidden rounded-full border-2 transition-all hover:scale-110 ${
                     selectedPictureId === picture.id
                       ? 'border-blue-500 ring-2 ring-blue-200'
@@ -502,24 +552,32 @@ export default function SettingsPage() {
                     className="w-16 h-16 object-cover"
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <CropIcon className="w-5 h-5 text-white drop-shadow-md" />
+                  </div>
                 </button>
               ))}
             </div>
             <div className="flex justify-between items-center pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={generateRandomAvatar}
-                className="flex items-center gap-2"
-              >
-                <Shuffle className="w-4 h-4" />
-                Random Pick
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowAvatarSelection(false)}
-              >
-                Cancel
-              </Button>
+              <div className="text-sm text-gray-600">
+                Click on any image to crop and use as your profile picture
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={generateRandomAvatar}
+                  className="flex items-center gap-2"
+                >
+                  <Shuffle className="w-4 h-4" />
+                  Random Pick
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAvatarSelection(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
