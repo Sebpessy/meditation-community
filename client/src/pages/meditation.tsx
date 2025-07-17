@@ -186,7 +186,6 @@ export default function MeditationPage() {
         try {
           const response = await apiRequest('GET', `/api/messages/${message.id}/likes`);
           const data = await response.json();
-          console.log('API response for message', message.id, ':', data);
           likesData[message.id] = data.likes || 0;
         } catch (error) {
           console.error('Failed to fetch likes for message:', message.id, error);
@@ -194,7 +193,6 @@ export default function MeditationPage() {
         }
       }
       
-      console.log('Fetched likes data:', likesData);
       setMessageLikes(likesData);
     };
 
@@ -208,7 +206,6 @@ export default function MeditationPage() {
       return await response.json();
     },
     onSuccess: (data, messageId) => {
-      console.log('Like success:', data, 'for message:', messageId);
       setMessageLikes(prev => ({ ...prev, [messageId]: data.likes }));
       // Invalidate cache for this message's likes
       queryClient.invalidateQueries({ queryKey: ['liked-messages', currentUserId] });

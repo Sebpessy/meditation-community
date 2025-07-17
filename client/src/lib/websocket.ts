@@ -71,6 +71,10 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
         switch (message.type) {
           case 'new-message':
             setMessages(prev => {
+              // Check if message already exists to prevent duplicates
+              const exists = prev.some(msg => msg.id === message.message.id);
+              if (exists) return prev;
+              
               const newMessages = [...prev, message.message];
               // Keep only last 30 messages for memory management
               return newMessages.length > 30 ? newMessages.slice(-30) : newMessages;
@@ -85,9 +89,21 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
             }
             break;
           case 'initial-messages':
-            // Load initial messages and keep last 30
+            // Load initial messages and keep last 30, avoiding duplicates
             const initialMessages = message.messages.slice(-30);
-            setMessages(initialMessages);
+            setMessages(prev => {
+              // Create a map of existing message IDs for quick lookup
+              const existingIds = new Set(prev.map(msg => msg.id));
+              
+              // Filter out messages that already exist
+              const newMessages = initialMessages.filter(msg => !existingIds.has(msg.id));
+              
+              // Combine existing messages with new ones
+              const combined = [...prev, ...newMessages];
+              
+              // Keep only last 30 messages
+              return combined.length > 30 ? combined.slice(-30) : combined;
+            });
             break;
         }
       } catch (error) {
