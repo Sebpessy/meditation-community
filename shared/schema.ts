@@ -56,7 +56,7 @@ export const moodEntries = pgTable("mood_entries", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
   sessionDate: text("session_date").notNull(), // YYYY-MM-DD format
-  chakraLevel: integer("chakra_level").notNull(), // 1-7 representing the 7 chakras
+  emotionLevel: integer("emotion_level").notNull(), // 1-7 representing emotion intensity levels
   moodType: text("mood_type").notNull(), // 'pre' or 'post' meditation
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),

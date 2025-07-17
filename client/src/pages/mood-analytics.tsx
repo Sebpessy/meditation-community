@@ -22,7 +22,7 @@ interface MoodEntry {
   id: number;
   userId: number;
   sessionDate: string;
-  chakraLevel: number;
+  emotionLevel: number;
   moodType: 'pre' | 'post';
   createdAt: string;
   timeSpent?: number;
@@ -107,7 +107,7 @@ export default function MoodAnalyticsPage() {
     // Calculate improvements
     sessionMap.forEach((session) => {
       if (session.preEntry && session.postEntry) {
-        session.improvement = session.postEntry.chakraLevel - session.preEntry.chakraLevel;
+        session.improvement = session.postEntry.emotionLevel - session.preEntry.emotionLevel;
       }
     });
 
@@ -189,7 +189,7 @@ export default function MoodAnalyticsPage() {
             <div className="text-2xl font-bold">
               {avgImprovement > 0 ? '+' : ''}{avgImprovement.toFixed(1)}
             </div>
-            <p className="text-xs text-muted-foreground">chakra levels per session</p>
+            <p className="text-xs text-muted-foreground">emotion levels per session</p>
           </CardContent>
         </Card>
 
@@ -232,11 +232,11 @@ export default function MoodAnalyticsPage() {
                         <Badge 
                           variant="outline" 
                           style={{ 
-                            borderColor: chakraColors[session.preEntry.chakraLevel].color,
-                            color: chakraColors[session.preEntry.chakraLevel].color 
+                            borderColor: chakraColors[session.preEntry.emotionLevel - 1].color,
+                            color: chakraColors[session.preEntry.emotionLevel - 1].color 
                           }}
                         >
-                          {chakraColors[session.preEntry.chakraLevel].name}
+                          {chakraColors[session.preEntry.emotionLevel - 1].name}
                         </Badge>
                       </div>
                     )}
@@ -251,11 +251,11 @@ export default function MoodAnalyticsPage() {
                         <Badge 
                           variant="outline" 
                           style={{ 
-                            borderColor: chakraColors[session.postEntry.chakraLevel].color,
-                            color: chakraColors[session.postEntry.chakraLevel].color 
+                            borderColor: chakraColors[session.postEntry.emotionLevel - 1].color,
+                            color: chakraColors[session.postEntry.emotionLevel - 1].color 
                           }}
                         >
-                          {chakraColors[session.postEntry.chakraLevel].name}
+                          {chakraColors[session.postEntry.emotionLevel - 1].name}
                         </Badge>
                       </div>
                     )}
