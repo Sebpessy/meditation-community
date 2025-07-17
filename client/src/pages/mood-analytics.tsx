@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, TrendingUp, BarChart3, Activity } from "lucide-react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, getQueryFn } from "@/lib/queryClient";
 
 const chakraColors = [
   { color: '#E53E3E', name: 'Root Center', description: 'Grounded & Stable' },
@@ -67,13 +67,9 @@ export default function MoodAnalyticsPage() {
     enabled: !!user,
   });
 
-  const { data: moodEntries, isLoading } = useQuery({
+  const { data: moodEntries, isLoading, error } = useQuery({
     queryKey: ['/api/mood/entries', currentUser?.id],
-    queryFn: async () => {
-      if (!currentUser) return [];
-      const response = await apiRequest('GET', `/api/mood/entries/${currentUser.id}`);
-      return response.ok ? await response.json() : [];
-    },
+    queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!currentUser,
   });
 
@@ -81,8 +77,9 @@ export default function MoodAnalyticsPage() {
   const sessionTimes = [];
 
   const processedData = useMemo(() => {
-    if (!moodEntries) return [];
+    if (!moodEntries || !Array.isArray(moodEntries)) return [];
     
+    console.log('Processing mood entries:', moodEntries);
     const sessionMap = new Map<string, SessionAnalytics>();
     
     // Group mood entries by session date
@@ -111,9 +108,12 @@ export default function MoodAnalyticsPage() {
       }
     });
 
-    return Array.from(sessionMap.values()).sort((a, b) => 
+    const result = Array.from(sessionMap.values()).sort((a, b) => 
       new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime()
     );
+    
+    console.log('Processed data result:', result);
+    return result;
   }, [moodEntries]);
 
   const filteredData = processedData.filter(session => {
