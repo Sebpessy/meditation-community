@@ -37,10 +37,10 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-neutral-600">Loading...</p>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -48,7 +48,7 @@ function AppContent() {
 
   return (
     <RouteGuard>
-      <div className="min-h-screen bg-neutral-50">
+      <div className="min-h-screen bg-background">
         {location !== "/auth" && <Navigation onlineCount={onlineCount} />}
         <Switch>
           <Route path="/auth" component={AuthPage} />
