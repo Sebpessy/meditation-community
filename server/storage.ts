@@ -1,4 +1,4 @@
-import { users, meditationTemplates, schedules, chatMessages, messageLikes, moodEntries, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type InsertChatMessage, type MessageLike, type InsertMessageLike, type MoodEntry, type InsertMoodEntry } from "@shared/schema";
+import { users, meditationTemplates, schedules, chatMessages, messageLikes, moodEntries, meditationSessions, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type InsertChatMessage, type MessageLike, type InsertMessageLike, type MoodEntry, type InsertMoodEntry, type MeditationSession, type InsertMeditationSession } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, count, and } from "drizzle-orm";
 
@@ -40,6 +40,12 @@ export interface IStorage {
   createMoodEntry(entry: InsertMoodEntry): Promise<MoodEntry>;
   getMoodEntries(userId: number, sessionDate?: string): Promise<MoodEntry[]>;
   getLatestMoodEntry(userId: number, sessionDate: string, moodType: string): Promise<MoodEntry | undefined>;
+
+  // Meditation session operations
+  createMeditationSession(session: InsertMeditationSession): Promise<MeditationSession>;
+  getMeditationSessions(userId: number, sessionDate?: string): Promise<MeditationSession[]>;
+  updateMeditationSession(id: number, session: Partial<MeditationSession>): Promise<MeditationSession | undefined>;
+  getSessionDuration(userId: number, sessionDate: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -384,6 +390,42 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(moodEntries.createdAt))
       .limit(1);
     return entry;
+  }
+
+  async createMeditationSession(session: InsertMeditationSession): Promise<MeditationSession> {
+    const [newSession] = await db
+      .insert(meditationSessions)
+      .values(session)
+      .returning();
+    return newSession;
+  }
+
+  async getMeditationSessions(userId: number, sessionDate?: string): Promise<MeditationSession[]> {
+    const conditions = [eq(meditationSessions.userId, userId)];
+    if (sessionDate) {
+      conditions.push(eq(meditationSessions.sessionDate, sessionDate));
+    }
+    
+    return await db
+      .select()
+      .from(meditationSessions)
+      .where(and(...conditions))
+      .orderBy(desc(meditationSessions.createdAt));
+  }
+
+  async updateMeditationSession(id: number, session: Partial<MeditationSession>): Promise<MeditationSession | undefined> {
+    const [updatedSession] = await db
+      .update(meditationSessions)
+      .set(session)
+      .where(eq(meditationSessions.id, id))
+      .returning();
+    
+    return updatedSession;
+  }
+
+  async getSessionDuration(userId: number, sessionDate: string): Promise<number> {
+    const sessions = await this.getMeditationSessions(userId, sessionDate);
+    return sessions.reduce((total, session) => total + (session.duration || 0), 0);
   }
 }
 

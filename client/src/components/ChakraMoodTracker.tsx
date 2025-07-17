@@ -28,6 +28,7 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
   const [moodType, setMoodType] = useState<'pre' | 'post'>(initialMoodType);
+  const [comment, setComment] = useState('');
 
   // Animation effect for the energy swirl
   useEffect(() => {
@@ -46,7 +47,8 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
         sessionDate,
         emotionLevel: selectedLevel,
         moodType,
-        notes: null
+        notes: null,
+        comment: comment.trim() || null
       });
       
       // Invalidate mood entries cache to refresh analytics
@@ -75,31 +77,31 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border-2 border-purple-200">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
+      <Card className="w-full max-w-md md:max-w-lg bg-white/95 backdrop-blur-sm border-2 border-purple-200 max-h-[90vh] overflow-y-auto">
+        <CardContent className="p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-6 space-y-3 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
               <h3 className="text-lg font-semibold text-gray-800">Track Your Mood</h3>
               <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setMoodType('pre')}
-                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                     moodType === 'pre' 
                       ? 'bg-white text-gray-800 shadow-sm' 
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
-                  Before Meditation
+                  Before
                 </button>
                 <button
                   onClick={() => setMoodType('post')}
-                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                     moodType === 'post' 
                       ? 'bg-white text-gray-800 shadow-sm' 
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
-                  After Meditation
+                  After
                 </button>
               </div>
             </div>
@@ -113,9 +115,9 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
             </Button>
           </div>
 
-          <div className="flex items-center justify-center space-x-8">
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-6 sm:space-y-0 sm:space-x-8">
             {/* Energy Conduit Visualization */}
-            <div className="relative w-20 h-80">
+            <div className="relative w-16 sm:w-20 h-60 sm:h-80">
               {/* Vertical energy line */}
               <div className="absolute left-1/2 top-0 w-1 h-full bg-gradient-to-t from-purple-400 to-purple-600 transform -translate-x-1/2 rounded-full opacity-30" />
               
@@ -129,7 +131,7 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
                   >
                     {/* Chakra circle */}
                     <div
-                      className="w-8 h-8 rounded-full border-2 border-white cursor-pointer transition-all duration-300 hover:scale-125"
+                      className="w-6 sm:w-8 h-6 sm:h-8 rounded-full border-2 border-white cursor-pointer transition-all duration-300 hover:scale-125"
                       style={getEnergyStyle(index)}
                     />
                     
@@ -144,10 +146,10 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
                     )}
                     
                     {/* Tooltip */}
-                    <div className="absolute left-full ml-4 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                      <div className="bg-black/80 text-white px-3 py-1 rounded text-sm whitespace-nowrap">
+                    <div className="absolute left-full ml-2 sm:ml-4 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                      <div className="bg-black/80 text-white px-2 sm:px-3 py-1 rounded text-xs sm:text-sm whitespace-nowrap">
                         <div className="font-medium">{chakra.name}</div>
-                        <div className="text-xs opacity-80">{chakra.description}</div>
+                        <div className="text-xs opacity-80 hidden sm:block">{chakra.description}</div>
                       </div>
                     </div>
                   </div>
@@ -156,7 +158,7 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
             </div>
 
             {/* Vertical Slider */}
-            <div className="relative h-80 w-8 flex items-center justify-center">
+            <div className="relative h-60 sm:h-80 w-6 sm:w-8 flex items-center justify-center">
               <input
                 type="range"
                 min="0"
@@ -173,8 +175,8 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
             </div>
 
             {/* Current Selection Display */}
-            <div className="text-center space-y-2 w-48">
-              <div className="text-2xl font-bold" style={{ color: chakraColors[selectedLevel].color }}>
+            <div className="text-center space-y-2 w-full sm:w-48">
+              <div className="text-xl sm:text-2xl font-bold" style={{ color: chakraColors[selectedLevel].color }}>
                 {chakraColors[selectedLevel].name}
               </div>
               <div className="text-sm text-gray-600">
@@ -186,20 +188,38 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
             </div>
           </div>
 
+          {/* Optional Comment Field */}
+          <div className="mt-4 sm:mt-6 space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Share your thoughts (optional)
+            </label>
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="How are you feeling? What's on your mind?"
+              className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+              rows={3}
+              maxLength={500}
+            />
+            <div className="text-xs text-gray-500 text-right">
+              {comment.length}/500 characters
+            </div>
+          </div>
+
           {/* Action Buttons */}
-          <div className="flex space-x-3 mt-6">
+          <div className="flex space-x-3 mt-4 sm:mt-6">
             <Button
               variant="outline"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1"
+              className="flex-1 text-sm"
             >
               Skip
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="flex-1"
+              className="flex-1 text-sm"
               style={{ backgroundColor: chakraColors[selectedLevel].color }}
             >
               {isSubmitting ? 'Saving...' : 'Save'}

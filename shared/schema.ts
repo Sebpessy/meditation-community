@@ -59,6 +59,19 @@ export const moodEntries = pgTable("mood_entries", {
   emotionLevel: integer("emotion_level").notNull(), // 1-7 representing emotion intensity levels
   moodType: text("mood_type").notNull(), // 'pre' or 'post' meditation
   notes: text("notes"),
+  comment: text("comment"), // Optional comment field for thoughts and feelings
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const meditationSessions = pgTable("meditation_sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  sessionDate: text("session_date").notNull(), // YYYY-MM-DD format
+  startTime: timestamp("start_time").defaultNow(),
+  endTime: timestamp("end_time"),
+  duration: integer("duration"), // in minutes
+  templateId: integer("template_id").references(() => meditationTemplates.id),
+  completed: boolean("completed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -100,6 +113,11 @@ export const insertMoodEntrySchema = createInsertSchema(moodEntries).omit({
   createdAt: true,
 });
 
+export const insertMeditationSessionSchema = createInsertSchema(meditationSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type MeditationTemplate = typeof meditationTemplates.$inferSelect;
@@ -112,3 +130,5 @@ export type MessageLike = typeof messageLikes.$inferSelect;
 export type InsertMessageLike = z.infer<typeof insertMessageLikeSchema>;
 export type MoodEntry = typeof moodEntries.$inferSelect;
 export type InsertMoodEntry = z.infer<typeof insertMoodEntrySchema>;
+export type MeditationSession = typeof meditationSessions.$inferSelect;
+export type InsertMeditationSession = z.infer<typeof insertMeditationSessionSchema>;

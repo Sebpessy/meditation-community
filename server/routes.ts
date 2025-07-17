@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMeditationTemplateSchema, insertScheduleSchema, insertChatMessageSchema, insertMoodEntrySchema } from "@shared/schema";
+import { insertUserSchema, insertMeditationTemplateSchema, insertScheduleSchema, insertChatMessageSchema, insertMoodEntrySchema, insertMeditationSessionSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Helper function to get current user from request
@@ -458,6 +458,128 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(entries);
     } catch (error) {
       res.status(500).json({ error: 'Failed to get mood entries' });
+    }
+  });
+
+  // Meditation session tracking routes
+  app.post('/api/session/start', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const sessionData = insertMeditationSessionSchema.parse({
+        ...req.body,
+        userId: user.id
+      });
+
+      const session = await storage.createMeditationSession(sessionData);
+      res.json(session);
+    } catch (error) {
+      console.error('Error starting meditation session:', error);
+      res.status(400).json({ error: 'Invalid session data' });
+    }
+  });
+
+  app.patch('/api/session/:id', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const sessionId = parseInt(req.params.id);
+      const updatedSession = await storage.updateMeditationSession(sessionId, req.body);
+      
+      if (!updatedSession) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      res.json(updatedSession);
+    } catch (error) {
+      console.error('Error updating meditation session:', error);
+      res.status(500).json({ error: 'Failed to update session' });
+    }
+  });
+
+  app.get('/api/session/duration/:userId/:sessionDate', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const userId = parseInt(req.params.userId);
+      const sessionDate = req.params.sessionDate;
+      
+      // Users can only see their own session data
+      if (user.id !== userId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const duration = await storage.getSessionDuration(userId, sessionDate);
+      res.json({ duration });
+    } catch (error) {
+      console.error('Error fetching session duration:', error);
+      res.status(500).json({ error: 'Failed to fetch session duration' });
+    }
+  });
+
+  app.get('/api/session/durations/:userId', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const userId = parseInt(req.params.userId);
+      
+      // Users can only see their own session data
+      if (user.id !== userId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const sessions = await storage.getMeditationSessions(userId);
+      
+      // Group sessions by date and sum durations
+      const sessionDurations = sessions.reduce((acc: any[], session) => {
+        const existingSession = acc.find(s => s.sessionDate === session.sessionDate);
+        if (existingSession) {
+          existingSession.duration += session.duration || 0;
+        } else {
+          acc.push({
+            sessionDate: session.sessionDate,
+            duration: session.duration || 0
+          });
+        }
+        return acc;
+      }, []);
+
+      res.json(sessionDurations);
+    } catch (error) {
+      console.error('Error fetching session durations:', error);
+      res.status(500).json({ error: 'Failed to fetch session durations' });
+    }
+  });
+
+  // AI-powered mood analysis routes (prepared for future OpenAI integration)
+  app.post('/api/mood/insights', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // For now, return a message indicating OpenAI is not configured
+      // When OpenAI API key is provided, this will call the OpenAI service
+      res.json({
+        message: 'AI insights service is prepared but requires OpenAI API key configuration',
+        ready: false
+      });
+    } catch (error) {
+      console.error('Error generating mood insights:', error);
+      res.status(500).json({ error: 'Failed to generate mood insights' });
     }
   });
 

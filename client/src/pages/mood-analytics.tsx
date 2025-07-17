@@ -96,8 +96,12 @@ export default function MoodAnalyticsPage() {
 
   // Remove debug logging for production
 
-  // For now, we'll use placeholder session times since the analytics endpoint doesn't exist
-  const sessionTimes = [];
+  // Fetch session durations for each day
+  const { data: sessionDurations } = useQuery({
+    queryKey: ['/api/session/durations', currentUser?.id],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: !!currentUser && !!moodEntries,
+  });
 
   const processedData = useMemo(() => {
     if (!moodEntries || !Array.isArray(moodEntries)) return [];
@@ -116,6 +120,11 @@ export default function MoodAnalyticsPage() {
       }
       
       const session = sessionMap.get(sessionDate)!;
+      
+      // Get session duration from API data
+      const sessionDuration = sessionDurations?.find((d: any) => d.sessionDate === sessionDate)?.duration || 0;
+      session.timeSpent = sessionDuration;
+      
       if (entry.moodType === 'pre') {
         // Keep the most recent pre entry for this session
         if (!session.preEntry || new Date(entry.createdAt) > new Date(session.preEntry.createdAt)) {
