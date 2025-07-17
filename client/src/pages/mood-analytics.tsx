@@ -82,10 +82,9 @@ export default function MoodAnalyticsPage() {
   const processedData = useMemo(() => {
     if (!moodEntries || !Array.isArray(moodEntries)) return [];
     
-    console.log('Processing mood entries:', moodEntries);
     const sessionMap = new Map<string, SessionAnalytics>();
     
-    // Group mood entries by session date
+    // Group mood entries by session date, keeping the most recent entry for each type
     moodEntries.forEach((entry: MoodEntry) => {
       const sessionDate = entry.sessionDate;
       if (!sessionMap.has(sessionDate)) {
@@ -98,25 +97,31 @@ export default function MoodAnalyticsPage() {
       
       const session = sessionMap.get(sessionDate)!;
       if (entry.moodType === 'pre') {
-        session.preEntry = entry;
+        // Keep the most recent pre entry for this session
+        if (!session.preEntry || new Date(entry.createdAt) > new Date(session.preEntry.createdAt)) {
+          session.preEntry = entry;
+        }
       } else {
-        session.postEntry = entry;
+        // Keep the most recent post entry for this session
+        if (!session.postEntry || new Date(entry.createdAt) > new Date(session.postEntry.createdAt)) {
+          session.postEntry = entry;
+        }
       }
     });
 
-    // Calculate improvements
+    // Calculate improvements and filter to only include complete sessions
+    const completeSessions: SessionAnalytics[] = [];
+    
     sessionMap.forEach((session) => {
       if (session.preEntry && session.postEntry) {
         session.improvement = session.postEntry.emotionLevel - session.preEntry.emotionLevel;
+        completeSessions.push(session);
       }
     });
 
-    const result = Array.from(sessionMap.values()).sort((a, b) => 
+    return completeSessions.sort((a, b) => 
       new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime()
     );
-    
-    console.log('Processed data result:', result);
-    return result;
   }, [moodEntries]);
 
   const filteredData = processedData.filter(session => {
@@ -135,7 +140,7 @@ export default function MoodAnalyticsPage() {
   });
 
   const avgImprovement = filteredData.length > 0 
-    ? filteredData.reduce((sum, session) => sum + session.improvement, 0) / filteredData.length
+    ? filteredData.reduce((sum, session) => sum + (session.improvement || 0), 0) / filteredData.length
     : 0;
 
   const avgTimeSpent = filteredData.length > 0
