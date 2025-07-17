@@ -709,8 +709,8 @@ export default function AdminPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-neutral-800 mb-2">Admin Dashboard</h1>
-        <p className="text-neutral-600">Manage meditation templates and schedules</p>
+        <h1 className="text-3xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)] mb-2">Admin Dashboard</h1>
+        <p className="text-neutral-600 dark:text-[var(--text-medium-contrast)]">Manage meditation templates and schedules</p>
       </div>
 
       <Tabs defaultValue="dashboard" className="space-y-8">
@@ -729,11 +729,11 @@ export default function AdminPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-neutral-600">Total Templates</p>
-                    <p className="text-2xl font-bold text-neutral-800">{templates?.length || 0}</p>
+                    <p className="text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">Total Templates</p>
+                    <p className="text-2xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">{templates?.length || 0}</p>
                   </div>
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Target className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                    <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
               </CardContent>
@@ -743,13 +743,13 @@ export default function AdminPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-neutral-600">Active Schedules</p>
-                    <p className="text-2xl font-bold text-neutral-800">
+                    <p className="text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">Active Schedules</p>
+                    <p className="text-2xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">
                       {schedules?.filter(s => s.isActive).length || 0}
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-green-600" />
+                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-green-600 dark:text-green-400" />
                   </div>
                 </div>
               </CardContent>
@@ -759,15 +759,15 @@ export default function AdminPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-neutral-600">Avg Duration</p>
-                    <p className="text-2xl font-bold text-neutral-800">
+                    <p className="text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">Avg Duration</p>
+                    <p className="text-2xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">
                       {templates?.length ? Math.round(
                         templates.reduce((sum, t) => sum + t.duration, 0) / templates.length
                       ) : 0} min
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-purple-600" />
+                  <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                   </div>
                 </div>
               </CardContent>
@@ -777,11 +777,11 @@ export default function AdminPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-neutral-600">Total Users</p>
-                    <p className="text-2xl font-bold text-neutral-800">{users?.length || 0}</p>
+                    <p className="text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">Total Users</p>
+                    <p className="text-2xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">{users?.length || 0}</p>
                   </div>
-                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                    <Users className="w-6 h-6 text-orange-600" />
+                  <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center">
+                    <Users className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                   </div>
                 </div>
               </CardContent>
@@ -803,15 +803,15 @@ export default function AdminPage() {
                     const percentage = templates?.length ? (count / templates.length) * 100 : 0;
                     return (
                       <div key={level} className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-neutral-600">{level}</span>
+                        <span className="text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">{level}</span>
                         <div className="flex items-center space-x-2">
-                          <div className="w-20 h-2 bg-neutral-200 rounded-full overflow-hidden">
+                          <div className="w-20 h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
                             <div 
                               className="h-full bg-primary rounded-full transition-all duration-300"
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
-                          <span className="text-sm text-neutral-600 w-8">{count}</span>
+                          <span className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)] w-8">{count}</span>
                         </div>
                       </div>
                     );
@@ -829,22 +829,22 @@ export default function AdminPage() {
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-neutral-800">Database connected</p>
-                      <p className="text-xs text-neutral-500">System is operational</p>
+                      <p className="text-sm font-medium text-neutral-800 dark:text-[var(--text-high-contrast)]">Database connected</p>
+                      <p className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">System is operational</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-neutral-800">Templates loaded</p>
-                      <p className="text-xs text-neutral-500">{templates?.length || 0} templates available</p>
+                      <p className="text-sm font-medium text-neutral-800 dark:text-[var(--text-high-contrast)]">Templates loaded</p>
+                      <p className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">{templates?.length || 0} templates available</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-neutral-800">Schedules active</p>
-                      <p className="text-xs text-neutral-500">{schedules?.filter(s => s.isActive).length || 0} active schedules</p>
+                      <p className="text-sm font-medium text-neutral-800 dark:text-[var(--text-high-contrast)]">Schedules active</p>
+                      <p className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">{schedules?.filter(s => s.isActive).length || 0} active schedules</p>
                     </div>
                   </div>
                 </div>
@@ -856,7 +856,7 @@ export default function AdminPage() {
         {/* Templates Tab */}
         <TabsContent value="templates" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-neutral-800">Meditation Templates</h2>
+            <h2 className="text-xl font-semibold text-neutral-800 dark:text-[var(--text-high-contrast)]">Meditation Templates</h2>
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />

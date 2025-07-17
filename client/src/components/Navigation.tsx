@@ -79,7 +79,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
   const isActive = (path: string) => location === path;
 
   return (
-    <nav className="bg-white shadow-sm border-b border-neutral-200 sticky top-0 z-50">
+    <nav className="bg-white dark:bg-[var(--nav-background)] shadow-sm border-b border-neutral-200 dark:border-[var(--nav-border)] sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-24">
           {/* Logo */}
@@ -89,7 +89,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
               alt="Evolving Hearts Logo" 
               className="w-12 h-12 md:w-20 md:h-20 object-contain"
             />
-            <h1 className="text-lg md:text-xl font-semibold text-neutral-800">Evolving Hearts</h1>
+            <h1 className="text-lg md:text-xl font-semibold text-neutral-800 dark:text-[var(--text-high-contrast)]">Evolving Hearts</h1>
             <div className="ml-4">
               <MoodTrackerIcon sessionDate={getCSTDate()} />
             </div>
@@ -102,7 +102,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                 <span className={`font-medium transition-colors cursor-pointer ${
                   isActive("/meditation") 
                     ? "text-primary border-b-2 border-primary pb-1" 
-                    : "text-neutral-600 hover:text-neutral-800"
+                    : "text-neutral-600 dark:text-[var(--text-medium-contrast)] hover:text-neutral-800 dark:hover:text-[var(--text-high-contrast)]"
                 }`}>
                   Meditation
                 </span>
@@ -114,7 +114,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                 <span className={`font-medium transition-colors cursor-pointer ${
                   isActive("/mood-analytics") 
                     ? "text-primary border-b-2 border-primary pb-1" 
-                    : "text-neutral-600 hover:text-neutral-800"
+                    : "text-neutral-600 dark:text-[var(--text-medium-contrast)] hover:text-neutral-800 dark:hover:text-[var(--text-high-contrast)]"
                 }`}>
                   Mood Tracker
                 </span>
@@ -126,7 +126,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                 <span className={`font-medium transition-colors cursor-pointer ${
                   isActive("/admin") 
                     ? "text-primary border-b-2 border-primary pb-1" 
-                    : "text-neutral-600 hover:text-neutral-800"
+                    : "text-neutral-600 dark:text-[var(--text-medium-contrast)] hover:text-neutral-800 dark:hover:text-[var(--text-high-contrast)]"
                 }`}>
                   Admin
                 </span>
@@ -137,7 +137,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
           {/* Right Side */}
           <div className="flex items-center space-x-4">
             {/* Online Count */}
-            <div className="hidden sm:flex items-center space-x-2 text-sm text-neutral-600">
+            <div className="hidden sm:flex items-center space-x-2 text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">
               <div className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
               <span>{onlineCount} online</span>
             </div>
@@ -153,7 +153,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                         {backendUser?.name?.charAt(0)?.toUpperCase() || user.displayName?.charAt(0)?.toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden sm:inline text-sm font-medium text-neutral-700">
+                    <span className="hidden sm:inline text-sm font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">
                       {backendUser?.name || user.displayName || user.email}
                     </span>
                   </Button>
@@ -191,13 +191,13 @@ export function Navigation({ onlineCount }: NavigationProps) {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-neutral-200">
+          <div className="md:hidden py-4 border-t border-neutral-200 dark:border-[var(--nav-border)]">
             <div className="space-y-2">
               {!isFirstTimeUser && (
                 <Link href="/meditation">
                   <span 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
+                    className="block px-3 py-2 text-base font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] hover:text-neutral-900 dark:hover:text-[var(--text-high-contrast)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] rounded-md cursor-pointer"
                   >
                     Meditation
                   </span>
@@ -208,7 +208,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                 <Link href="/mood-analytics">
                   <span 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
+                    className="block px-3 py-2 text-base font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] hover:text-neutral-900 dark:hover:text-[var(--text-high-contrast)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] rounded-md cursor-pointer"
                   >
                     Mood Tracker
                   </span>
@@ -219,7 +219,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                 <Link href="/admin">
                   <span 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
+                    className="block px-3 py-2 text-base font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] hover:text-neutral-900 dark:hover:text-[var(--text-high-contrast)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] rounded-md cursor-pointer"
                   >
                     Admin
                   </span>
@@ -230,7 +230,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                 <Link href="/settings">
                   <span 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
+                    className="block px-3 py-2 text-base font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] hover:text-neutral-900 dark:hover:text-[var(--text-high-contrast)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] rounded-md cursor-pointer"
                   >
                     Settings
                   </span>

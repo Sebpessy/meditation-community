@@ -153,14 +153,14 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
     <>
       {/* Desktop Layout */}
       <div className="hidden md:flex h-full flex-col">
-        <Card className="h-full flex flex-col">
+        <Card className="h-full flex flex-col bg-white dark:bg-[var(--chat-background)] border-neutral-200 dark:border-[var(--border)]">
           {/* Desktop Chat Header */}
-          <div className="p-4 border-b border-neutral-200 bg-white flex-shrink-0">
+          <div className="p-4 border-b border-neutral-200 dark:border-[var(--border)] bg-white dark:bg-[var(--chat-background)] flex-shrink-0">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-neutral-800">Live Chat</h3>
+              <h3 className="font-semibold text-neutral-800 dark:text-[var(--text-high-contrast)]">Live Chat</h3>
               <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400'}`} />
-                <span className="text-sm text-neutral-600">
+                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-secondary animate-pulse' : 'bg-neutral-400 dark:bg-neutral-600'}`} />
+                <span className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">
                   {onlineCount} online
                 </span>
               </div>
@@ -173,7 +173,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                   {onlineUsers.map((user) => (
                     <div key={user.id} className="relative">
                       <Avatar 
-                        className="w-8 h-8 border-2 border-white cursor-pointer hover:z-10 transition-transform hover:scale-110"
+                        className="w-8 h-8 border-2 border-white dark:border-[var(--chat-background)] cursor-pointer hover:z-10 transition-transform hover:scale-110"
                         onMouseEnter={() => setHoveredUser(user.id)}
                         onMouseLeave={() => setHoveredUser(null)}
                         onClick={() => handleUserClick(user.id)}
@@ -185,9 +185,9 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                       </Avatar>
                       {hoveredUser === user.id && (
                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-20">
-                          <div className="bg-neutral-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                          <div className="bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-800 text-xs rounded px-2 py-1 whitespace-nowrap">
                             {user.name}
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-800"></div>
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-800 dark:border-t-neutral-200"></div>
                           </div>
                         </div>
                       )}
@@ -201,12 +201,12 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
           {/* Desktop Chat Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 relative">
             {messages.length === 0 ? (
-              <div className="text-center text-neutral-500 py-8">
+              <div className="text-center text-neutral-500 dark:text-[var(--text-low-contrast)] py-8">
                 <p>No messages yet. Start the conversation!</p>
               </div>
             ) : (
               messages.map((message) => (
-                <div key={message.id} className="flex items-start space-x-3">
+                <div key={message.id} className="flex items-start space-x-3 p-3 rounded-lg bg-white dark:bg-[var(--chat-message)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors">
                   <Avatar className="w-8 h-8 flex-shrink-0">
                     <AvatarImage src={message.user.profilePicture || ""} alt={message.user.name} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
@@ -215,21 +215,21 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-neutral-800">
+                      <span className="text-sm font-medium text-neutral-800 dark:text-[var(--text-high-contrast)]">
                         {message.user.name}
                       </span>
-                      <span className="text-xs text-neutral-500">
+                      <span className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">
                         {formatTime(message.timestamp)}
                       </span>
                     </div>
-                    <p className="text-sm text-neutral-700 break-words mb-1">
+                    <p className="text-sm text-neutral-700 dark:text-[var(--text-medium-contrast)] break-words mb-1">
                       {message.message}
                     </p>
                     {userId && (
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleLike(message.id)}
-                          className="flex items-center space-x-1 text-xs rounded-full px-2 py-1 transition-colors text-neutral-400 hover:text-red-500 hover:bg-red-50"
+                          className="flex items-center space-x-1 text-xs rounded-full px-2 py-1 transition-colors text-neutral-400 dark:text-neutral-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
                           disabled={likeMutation.isPending}
                         >
                           <Heart 
@@ -237,10 +237,10 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                             className={`transition-colors ${
                               (messageLikes[message.id] || 0) > 0 
                                 ? "text-red-500 fill-current" 
-                                : "text-neutral-400 hover:text-red-500"
+                                : "text-neutral-400 dark:text-neutral-600 hover:text-red-500"
                             }`}
                           />
-                          <span>{messageLikes[message.id] || 0}</span>
+                          <span className="dark:text-[var(--text-medium-contrast)]">{messageLikes[message.id] || 0}</span>
                         </button>
                       </div>
                     )}
@@ -254,7 +254,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
           </div>
 
           {/* Desktop Chat Input */}
-          <div className="p-4 border-t border-neutral-200 bg-white flex-shrink-0">
+          <div className="p-4 border-t border-neutral-200 dark:border-[var(--border)] bg-white dark:bg-[var(--chat-background)] flex-shrink-0">
             {userId ? (
               <div className="flex items-center space-x-2">
                 <Input
@@ -262,7 +262,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Share your thoughts..."
-                  className="flex-1"
+                  className="flex-1 bg-white dark:bg-[var(--input)] border-neutral-300 dark:border-[var(--border)] text-neutral-900 dark:text-[var(--text-high-contrast)] placeholder-neutral-500 dark:placeholder-[var(--text-low-contrast)]"
                   disabled={!isConnected}
                 />
                 <Button
@@ -275,7 +275,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                 </Button>
               </div>
             ) : (
-              <div className="text-center text-neutral-500 py-2">
+              <div className="text-center text-neutral-500 dark:text-[var(--text-low-contrast)] py-2">
                 <p>Please sign in to join the chat</p>
               </div>
             )}

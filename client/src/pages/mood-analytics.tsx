@@ -224,7 +224,7 @@ export default function MoodAnalyticsPage() {
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
       <div className="flex flex-col space-y-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-neutral-800">Mood Analytics</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">Mood Analytics</h1>
         
         {/* Mobile Responsive Controls */}
         <div className="flex flex-col sm:flex-row gap-2">
@@ -329,11 +329,11 @@ export default function MoodAnalyticsPage() {
         <CardContent>
           <div className="space-y-4">
             {filteredData.map((session, index) => (
-              <div key={session.sessionDate} className="p-4 border rounded-lg space-y-3">
+              <div key={session.sessionDate} className="p-4 border border-neutral-200 dark:border-[var(--border)] rounded-lg space-y-3 bg-white dark:bg-[var(--chat-message)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                   <div className="flex items-center space-x-4">
                     <div className="text-center">
-                      <div className="text-sm font-medium">{formatDate(session.sessionDate)}</div>
+                      <div className="text-sm font-medium text-neutral-900 dark:text-[var(--text-high-contrast)]">{formatDate(session.sessionDate)}</div>
                       <div className="text-xs text-muted-foreground">
                         {formatTime(session.timeSpent)} spent
                       </div>
@@ -379,7 +379,7 @@ export default function MoodAnalyticsPage() {
                   <div className="text-right">
                     {session.improvement !== 0 && (
                       <div className={`text-sm font-medium ${
-                        session.improvement > 0 ? 'text-green-600' : 'text-red-600'
+                        session.improvement > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                       }`}>
                         {session.improvement > 0 ? '+' : ''}{session.improvement} levels
                       </div>
@@ -394,13 +394,13 @@ export default function MoodAnalyticsPage() {
                 {(session.preEntry?.comment || session.postEntry?.comment) && (
                   <div className="space-y-2 border-t pt-3">
                     {session.preEntry?.comment && (
-                      <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                      <div className="text-xs text-gray-600 dark:text-[var(--text-medium-contrast)] bg-gray-50 dark:bg-[var(--muted)] p-2 rounded">
                         <span className="font-medium">Before: </span>
                         <span className="italic">"{session.preEntry.comment}"</span>
                       </div>
                     )}
                     {session.postEntry?.comment && (
-                      <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                      <div className="text-xs text-gray-600 dark:text-[var(--text-medium-contrast)] bg-gray-50 dark:bg-[var(--muted)] p-2 rounded">
                         <span className="font-medium">After: </span>
                         <span className="italic">"{session.postEntry.comment}"</span>
                       </div>

@@ -51,8 +51,8 @@
   --card-foreground: hsl(220, 9%, 95%);
   --border: hsl(220, 13%, 18%);
   --input: hsl(220, 13%, 18%);
-  --primary: hsl(239, 84%, 67%);
-  --primary-foreground: hsl(0, 0%, 100%);
+  --primary: hsl(239, 70%, 72%);
+  --primary-foreground: hsl(220, 13%, 9%);
   --secondary: hsl(220, 13%, 18%);
   --secondary-foreground: hsl(220, 9%, 95%);
   --accent: hsl(220, 13%, 18%);
@@ -61,6 +61,15 @@
   --destructive-foreground: hsl(220, 9%, 95%);
   --ring: hsl(220, 9%, 65%);
   --radius: 0.5rem;
+  
+  /* Custom dark mode colors for better contrast */
+  --nav-background: hsl(220, 13%, 11%);
+  --nav-border: hsl(220, 13%, 20%);
+  --chat-background: hsl(220, 13%, 10%);
+  --chat-message: hsl(220, 13%, 14%);
+  --text-high-contrast: hsl(220, 9%, 98%);
+  --text-medium-contrast: hsl(220, 9%, 85%);
+  --text-low-contrast: hsl(220, 9%, 65%);
 }
 
 @layer base {
