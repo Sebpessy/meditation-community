@@ -199,14 +199,14 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
           </div>
 
           {/* Desktop Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-1 min-h-0 relative">
+          <div className="flex-1 overflow-y-auto p-4 space-y-0.5 min-h-0 relative">
             {messages.length === 0 ? (
               <div className="text-center text-neutral-500 dark:text-[var(--text-low-contrast)] py-8">
                 <p>No messages yet. Start the conversation!</p>
               </div>
             ) : (
               messages.map((message) => (
-                <div key={message.id} className="flex items-start space-x-3 p-2 rounded-lg bg-white dark:bg-[var(--chat-message)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors">
+                <div key={message.id} className="flex items-start space-x-3 p-1.5 rounded-lg bg-white dark:bg-[var(--chat-message)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors">
                   <Avatar className="w-8 h-8 flex-shrink-0">
                     <AvatarImage src={message.user.profilePicture || ""} alt={message.user.name} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
@@ -222,7 +222,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                         {formatTime(message.timestamp)}
                       </span>
                     </div>
-                    <p className="text-sm text-neutral-700 dark:text-[var(--text-medium-contrast)] break-words mb-0.5">
+                    <p className="text-sm text-neutral-700 dark:text-[var(--text-medium-contrast)] break-words mb-0">
                       {message.message}
                     </p>
                     {userId && (
