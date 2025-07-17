@@ -87,11 +87,9 @@ export function Navigation({ onlineCount }: NavigationProps) {
               className="w-12 h-12 md:w-20 md:h-20 object-contain"
             />
             <h1 className="text-lg md:text-xl font-semibold text-neutral-800">Evolving Hearts</h1>
-            {location === "/" && (
-              <div className="ml-4">
-                <MoodTrackerIcon sessionDate={getCSTDate()} />
-              </div>
-            )}
+            <div className="ml-4">
+              <MoodTrackerIcon sessionDate={getCSTDate()} />
+            </div>
           </div>
 
           {/* Desktop Navigation */}
@@ -105,6 +103,18 @@ export function Navigation({ onlineCount }: NavigationProps) {
                 Meditation
               </span>
             </Link>
+
+            {user && (
+              <Link href="/mood-analytics">
+                <span className={`font-medium transition-colors cursor-pointer ${
+                  isActive("/mood-analytics") 
+                    ? "text-primary border-b-2 border-primary pb-1" 
+                    : "text-neutral-600 hover:text-neutral-800"
+                }`}>
+                  Mood Tracker
+                </span>
+              </Link>
+            )}
 
             {user && backendUser?.isAdmin && (
               <Link href="/admin">
@@ -150,12 +160,6 @@ export function Navigation({ onlineCount }: NavigationProps) {
                       Settings
                     </DropdownMenuItem>
                   </Link>
-                  <Link href="/mood-analytics">
-                    <DropdownMenuItem>
-                      <User className="w-4 h-4 mr-2" />
-                      Mood Analytics
-                    </DropdownMenuItem>
-                  </Link>
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
@@ -193,6 +197,17 @@ export function Navigation({ onlineCount }: NavigationProps) {
                 </span>
               </Link>
 
+              {user && (
+                <Link href="/mood-analytics">
+                  <span 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
+                  >
+                    Mood Tracker
+                  </span>
+                </Link>
+              )}
+
               {user && backendUser?.isAdmin && (
                 <Link href="/admin">
                   <span 
@@ -205,24 +220,14 @@ export function Navigation({ onlineCount }: NavigationProps) {
               )}
 
               {user && (
-                <>
-                  <Link href="/settings">
-                    <span 
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
-                    >
-                      Settings
-                    </span>
-                  </Link>
-                  <Link href="/mood-analytics">
-                    <span 
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
-                    >
-                      Mood Analytics
-                    </span>
-                  </Link>
-                </>
+                <Link href="/settings">
+                  <span 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
+                  >
+                    Settings
+                  </span>
+                </Link>
               )}
             </div>
           </div>
