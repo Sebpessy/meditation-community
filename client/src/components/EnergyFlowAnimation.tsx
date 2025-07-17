@@ -12,6 +12,15 @@ interface EnergyFlowAnimationProps {
   currentSessionIndex: number;
 }
 
+interface EnergyParticle {
+  id: number;
+  x: number;
+  y: number;
+  targetChakra: number;
+  opacity: number;
+  size: number;
+}
+
 const chakraColors = [
   { color: '#E53E3E', name: 'Root Center', position: 0 },      // Red
   { color: '#FF8C00', name: 'Sacral Center', position: 1 },    // Orange
@@ -24,15 +33,20 @@ const chakraColors = [
 
 export function EnergyFlowAnimation({ sessionData, isPlaying, currentSessionIndex }: EnergyFlowAnimationProps) {
   const [animationPhase, setAnimationPhase] = useState(0);
-  const [energyParticles, setEnergyParticles] = useState<Array<{
-    id: number;
-    x: number;
-    y: number;
-    targetChakra: number;
-    opacity: number;
-    size: number;
-  }>>([]);
+  const [energyParticles, setEnergyParticles] = useState<EnergyParticle[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Safety check for sessionData
+  if (!sessionData || sessionData.length === 0) {
+    return (
+      <div className="relative w-full h-96 bg-gradient-to-b from-purple-900/10 to-blue-900/10 rounded-xl overflow-hidden flex items-center justify-center">
+        <div className="text-gray-500 text-center">
+          <p>No session data available</p>
+          <p className="text-sm">Complete some meditation sessions to see your energy flow</p>
+        </div>
+      </div>
+    );
+  }
 
   // Animation loop
   useEffect(() => {
@@ -69,7 +83,9 @@ export function EnergyFlowAnimation({ sessionData, isPlaying, currentSessionInde
   }, [isPlaying, currentSessionIndex, sessionData]);
 
   const getCurrentSession = () => {
-    return sessionData[currentSessionIndex] || sessionData[0];
+    if (!sessionData || sessionData.length === 0) return null;
+    const index = Math.max(0, Math.min(currentSessionIndex, sessionData.length - 1));
+    return sessionData[index];
   };
 
   const getChakraIntensity = (chakraIndex: number) => {
@@ -101,6 +117,9 @@ export function EnergyFlowAnimation({ sessionData, isPlaying, currentSessionInde
     
     return 0;
   };
+
+  const currentSession = getCurrentSession();
+  if (!currentSession) return null;
 
   return (
     <div 
@@ -152,9 +171,10 @@ export function EnergyFlowAnimation({ sessionData, isPlaying, currentSessionInde
             </motion.div>
             
             {/* Blockage Visualization */}
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               {getBlockageOpacity(index) > 0 && (
                 <motion.div
+                  key={`blockage-${index}`}
                   className="absolute inset-0 rounded-full bg-gray-800 border-2 border-gray-600"
                   style={{
                     opacity: getBlockageOpacity(index),
@@ -177,11 +197,11 @@ export function EnergyFlowAnimation({ sessionData, isPlaying, currentSessionInde
       </div>
       
       {/* Energy Flow Particles */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {energyParticles.map((particle) => (
           <motion.div
-            key={particle.id}
-            className="absolute rounded-full bg-white"
+            key={`particle-${particle.id}`}
+            className="absolute rounded-full"
             style={{
               width: particle.size,
               height: particle.size,
@@ -198,6 +218,10 @@ export function EnergyFlowAnimation({ sessionData, isPlaying, currentSessionInde
               scale: [0, 1, 0],
               x: [0, particle.x * 2, 0],
             }}
+            exit={{ 
+              scale: 0,
+              opacity: 0,
+            }}
             transition={{
               duration: 3,
               repeat: Infinity,
@@ -209,7 +233,7 @@ export function EnergyFlowAnimation({ sessionData, isPlaying, currentSessionInde
       </AnimatePresence>
       
       {/* Energy Improvement Visualization */}
-      {getCurrentSession()?.improvement > 0 && (
+      {currentSession?.improvement > 0 && (
         <motion.div
           className="absolute top-4 right-4 bg-green-500/20 rounded-lg p-3 border border-green-500/30"
           initial={{ opacity: 0, scale: 0.8 }}
@@ -220,7 +244,7 @@ export function EnergyFlowAnimation({ sessionData, isPlaying, currentSessionInde
             Energy Flow Improved
           </div>
           <div className="text-green-600 text-xs">
-            +{getCurrentSession()?.improvement} levels
+            +{currentSession.improvement} levels
           </div>
         </motion.div>
       )}
