@@ -17,7 +17,7 @@ import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { updateUserSchema } from "@shared/schema";
 import { z } from "zod";
-import { defaultAvatars, getRandomAvatar, emojiToDataURL } from "@/data/defaultAvatars";
+import { ProfilePicture } from "@shared/schema";
 
 type UpdateUserData = z.infer<typeof updateUserSchema>;
 
@@ -35,7 +35,7 @@ export default function SettingsPage() {
 
   // First-time user setup state
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState<string>("");
+  const [selectedPictureId, setSelectedPictureId] = useState<number | null>(null);
   const [showAvatarSelection, setShowAvatarSelection] = useState(false);
 
   // Image cropping state - force round crop
@@ -58,6 +58,12 @@ export default function SettingsPage() {
     enabled: !!user?.uid,
   });
 
+  // Fetch available profile pictures
+  const { data: profilePictures } = useQuery<ProfilePicture[]>({
+    queryKey: ["/api/profile-pictures"],
+    enabled: true,
+  });
+
   // Update form data when user data is loaded
   useEffect(() => {
     if (currentUser) {
@@ -66,14 +72,16 @@ export default function SettingsPage() {
       // Check if this is a first-time user (no profile picture)
       if (!hasProfilePicture) {
         setIsFirstTimeUser(true);
-        const randomAvatar = getRandomAvatar();
-        setSelectedAvatar(randomAvatar);
-        const avatarDataURL = emojiToDataURL(randomAvatar);
-        setFormData({
-          name: currentUser.name || "",
-          email: currentUser.email || "",
-          profilePicture: avatarDataURL
-        });
+        // Select a random default picture if available
+        if (profilePictures && profilePictures.length > 0) {
+          const randomPicture = profilePictures[Math.floor(Math.random() * profilePictures.length)];
+          setSelectedPictureId(randomPicture.id);
+          setFormData({
+            name: currentUser.name || "",
+            email: currentUser.email || "",
+            profilePicture: randomPicture.url
+          });
+        }
       } else {
         setIsFirstTimeUser(false);
         setFormData({
@@ -83,19 +91,20 @@ export default function SettingsPage() {
         });
       }
     }
-  }, [currentUser]);
+  }, [currentUser, profilePictures]);
 
   // Function to handle avatar selection
-  const handleAvatarSelection = (avatar: string) => {
-    setSelectedAvatar(avatar);
-    const avatarDataURL = emojiToDataURL(avatar);
-    setFormData(prev => ({ ...prev, profilePicture: avatarDataURL }));
+  const handleAvatarSelection = (picture: ProfilePicture) => {
+    setSelectedPictureId(picture.id);
+    setFormData(prev => ({ ...prev, profilePicture: picture.url }));
   };
 
   // Function to generate new random avatar
   const generateRandomAvatar = () => {
-    const randomAvatar = getRandomAvatar();
-    handleAvatarSelection(randomAvatar);
+    if (profilePictures && profilePictures.length > 0) {
+      const randomPicture = profilePictures[Math.floor(Math.random() * profilePictures.length)];
+      handleAvatarSelection(randomPicture);
+    }
   };
 
   const updateUserMutation = useMutation({
@@ -472,22 +481,27 @@ export default function SettingsPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-3 max-h-96 overflow-y-auto">
-              {defaultAvatars.map((avatar, index) => (
+            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4 max-h-96 overflow-y-auto p-2">
+              {profilePictures?.map((picture) => (
                 <button
-                  key={index}
+                  key={picture.id}
                   type="button"
                   onClick={() => {
-                    handleAvatarSelection(avatar);
+                    handleAvatarSelection(picture);
                     setShowAvatarSelection(false);
                   }}
-                  className={`p-2 rounded-full border-2 transition-all hover:scale-110 ${
-                    selectedAvatar === avatar
-                      ? 'border-blue-500 bg-blue-50'
+                  className={`relative group overflow-hidden rounded-full border-2 transition-all hover:scale-110 ${
+                    selectedPictureId === picture.id
+                      ? 'border-blue-500 ring-2 ring-blue-200'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <span className="text-2xl">{avatar}</span>
+                  <img
+                    src={picture.url}
+                    alt={picture.name}
+                    className="w-16 h-16 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity" />
                 </button>
               ))}
             </div>

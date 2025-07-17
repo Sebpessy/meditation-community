@@ -17,11 +17,8 @@ export function ProfilePictureManager() {
   const queryClient = useQueryClient();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [editingPicture, setEditingPicture] = useState<ProfilePicture | null>(null);
-  const [uploadForm, setUploadForm] = useState({
-    name: "",
-    imageData: "",
-    isActive: true
-  });
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Fetch all profile pictures
   const { data: pictures, isLoading } = useQuery<ProfilePicture[]>({
@@ -107,38 +104,56 @@ export function ProfilePictureManager() {
   });
 
   const resetForm = () => {
-    setUploadForm({
-      name: "",
-      imageData: "",
-      isActive: true
-    });
+    setUploadFiles([]);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadForm({
-          ...uploadForm,
-          imageData: reader.result as string
-        });
-      };
-      reader.readAsDataURL(file);
-    }
+    const files = Array.from(e.target.files || []);
+    setUploadFiles(files);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadForm.name || !uploadForm.imageData) {
+    if (uploadFiles.length === 0) {
       toast({
         title: "Error",
-        description: "Please provide a name and select an image",
+        description: "Please select at least one image",
         variant: "destructive"
       });
       return;
     }
-    createMutation.mutate(uploadForm);
+
+    setIsUploading(true);
+    
+    try {
+      for (const file of uploadFiles) {
+        const reader = new FileReader();
+        const imageData = await new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+        
+        // Use the original filename without extension
+        const name = file.name.replace(/\.[^/.]+$/, "");
+        
+        await createMutation.mutateAsync({
+          name,
+          imageData,
+          isActive: true
+        });
+      }
+      
+      setIsUploadModalOpen(false);
+      resetForm();
+      toast({
+        title: "Success",
+        description: `Uploaded ${uploadFiles.length} profile picture${uploadFiles.length > 1 ? 's' : ''}`,
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleToggleActive = (picture: ProfilePicture) => {
@@ -234,42 +249,32 @@ export function ProfilePictureManager() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="name">Picture Name</Label>
+              <Label htmlFor="images">Select Images</Label>
               <Input
-                id="name"
-                value={uploadForm.name}
-                onChange={(e) => setUploadForm({ ...uploadForm, name: e.target.value })}
-                placeholder="e.g., Sunset Avatar"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="image">Image File</Label>
-              <Input
-                id="image"
+                id="images"
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
+                multiple
                 required
               />
+              <p className="text-sm text-neutral-600 mt-1">
+                You can select multiple images at once
+              </p>
             </div>
 
-            {uploadForm.imageData && (
+            {uploadFiles.length > 0 && (
               <div className="mt-4">
-                <Label>Preview (Circular Crop)</Label>
-                <div className="mt-2 flex justify-center">
-                  <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-neutral-200">
-                    <img
-                      src={uploadForm.imageData}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                <Label>Selected Files ({uploadFiles.length})</Label>
+                <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
+                  {uploadFiles.map((file, index) => (
+                    <div key={index} className="flex items-center space-x-2 text-sm">
+                      <ImageIcon className="w-4 h-4 text-neutral-500" />
+                      <span>{file.name.replace(/\.[^/.]+$/, "")}</span>
+                      <span className="text-neutral-500">({(file.size / 1024).toFixed(1)} KB)</span>
+                    </div>
+                  ))}
                 </div>
-                <p className="text-sm text-neutral-600 text-center mt-2">
-                  This is how the image will appear to users
-                </p>
               </div>
             )}
 
@@ -284,8 +289,8 @@ export function ProfilePictureManager() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                Upload
+              <Button type="submit" disabled={isUploading}>
+                {isUploading ? `Uploading...` : `Upload ${uploadFiles.length} Image${uploadFiles.length !== 1 ? 's' : ''}`}
               </Button>
             </div>
           </form>
