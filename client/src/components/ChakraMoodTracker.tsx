@@ -22,11 +22,12 @@ const chakraColors = [
   { color: '#805AD5', name: 'Crown Center', description: 'Spiritual & Connected' },  // Violet
 ];
 
-export function ChakraMoodTracker({ sessionDate, moodType, onClose }: ChakraMoodTrackerProps) {
+export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onClose }: ChakraMoodTrackerProps) {
   const [user] = useAuthState(auth);
   const [selectedLevel, setSelectedLevel] = useState<number>(4); // Start at heart chakra
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
+  const [moodType, setMoodType] = useState<'pre' | 'post'>(initialMoodType);
 
   // Animation effect for the energy swirl
   useEffect(() => {
@@ -74,9 +75,31 @@ export function ChakraMoodTracker({ sessionDate, moodType, onClose }: ChakraMood
       <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border-2 border-purple-200">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-800">
-              {moodType === 'pre' ? 'How are you feeling right now?' : 'How do you feel after meditation?'}
-            </h3>
+            <div className="flex items-center space-x-4">
+              <h3 className="text-lg font-semibold text-gray-800">Track Your Mood</h3>
+              <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setMoodType('pre')}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                    moodType === 'pre' 
+                      ? 'bg-white text-gray-800 shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  Before Meditation
+                </button>
+                <button
+                  onClick={() => setMoodType('post')}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                    moodType === 'post' 
+                      ? 'bg-white text-gray-800 shadow-sm' 
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  After Meditation
+                </button>
+              </div>
+            </div>
             <Button
               variant="ghost"
               size="sm"

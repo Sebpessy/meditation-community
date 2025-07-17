@@ -150,6 +150,12 @@ export function Navigation({ onlineCount }: NavigationProps) {
                       Settings
                     </DropdownMenuItem>
                   </Link>
+                  <Link href="/mood-analytics">
+                    <DropdownMenuItem>
+                      <User className="w-4 h-4 mr-2" />
+                      Mood Analytics
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
@@ -199,14 +205,24 @@ export function Navigation({ onlineCount }: NavigationProps) {
               )}
 
               {user && (
-                <Link href="/settings">
-                  <span 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
-                  >
-                    Settings
-                  </span>
-                </Link>
+                <>
+                  <Link href="/settings">
+                    <span 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
+                    >
+                      Settings
+                    </span>
+                  </Link>
+                  <Link href="/mood-analytics">
+                    <span 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 rounded-md cursor-pointer"
+                    >
+                      Mood Analytics
+                    </span>
+                  </Link>
+                </>
               )}
             </div>
           </div>

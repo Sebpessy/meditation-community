@@ -13,6 +13,7 @@ import AuthPage from "@/pages/auth";
 import MeditationPage from "@/pages/meditation";
 import AdminPage from "@/pages/admin";
 import SettingsPage from "@/pages/settings";
+import MoodAnalyticsPage from "@/pages/mood-analytics";
 import NotFound from "@/pages/not-found";
 
 function AppContent() {
@@ -51,6 +52,7 @@ function AppContent() {
         <Route path="/meditation" component={MeditationPage} />
         <Route path="/admin" component={AdminPage} />
         <Route path="/settings" component={SettingsPage} />
+        <Route path="/mood-analytics" component={MoodAnalyticsPage} />
         <Route path="/" component={MeditationPage} />
         <Route component={NotFound} />
       </Switch>
