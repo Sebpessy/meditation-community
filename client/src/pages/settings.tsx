@@ -296,7 +296,7 @@ export default function SettingsPage() {
       {isFirstTimeUser && (
         <Card className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-3 text-blue-700 dark:text-blue-300">
+            <div className="flex items-center gap-3 text-blue-700 dark:text-blue-400">
               <User className="w-5 h-5" />
               <p className="text-sm">
                 You must select a profile picture before accessing the app. Choose one from our collection or upload your own.
