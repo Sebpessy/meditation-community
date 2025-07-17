@@ -44,13 +44,27 @@ function getCSTDate(): string {
   return cstTime.toISOString().split('T')[0];
 }
 
+function getUTCDate(): string {
+  const now = new Date();
+  return now.toISOString().split('T')[0];
+}
+
 function formatDate(dateStr: string) {
-  const date = new Date(dateStr + 'T12:00:00-06:00');
-  return date.toLocaleDateString('en-US', { 
+  // For display purposes, show "Today" if this is the current session date
+  // This handles both CST (2025-07-16) and UTC (2025-07-17) dates correctly
+  const todayCST = getCSTDate();
+  const todayUTC = getUTCDate();
+  
+  if (dateStr === todayCST || dateStr === todayUTC) {
+    return 'Today';
+  }
+  
+  return new Date(dateStr + 'T12:00:00-06:00').toLocaleDateString('en-US', { 
     weekday: 'long', 
     year: 'numeric', 
     month: 'long', 
-    day: 'numeric' 
+    day: 'numeric',
+    timeZone: 'America/Chicago'
   });
 }
 
