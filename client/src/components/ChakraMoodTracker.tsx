@@ -115,94 +115,100 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
             </Button>
           </div>
 
-          <div className="flex items-center justify-center space-x-4 sm:space-x-8">
-            {/* Vertical Slider - always on left */}
-            <div className="relative h-60 sm:h-80 w-6 sm:w-8 flex items-center justify-center">
-              <input
-                type="range"
-                min="0"
-                max="6"
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
-                className="slider-vertical h-full w-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                style={{
-                  writingMode: 'bt-lr',
-                  WebkitAppearance: 'slider-vertical',
-                  background: `linear-gradient(to top, ${chakraColors[selectedLevel].color} 0%, ${chakraColors[selectedLevel].color} ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 100%)`
-                }}
-              />
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8">
+            {/* Left side: Slider and Chakra visualization */}
+            <div className="flex items-center justify-center space-x-4 sm:space-x-6">
+              {/* Vertical Slider - always on left */}
+              <div className="relative h-60 sm:h-80 w-6 sm:w-8 flex items-center justify-center">
+                <input
+                  type="range"
+                  min="0"
+                  max="6"
+                  value={selectedLevel}
+                  onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
+                  className="slider-vertical h-full w-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  style={{
+                    writingMode: 'bt-lr',
+                    WebkitAppearance: 'slider-vertical',
+                    background: `linear-gradient(to top, ${chakraColors[selectedLevel].color} 0%, ${chakraColors[selectedLevel].color} ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 100%)`
+                  }}
+                />
+              </div>
 
-            {/* Energy Conduit Visualization - always in middle */}
-            <div className="relative w-16 sm:w-20 h-60 sm:h-80">
-              {/* Vertical energy line */}
-              <div className="absolute left-1/2 top-0 w-1 h-full bg-gradient-to-t from-purple-400 to-purple-600 transform -translate-x-1/2 rounded-full opacity-30" />
-              
-              {/* Chakra points */}
-              <div className="absolute inset-0 flex flex-col-reverse justify-between items-center py-2">
-                {chakraColors.map((chakra, index) => (
-                  <div
-                    key={index}
-                    className="relative cursor-pointer group"
-                    onClick={() => setSelectedLevel(index)}
-                  >
-                    {/* Chakra circle */}
+              {/* Energy Conduit Visualization - always in middle */}
+              <div className="relative w-16 sm:w-20 h-60 sm:h-80">
+                {/* Vertical energy line */}
+                <div className="absolute left-1/2 top-0 w-1 h-full bg-gradient-to-t from-purple-400 to-purple-600 transform -translate-x-1/2 rounded-full opacity-30" />
+                
+                {/* Chakra points */}
+                <div className="absolute inset-0 flex flex-col-reverse justify-between items-center py-2">
+                  {chakraColors.map((chakra, index) => (
                     <div
-                      className="w-6 sm:w-8 h-6 sm:h-8 rounded-full border-2 border-white cursor-pointer transition-all duration-300 hover:scale-125"
-                      style={getEnergyStyle(index)}
-                    />
-                    
-                    {/* Energy particles */}
-                    {index <= selectedLevel && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div
-                          className="w-2 h-2 rounded-full animate-ping"
-                          style={{ backgroundColor: chakraColors[index].color }}
-                        />
-                      </div>
-                    )}
-                    
-                    {/* Tooltip */}
-                    <div className="absolute left-full ml-2 sm:ml-4 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                      <div className="bg-black/80 text-white px-2 sm:px-3 py-1 rounded text-xs sm:text-sm whitespace-nowrap">
-                        <div className="font-medium">{chakra.name}</div>
-                        <div className="text-xs opacity-80 hidden sm:block">{chakra.description}</div>
+                      key={index}
+                      className="relative cursor-pointer group"
+                      onClick={() => setSelectedLevel(index)}
+                    >
+                      {/* Chakra circle */}
+                      <div
+                        className="w-6 sm:w-8 h-6 sm:h-8 rounded-full border-2 border-white cursor-pointer transition-all duration-300 hover:scale-125"
+                        style={getEnergyStyle(index)}
+                      />
+                      
+                      {/* Energy particles */}
+                      {index <= selectedLevel && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div
+                            className="w-2 h-2 rounded-full animate-ping"
+                            style={{ backgroundColor: chakraColors[index].color }}
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Tooltip */}
+                      <div className="absolute left-full ml-2 sm:ml-4 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                        <div className="bg-black/80 text-white px-2 sm:px-3 py-1 rounded text-xs sm:text-sm whitespace-nowrap">
+                          <div className="font-medium">{chakra.name}</div>
+                          <div className="text-xs opacity-80 hidden sm:block">{chakra.description}</div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Current Selection Display - always on right */}
-            <div className="text-center space-y-2 w-32 sm:w-48">
-              <div className="text-xl sm:text-2xl font-bold" style={{ color: chakraColors[selectedLevel].color }}>
-                {chakraColors[selectedLevel].name}
+            {/* Right side: Stacked text and comment field */}
+            <div className="flex flex-col space-y-4 w-full sm:w-64">
+              {/* Current Selection Display - moved higher */}
+              <div className="text-center space-y-2">
+                <div className="text-xl sm:text-2xl font-bold" style={{ color: chakraColors[selectedLevel].color }}>
+                  {chakraColors[selectedLevel].name}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {chakraColors[selectedLevel].description}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Level {selectedLevel + 1} of 7
+                </div>
               </div>
-              <div className="text-sm text-gray-600">
-                {chakraColors[selectedLevel].description}
-              </div>
-              <div className="text-xs text-gray-500">
-                Level {selectedLevel + 1} of 7
-              </div>
-            </div>
-          </div>
 
-          {/* Optional Comment Field */}
-          <div className="mt-4 sm:mt-6 space-y-2">
-            <label className="text-sm font-medium text-gray-700">
-              Share your thoughts (optional)
-            </label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="How are you feeling? What's on your mind?"
-              className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-              rows={3}
-              maxLength={500}
-            />
-            <div className="text-xs text-gray-500 text-right">
-              {comment.length}/500 characters
+              {/* Comment Field - stacked underneath */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Share your thoughts (optional)
+                </label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="How are you feeling? What's on your mind?"
+                  className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  rows={3}
+                  maxLength={500}
+                />
+                <div className="text-xs text-gray-500 text-right">
+                  {comment.length}/500 characters
+                </div>
+              </div>
             </div>
           </div>
 
