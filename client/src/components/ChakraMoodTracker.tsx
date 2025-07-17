@@ -43,7 +43,6 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
     setIsSubmitting(true);
     try {
       await apiRequest('POST', '/api/mood/entry', {
-        firebaseUid: user.uid,
         sessionDate,
         emotionLevel: selectedLevel,
         moodType,

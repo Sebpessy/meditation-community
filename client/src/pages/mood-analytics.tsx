@@ -74,12 +74,7 @@ export default function MoodAnalyticsPage() {
     enabled: !!currentUser,
   });
 
-  // Debug logging
-  console.log('Firebase user:', user);
-  console.log('Current user:', currentUser);
-  console.log('Mood entries raw data:', moodEntries);
-  console.log('Is loading:', isLoading);
-  console.log('Error:', error);
+  // Remove debug logging for production
 
   // For now, we'll use placeholder session times since the analytics endpoint doesn't exist
   const sessionTimes = [];

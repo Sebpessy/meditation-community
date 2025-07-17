@@ -1,0 +1,46 @@
+WebSocket connected for user: 5 session: 2025-07-16
+WebSocket connected for user: 5 session: 2025-07-17
+Online count updated: 1
+Click detected, reconnecting WebSocket...
+Starting WebSocket connection for user: 5 session: 2025-07-16
+Click detected, reconnecting WebSocket...
+Starting WebSocket connection for user: 5 session: 2025-07-17
+Online count updated: 1
+WebSocket connected for user: 5 session: 2025-07-16
+Online count updated: 1
+WebSocket connected for user: 5 session: 2025-07-17
+Online count updated: 1
+Click detected, reconnecting WebSocket...
+Starting WebSocket connection for user: 5 session: 2025-07-16
+Click detected, reconnecting WebSocket...
+Starting WebSocket connection for user: 5 session: 2025-07-17
+WebSocket connected for user: 5 session: 2025-07-16
+WebSocket connected for user: 5 session: 2025-07-17
+Online count updated: 1
+Firebase user: 
+_UserImpl {providerId: "firebase", proactiveRefresh: ProactiveRefresh, reloadUserInfo: {…}, reloadListener: null, uid: "31RalXFeubYBRAF2PWHqYX2W5WS2", …}
+Current user: 
+Object {id: 5, email: "sebpessy@gmail.com", name: "Sebastien Pessy", firebaseUid: "31RalXFeubYBRAF2PWHqYX2W5WS2", profilePicture: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAA…", …}
+Mood entries raw data: 
+(19) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Is loading: false
+Error: null
+Processing mood entries: 
+(19) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Processed data result: 
+(2) [{…}, {…}]
+Firebase user: 
+_UserImpl {providerId: "firebase", proactiveRefresh: ProactiveRefresh, reloadUserInfo: {…}, reloadListener: null, uid: "31RalXFeubYBRAF2PWHqYX2W5WS2", …}
+Current user: 
+Object {id: 5, email: "sebpessy@gmail.com", name: "Sebastien Pessy", firebaseUid: "31RalXFeubYBRAF2PWHqYX2W5WS2", profilePicture: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAA…", …}
+Mood entries raw data: 
+(19) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+Is loading: false
+Error: null
+WebSocket disconnected
+Online count updated: 0
+Online count updated: 1
+Online count updated: 0
+Online count updated: 1
+Online count updated: 0
+Online count updated: 1
