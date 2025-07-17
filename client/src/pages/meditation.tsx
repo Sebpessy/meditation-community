@@ -184,6 +184,7 @@ export default function MeditationPage() {
   useEffect(() => {
     const startSession = async () => {
       if (currentUserId && !sessionId.current) {
+        console.log('Starting session tracking for user:', currentUserId);
         try {
           const response = await apiRequest('POST', '/api/session/start', {
             userId: currentUserId,
@@ -193,11 +194,13 @@ export default function MeditationPage() {
             const data = await response.json();
             sessionId.current = data.id;
             sessionStartTime.current = Date.now();
+            console.log('Session started with ID:', data.id);
             
             // Update session every 30 seconds
             updateInterval.current = setInterval(async () => {
               if (sessionId.current) {
                 const duration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
+                console.log('Updating session duration:', duration, 'seconds');
                 await apiRequest('PUT', `/api/session/${sessionId.current}`, {
                   duration
                 });
