@@ -36,6 +36,8 @@ interface SessionAnalytics {
   improvement: number;
 }
 
+
+
 function getCSTDate(): string {
   const now = new Date();
   const cstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
@@ -240,11 +242,11 @@ export default function MoodAnalyticsPage() {
                         <Badge 
                           variant="outline" 
                           style={{ 
-                            borderColor: chakraColors[session.preEntry.emotionLevel - 1].color,
-                            color: chakraColors[session.preEntry.emotionLevel - 1].color 
+                            borderColor: chakraColors[session.preEntry.emotionLevel]?.color || '#E53E3E',
+                            color: chakraColors[session.preEntry.emotionLevel]?.color || '#E53E3E'
                           }}
                         >
-                          {chakraColors[session.preEntry.emotionLevel - 1].name}
+                          {chakraColors[session.preEntry.emotionLevel]?.name || 'Root Center'}
                         </Badge>
                       </div>
                     )}
@@ -259,11 +261,11 @@ export default function MoodAnalyticsPage() {
                         <Badge 
                           variant="outline" 
                           style={{ 
-                            borderColor: chakraColors[session.postEntry.emotionLevel - 1].color,
-                            color: chakraColors[session.postEntry.emotionLevel - 1].color 
+                            borderColor: chakraColors[session.postEntry.emotionLevel]?.color || '#E53E3E',
+                            color: chakraColors[session.postEntry.emotionLevel]?.color || '#E53E3E'
                           }}
                         >
-                          {chakraColors[session.postEntry.emotionLevel - 1].name}
+                          {chakraColors[session.postEntry.emotionLevel]?.name || 'Root Center'}
                         </Badge>
                       </div>
                     )}

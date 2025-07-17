@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import { X } from 'lucide-react';
@@ -48,6 +48,10 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
         moodType,
         notes: null
       });
+      
+      // Invalidate mood entries cache to refresh analytics
+      queryClient.invalidateQueries({ queryKey: ['/api/mood/entries'] });
+      
       onClose();
     } catch (error) {
       console.error('Failed to save mood entry:', error);
