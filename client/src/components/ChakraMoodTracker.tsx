@@ -115,8 +115,8 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
             </Button>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-6 sm:space-y-0 sm:space-x-8">
-            {/* Vertical Slider - moved to left */}
+          <div className="flex items-center justify-center space-x-4 sm:space-x-8">
+            {/* Vertical Slider - always on left */}
             <div className="relative h-60 sm:h-80 w-6 sm:w-8 flex items-center justify-center">
               <input
                 type="range"
@@ -133,7 +133,7 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
               />
             </div>
 
-            {/* Energy Conduit Visualization - moved to right */}
+            {/* Energy Conduit Visualization - always in middle */}
             <div className="relative w-16 sm:w-20 h-60 sm:h-80">
               {/* Vertical energy line */}
               <div className="absolute left-1/2 top-0 w-1 h-full bg-gradient-to-t from-purple-400 to-purple-600 transform -translate-x-1/2 rounded-full opacity-30" />
@@ -174,8 +174,8 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
               </div>
             </div>
 
-            {/* Current Selection Display */}
-            <div className="text-center space-y-2 w-full sm:w-48">
+            {/* Current Selection Display - always on right */}
+            <div className="text-center space-y-2 w-32 sm:w-48">
               <div className="text-xl sm:text-2xl font-bold" style={{ color: chakraColors[selectedLevel].color }}>
                 {chakraColors[selectedLevel].name}
               </div>
