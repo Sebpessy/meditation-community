@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Loading } from "@/components/ui/loading";
@@ -887,6 +887,9 @@ export default function AdminPage() {
                     <DialogTitle>
                       {editingTemplate ? "Edit Template" : "Create New Template"}
                     </DialogTitle>
+                    <DialogDescription>
+                      {editingTemplate ? "Update the meditation template details below." : "Fill in the details to create a new meditation template."}
+                    </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1020,6 +1023,9 @@ export default function AdminPage() {
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Import Templates from CSV</DialogTitle>
+                    <DialogDescription>
+                      Import multiple meditation templates from a CSV file. Follow the format instructions below.
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="bg-blue-50 p-4 rounded-lg">
@@ -1205,6 +1211,9 @@ export default function AdminPage() {
                   <DialogTitle>
                     {editingSchedule ? "Edit Schedule" : "Create New Schedule"}
                   </DialogTitle>
+                  <DialogDescription>
+                    {editingSchedule ? "Update the schedule details below." : "Schedule a meditation template for a specific date and time."}
+                  </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleScheduleSubmit} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">

@@ -182,8 +182,18 @@ export class DatabaseStorage implements IStorage {
         return false;
       }
 
-      // Delete all chat messages by this user to avoid foreign key constraint
-      await db.delete(chatMessages).where(eq(chatMessages.userId, id));
+      // Delete all related data to avoid foreign key constraints
+      // Delete chat messages by this user
+      await db.delete(chatMessages).where(eq(chatMessages.user_id, id));
+      
+      // Delete message likes by this user
+      await db.delete(messageLikes).where(eq(messageLikes.user_id, id));
+      
+      // Delete mood entries by this user
+      await db.delete(moodEntries).where(eq(moodEntries.user_id, id));
+      
+      // Delete meditation sessions by this user
+      await db.delete(meditationSessions).where(eq(meditationSessions.user_id, id));
       
       // Delete the user from PostgreSQL
       const result = await db.delete(users).where(eq(users.id, id));
@@ -191,7 +201,7 @@ export class DatabaseStorage implements IStorage {
 
       // Delete user from Firebase Auth
       const { deleteFirebaseUser } = await import('./firebase-admin');
-      const firebaseDeleted = await deleteFirebaseUser(user.firebaseUid);
+      const firebaseDeleted = await deleteFirebaseUser(user.firebase_uid);
 
       if (!firebaseDeleted) {
         console.warn(`Failed to delete user ${id} from Firebase Auth, but deleted from database`);
