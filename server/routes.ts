@@ -56,19 +56,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             sessionUsers.get(message.sessionDate)!.add(message.userId);
             
-            // Check if it's a new day and flush chat if needed
+            // Check if it's a new day and flush old chat messages if needed
             const today = new Date().toISOString().split('T')[0];
             if (message.sessionDate === today) {
-              // Check if there are messages from previous days that need to be flushed
-              const currentMessages = await storage.getChatMessages(message.sessionDate, 1);
-              if (currentMessages.length > 0) {
-                const firstMessageDate = new Date(currentMessages[0].timestamp).toISOString().split('T')[0];
-                if (firstMessageDate !== today) {
-                  // Flush old messages for fresh start
-                  await storage.flushChatMessages(message.sessionDate);
-                  console.log(`Flushed old chat messages for session: ${message.sessionDate}`);
-                }
-              }
+              // Flush messages from previous days (not today's session)
+              await storage.flushOldChatMessages(today);
+              console.log(`Checked and flushed old chat messages before ${today}`);
             }
             
             // Send initial messages to the user (last 30 messages)

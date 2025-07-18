@@ -29,6 +29,7 @@ export interface IStorage {
   getChatMessages(sessionDate: string, limit?: number): Promise<ChatMessageWithUser[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessageWithUser>;
   flushChatMessages(sessionDate: string): Promise<boolean>;
+  flushOldChatMessages(currentDate: string): Promise<boolean>;
   
   // Like operations
   likeMessage(messageId: number, userId: number): Promise<boolean>;
@@ -341,6 +342,19 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
+  async flushOldChatMessages(currentDate: string): Promise<boolean> {
+    // First delete message likes for old messages
+    await db.delete(messageLikes).where(
+      sql`message_id IN (SELECT id FROM chat_messages WHERE session_date != ${currentDate})`
+    );
+    
+    // Then delete old chat messages (not from current date)
+    const result = await db.delete(chatMessages).where(
+      sql`session_date != ${currentDate}`
+    );
+    return (result.rowCount || 0) > 0;
+  }
+
   async likeMessage(messageId: number, userId: number): Promise<boolean> {
     try {
       await db.insert(messageLikes).values({
@@ -452,15 +466,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrCreateTodaySession(userId: number, sessionDate: string): Promise<MeditationSession> {
-    // Check if there's already a session for today
+    // Check if there's already an active session for today
     const existingSessions = await this.getMeditationSessions(userId, sessionDate);
     
     if (existingSessions.length > 0) {
       // Return the most recent session
-      return existingSessions[0];
+      const session = existingSessions[0];
+      console.log(`Found existing session ${session.id} for user ${userId} on ${sessionDate}`);
+      return session;
     }
     
     // Create a new session if none exists
+    console.log(`Creating new session for user ${userId} on ${sessionDate}`);
     return await this.createMeditationSession({
       userId,
       sessionDate,
