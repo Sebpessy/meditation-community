@@ -455,9 +455,9 @@ export default function MeditationPage() {
               )}
               <div className="flex gap-1 overflow-x-auto scrollbar-none scroll-smooth" style={{scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch'}}>
                 {onlineUsers.map((user) => (
-                  <div key={user.id} className="relative flex-shrink-0">
+                  <div key={user.id} className="relative flex-shrink-0" style={{ zIndex: clickedUser === user.id ? 9999 : 1 }}>
                     <Avatar 
-                      className="w-7 h-7 border border-white dark:border-neutral-700 cursor-pointer hover:z-10 transition-transform active:scale-110"
+                      className="w-7 h-7 border border-white dark:border-neutral-700 cursor-pointer transition-transform active:scale-110"
                       onClick={() => handleUserClick(user.id)}
                     >
                       <AvatarImage src={user.profilePicture || ""} alt={user.name} />
@@ -466,8 +466,8 @@ export default function MeditationPage() {
                       </AvatarFallback>
                     </Avatar>
                     {clickedUser === user.id && (
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 z-20">
-                        <div className="bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-800 text-xs rounded px-2 py-1 whitespace-nowrap">
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 z-[9999]">
+                        <div className="bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-800 text-xs rounded px-2 py-1 whitespace-nowrap shadow-lg border border-neutral-600 dark:border-neutral-400">
                           {user.name}
                           <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-800 dark:border-t-neutral-200"></div>
                         </div>
