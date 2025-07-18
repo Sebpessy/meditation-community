@@ -27,49 +27,11 @@ async function getCurrentUser(req: any) {
 const activeConnections = new Map<WebSocket, { userId?: number, sessionDate?: string }>();
 const sessionUsers = new Map<string, Set<number>>(); // sessionDate -> Set of userIds
 
-// Schedule daily chat flush at midnight CST
-function scheduleDailyChatFlush() {
-  const checkAndFlush = async () => {
-    const now = new Date();
-    const cstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
-    const today = cstTime.toISOString().split('T')[0];
-    
-    // Flush messages for today's session
-    await storage.flushChatMessages(today);
-    console.log(`[Daily Flush] Chat messages flushed for session: ${today} at ${cstTime.toLocaleTimeString()}`);
-  };
-
-  // Calculate milliseconds until midnight CST
-  const getMsUntilMidnight = () => {
-    const now = new Date();
-    const cstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
-    const midnight = new Date(cstTime);
-    midnight.setHours(24, 0, 0, 0);
-    return midnight.getTime() - cstTime.getTime();
-  };
-
-  // Initial delay until first midnight
-  const initialDelay = getMsUntilMidnight();
-  
-  setTimeout(() => {
-    // Run immediately at first midnight
-    checkAndFlush();
-    
-    // Then run every 24 hours
-    setInterval(checkAndFlush, 24 * 60 * 60 * 1000);
-  }, initialDelay);
-  
-  console.log(`[Daily Flush] Scheduled to run in ${Math.round(initialDelay / 1000 / 60)} minutes`);
-}
-
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // WebSocket server setup
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
-  // Start daily chat flush schedule
-  scheduleDailyChatFlush();
   
   wss.on('connection', (ws) => {
     console.log('New WebSocket connection');
