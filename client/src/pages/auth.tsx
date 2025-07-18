@@ -171,7 +171,7 @@ export default function AuthPage() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center py-4 px-3 sm:py-8 sm:px-6 lg:px-8 bg-neutral-50 relative"
+      className="min-h-screen flex items-center justify-center py-2 px-2 sm:py-8 sm:px-6 lg:px-8 bg-neutral-50 relative"
       style={{
         backgroundImage: `url(/bg4.jpg)`,
         backgroundSize: 'cover',
@@ -181,22 +181,22 @@ export default function AuthPage() {
     >
       {/* Background overlay for better readability */}
       <div className="absolute inset-0 bg-black/40"></div>
-      <Card className="w-full max-w-sm sm:max-w-md relative z-10 max-h-[95vh] overflow-y-auto">
-        <CardHeader className="text-center pb-4">
-          <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-3 flex items-center justify-center">
+      <Card className="w-full max-w-xs sm:max-w-md relative z-10 max-h-[98vh] overflow-y-auto">
+        <CardHeader className="text-center pb-2 px-3 pt-4 sm:pb-4 sm:px-6 sm:pt-6">
+          <div className="w-28 h-28 sm:w-40 sm:h-40 mx-auto mb-2 sm:mb-3 flex items-center justify-center">
             <img 
               src={logoImg} 
               alt="Evolving Hearts Logo" 
-              className="w-32 h-32 sm:w-40 sm:h-40 object-contain logo-pulse"
+              className="w-28 h-28 sm:w-40 sm:h-40 object-contain logo-pulse"
             />
           </div>
-          <CardTitle className="text-xl sm:text-2xl font-bold text-neutral-800">
+          <CardTitle className="text-lg sm:text-2xl font-bold text-neutral-800">
             Welcome to Evolving Hearts
           </CardTitle>
           <p className="text-sm sm:text-base text-neutral-600">Join our meditation community</p>
         </CardHeader>
 
-        <CardContent className="space-y-4 px-4 sm:px-6 pb-6">
+        <CardContent className="space-y-3 px-3 sm:px-6 pb-4 sm:pb-6">
           {/* Already Signed In Notice */}
           {user && (
             <Alert>
@@ -242,7 +242,7 @@ export default function AuthPage() {
           )}
 
           {/* Auth Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             <div>
               <Label htmlFor="email">Email address</Label>
               <Input
