@@ -187,23 +187,34 @@ export default function MeditationPage() {
         console.log('Starting session tracking for user:', currentUserId);
         try {
           const response = await apiRequest('POST', '/api/session/start', {
-            userId: currentUserId,
             sessionDate: getCSTDate()
           });
           if (response.ok) {
             const data = await response.json();
             sessionId.current = data.id;
-            sessionStartTime.current = Date.now();
-            console.log('Session started with ID:', data.id);
+            // Use the existing start time from DB or set a new one
+            sessionStartTime.current = data.startTime ? new Date(data.startTime).getTime() : Date.now();
+            console.log('Session started/resumed with ID:', data.id);
             
             // Update session every 30 seconds
             updateInterval.current = setInterval(async () => {
               if (sessionId.current) {
                 const duration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
                 console.log('Updating session duration:', duration, 'seconds');
-                await apiRequest('PUT', `/api/session/${sessionId.current}`, {
-                  duration
-                });
+                try {
+                  const updateResponse = await apiRequest('PUT', `/api/session/${sessionId.current}`, {
+                    duration
+                  });
+                  if (!updateResponse.ok) {
+                    console.error('Failed to update session, status:', updateResponse.status);
+                    // If session not found, clear the sessionId to trigger re-creation
+                    if (updateResponse.status === 404) {
+                      sessionId.current = null;
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error updating session:', error);
+                }
               }
             }, 30000);
           }
@@ -224,9 +235,9 @@ export default function MeditationPage() {
       if (sessionId.current) {
         const duration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
         // Use sendBeacon for reliable unload tracking
-        navigator.sendBeacon(`/api/session/${sessionId.current}`, JSON.stringify({
-          duration
-        }));
+        const data = JSON.stringify({ duration });
+        const blob = new Blob([data], { type: 'application/json' });
+        navigator.sendBeacon(`/api/session/${sessionId.current}`, blob);
       }
     };
   }, [currentUserId]);

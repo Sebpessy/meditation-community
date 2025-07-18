@@ -483,12 +483,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const sessionData = insertMeditationSessionSchema.parse({
-        ...req.body,
-        userId: user.id
-      });
+      const { sessionDate } = req.body;
+      if (!sessionDate) {
+        return res.status(400).json({ error: 'Session date is required' });
+      }
 
-      const session = await storage.createMeditationSession(sessionData);
+      // Get existing session or create a new one
+      const session = await storage.getOrCreateTodaySession(user.id, sessionDate);
       res.json(session);
     } catch (error) {
       console.error('Error starting meditation session:', error);

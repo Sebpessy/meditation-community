@@ -46,6 +46,7 @@ export interface IStorage {
   getMeditationSessions(userId: number, sessionDate?: string): Promise<MeditationSession[]>;
   updateMeditationSession(id: number, session: Partial<MeditationSession>): Promise<MeditationSession | undefined>;
   getSessionDuration(userId: number, sessionDate: string): Promise<number>;
+  getOrCreateTodaySession(userId: number, sessionDate: string): Promise<MeditationSession>;
   
   // User analytics
   getUserLastLogin(userId: number): Promise<Date | null>;
@@ -448,6 +449,23 @@ export class DatabaseStorage implements IStorage {
   async getSessionDuration(userId: number, sessionDate: string): Promise<number> {
     const sessions = await this.getMeditationSessions(userId, sessionDate);
     return sessions.reduce((total, session) => total + (session.duration || 0), 0);
+  }
+
+  async getOrCreateTodaySession(userId: number, sessionDate: string): Promise<MeditationSession> {
+    // Check if there's already a session for today
+    const existingSessions = await this.getMeditationSessions(userId, sessionDate);
+    
+    if (existingSessions.length > 0) {
+      // Return the most recent session
+      return existingSessions[0];
+    }
+    
+    // Create a new session if none exists
+    return await this.createMeditationSession({
+      userId,
+      sessionDate,
+      startTime: new Date()
+    });
   }
 
   // Get user's last login date and time
