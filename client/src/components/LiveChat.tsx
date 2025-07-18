@@ -185,16 +185,10 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                         </AvatarFallback>
                       </Avatar>
                       {clickedUser === user.id && (
-                        <div 
-                          className="fixed z-[99999] pointer-events-none"
-                          style={{
-                            top: '80px',
-                            left: '50%',
-                            transform: 'translateX(-50%)'
-                          }}
-                        >
-                          <div className="bg-red-600 text-white text-lg font-bold rounded-lg px-4 py-3 whitespace-nowrap shadow-2xl border-4 border-yellow-400">
-                            TEST: {user.name || 'NO NAME'}
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-[9999] pointer-events-none">
+                          <div className="bg-black text-white text-sm font-medium rounded-lg px-3 py-2 whitespace-nowrap shadow-xl border-2 border-white">
+                            {user.name}
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-black"></div>
                           </div>
                         </div>
                       )}
