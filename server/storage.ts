@@ -343,16 +343,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async flushOldChatMessages(currentDate: string): Promise<boolean> {
-    // First delete message likes for old messages
-    await db.delete(messageLikes).where(
-      sql`message_id IN (SELECT id FROM chat_messages WHERE session_date != ${currentDate})`
-    );
-    
-    // Then delete old chat messages (not from current date)
-    const result = await db.delete(chatMessages).where(
-      sql`session_date != ${currentDate}`
-    );
-    return (result.rowCount || 0) > 0;
+    try {
+      // First delete message likes for old messages
+      await db.delete(messageLikes).where(
+        sql`message_id IN (SELECT id FROM chat_messages WHERE session_date != ${currentDate})`
+      );
+      
+      // Then delete old chat messages (not from current date)
+      const result = await db.delete(chatMessages).where(
+        sql`session_date != ${currentDate}`
+      );
+      
+      console.log(`Flushed ${result.rowCount || 0} old chat messages from before ${currentDate}`);
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error flushing old chat messages:', error);
+      return false;
+    }
   }
 
   async likeMessage(messageId: number, userId: number): Promise<boolean> {
