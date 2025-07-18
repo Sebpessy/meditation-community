@@ -171,7 +171,7 @@ export default function AuthPage() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-neutral-50 relative"
+      className="min-h-screen flex items-center justify-center py-4 px-3 sm:py-8 sm:px-6 lg:px-8 bg-neutral-50 relative"
       style={{
         backgroundImage: `url(/bg4.jpg)`,
         backgroundSize: 'cover',
@@ -181,22 +181,22 @@ export default function AuthPage() {
     >
       {/* Background overlay for better readability */}
       <div className="absolute inset-0 bg-black/40"></div>
-      <Card className="w-full max-w-md relative z-10">
-        <CardHeader className="text-center">
-          <div className="w-40 h-40 mx-auto mb-4 flex items-center justify-center">
+      <Card className="w-full max-w-sm sm:max-w-md relative z-10 max-h-[95vh] overflow-y-auto">
+        <CardHeader className="text-center pb-4">
+          <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-3 flex items-center justify-center">
             <img 
               src={logoImg} 
               alt="Evolving Hearts Logo" 
-              className="w-40 h-40 object-contain logo-pulse"
+              className="w-32 h-32 sm:w-40 sm:h-40 object-contain logo-pulse"
             />
           </div>
-          <CardTitle className="text-2xl font-bold text-neutral-800">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-neutral-800">
             Welcome to Evolving Hearts
           </CardTitle>
-          <p className="text-neutral-600">Join our meditation community</p>
+          <p className="text-sm sm:text-base text-neutral-600">Join our meditation community</p>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 px-4 sm:px-6 pb-6">
           {/* Already Signed In Notice */}
           {user && (
             <Alert>

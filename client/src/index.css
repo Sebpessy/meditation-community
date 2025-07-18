@@ -85,7 +85,7 @@
 }
 
 .logo-pulse {
-  animation: dramatic-pulse 2s infinite ease-in-out;
+  animation: dramatic-pulse 4s infinite ease-in-out;
 }
 
 @layer base {
