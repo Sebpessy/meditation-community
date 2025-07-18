@@ -84,7 +84,7 @@ export default function MeditationPage() {
   const [currentUserId, setCurrentUserId] = useState<number | undefined>();
   const [wsOnlineCount, setWsOnlineCount] = useState(0);
   const [inputMessage, setInputMessage] = useState("");
-  const [hoveredUser, setHoveredUser] = useState<number | null>(null);
+  const [clickedUser, setClickedUser] = useState<number | null>(null);
   const [messageLikes, setMessageLikes] = useState<{ [messageId: number]: number }>({});
   const [likedMessages, setLikedMessages] = useState<Set<number>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -323,12 +323,11 @@ export default function MeditationPage() {
   };
 
   const handleUserClick = (userId: number) => {
-    // For mobile/touch devices
-    if (hoveredUser === userId) {
-      setHoveredUser(null);
+    // Toggle name display on click
+    if (clickedUser === userId) {
+      setClickedUser(null);
     } else {
-      setHoveredUser(userId);
-      setTimeout(() => setHoveredUser(null), 3000);
+      setClickedUser(userId);
     }
   };
 
@@ -466,7 +465,7 @@ export default function MeditationPage() {
                         {user.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    {hoveredUser === user.id && (
+                    {clickedUser === user.id && (
                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 z-20">
                         <div className="bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-800 text-xs rounded px-2 py-1 whitespace-nowrap">
                           {user.name}

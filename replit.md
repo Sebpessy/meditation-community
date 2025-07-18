@@ -16,6 +16,9 @@ Preferred communication style: Simple, everyday language.
 - ✅ Changed default theme to light mode (normal mode) across all platforms and devices
 - ✅ Added theme initialization script to prevent flash of wrong theme on page load
 - ✅ Enhanced auth page with dramatic logo pulse animation and mobile-responsive layout
+- ✅ Modified avatar click behavior throughout app: names now show/hide on click instead of hover
+- ✅ Updated both desktop and mobile chat components with new toggle-on-click interaction
+- ✅ Improved user experience by making name display persistent until clicked again
 
 ### July 17, 2025
 - ✅ Fixed message duplication by implementing proper WebSocket deduplication
