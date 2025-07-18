@@ -22,6 +22,9 @@ Preferred communication style: Simple, everyday language.
 - ✅ Fixed avatar name tooltip visibility issues with high-contrast styling and proper z-index
 - ✅ Enhanced tooltip positioning to appear directly above avatars with pointer arrows
 - ✅ Applied black background with white text and borders for maximum visibility
+- ✅ Implemented portal-based tooltip system using React createPortal to bypass container overflow constraints
+- ✅ Fixed tooltip positioning to properly display above chat header area without clipping
+- ✅ Reduced tooltip size by 50% with smaller text, padding, and arrow for better visual balance
 
 ### July 17, 2025
 - ✅ Fixed message duplication by implementing proper WebSocket deduplication

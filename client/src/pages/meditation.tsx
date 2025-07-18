@@ -639,9 +639,9 @@ export default function MeditationPage() {
               transform: 'translate(-50%, -100%)'
             }}
           >
-            <div className="bg-black text-white text-sm font-medium rounded-lg px-3 py-2 whitespace-nowrap shadow-xl border-2 border-white">
+            <div className="bg-black text-white text-xs font-medium rounded px-2 py-1 whitespace-nowrap shadow-xl border border-white">
               {onlineUsers.find(user => user.id === clickedUser)?.name}
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-black"></div>
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-black"></div>
             </div>
           </div>,
           document.body
