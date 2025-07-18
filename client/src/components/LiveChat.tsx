@@ -149,7 +149,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
       <div className="hidden md:flex h-full flex-col">
         <Card className="h-full flex flex-col bg-white dark:bg-[var(--chat-background)] border-neutral-200 dark:border-[var(--border)]">
           {/* Desktop Chat Header */}
-          <div className="border-b border-neutral-200 dark:border-[var(--border)] bg-white dark:bg-[var(--chat-background)] flex-shrink-0">
+          <div className="border-b border-neutral-200 dark:border-[var(--border)] bg-white dark:bg-[var(--chat-background)] flex-shrink-0 overflow-visible">
             <div className="p-2 pb-1">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="font-semibold text-neutral-800 dark:text-[var(--text-high-contrast)] text-sm">Live Chat</h3>
@@ -164,7 +164,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
             
             {/* Online Users Display - Second Line */}
             {onlineUsers.length > 0 && (
-              <div className="px-2 pb-2 relative">
+              <div className="px-2 pb-2 relative overflow-visible">
                 {onlineUsers.length > 10 && (
                   <div className="absolute left-2 top-1/2 -translate-y-1/2 w-6 h-full bg-gradient-to-r from-white dark:from-[var(--chat-background)] to-transparent z-10 flex items-center justify-start pointer-events-none">
                     <svg className="w-3 h-3 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,7 +185,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                         </AvatarFallback>
                       </Avatar>
                       {clickedUser === user.id && (
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-[9999] pointer-events-none">
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 z-[9999] pointer-events-none">
                           <div className="bg-black text-white text-sm font-medium rounded-lg px-3 py-2 whitespace-nowrap shadow-xl border-2 border-white">
                             {user.name}
                             <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-black"></div>
