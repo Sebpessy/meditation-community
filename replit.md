@@ -10,6 +10,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 18, 2025
+- ✅ Successfully deployed to production domain newself.me and Replit domain newself.replit.app
+- ✅ Configured Firebase authentication for production domains
+- ✅ Changed default theme to light mode (normal mode) across all platforms and devices
+- ✅ Added theme initialization script to prevent flash of wrong theme on page load
+- ✅ Enhanced auth page with dramatic logo pulse animation and mobile-responsive layout
+
 ### July 17, 2025
 - ✅ Fixed message duplication by implementing proper WebSocket deduplication
 - ✅ Fixed heart functionality - hearts now properly show grey by default and turn red when clicked
