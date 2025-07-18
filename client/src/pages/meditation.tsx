@@ -325,19 +325,45 @@ export default function MeditationPage() {
   };
 
   const handleUserClick = (userId: number, event: React.MouseEvent) => {
+    event.stopPropagation();
     // Toggle name display on click
     if (clickedUser === userId) {
       setClickedUser(null);
       setTooltipPosition(null);
     } else {
       const rect = (event.target as HTMLElement).getBoundingClientRect();
+      const screenWidth = window.innerWidth;
+      const tooltipWidth = 120; // Estimated tooltip width
+      
+      let x = rect.left + rect.width / 2;
+      
+      // Ensure tooltip doesn't go off screen
+      if (x - tooltipWidth / 2 < 10) {
+        x = tooltipWidth / 2 + 10;
+      } else if (x + tooltipWidth / 2 > screenWidth - 10) {
+        x = screenWidth - tooltipWidth / 2 - 10;
+      }
+      
       setTooltipPosition({
-        x: rect.left + rect.width / 2,
+        x: x,
         y: rect.top - 10
       });
       setClickedUser(userId);
     }
   };
+
+  // Click anywhere to dismiss tooltip
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setClickedUser(null);
+      setTooltipPosition(null);
+    };
+
+    if (clickedUser) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [clickedUser]);
 
   const formatDate = (dateStr: string) => {
     // Parse the date string and ensure it's interpreted as CST
@@ -465,11 +491,11 @@ export default function MeditationPage() {
                 {onlineUsers.map((user) => (
                   <div key={user.id} className="relative flex-shrink-0" style={{ zIndex: clickedUser === user.id ? 9999 : 1 }}>
                     <Avatar 
-                      className="w-10 h-10 border border-white dark:border-neutral-700 cursor-pointer transition-transform active:scale-110"
+                      className="w-8 h-8 md:w-10 md:h-10 border border-white dark:border-neutral-700 cursor-pointer transition-transform active:scale-110"
                       onClick={(e) => handleUserClick(user.id, e)}
                     >
                       <AvatarImage src={user.profilePicture || ""} alt={user.name} />
-                      <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs md:text-sm">
                         {user.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
