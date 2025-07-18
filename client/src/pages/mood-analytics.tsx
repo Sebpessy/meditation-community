@@ -88,6 +88,7 @@ export default function MoodAnalyticsPage() {
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [historyViewMode, setHistoryViewMode] = useState<'list' | 'calendar'>('list');
+  const [calendarDate, setCalendarDate] = useState(new Date());
 
   const { data: currentUser } = useQuery({
     queryKey: ['/api/auth/user', user?.uid],
@@ -99,6 +100,8 @@ export default function MoodAnalyticsPage() {
     queryKey: ['/api/mood/entries', currentUser?.id],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!currentUser,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache this data
   });
 
   // Fetch session durations for each day - wait for Firebase auth to be ready
@@ -106,6 +109,8 @@ export default function MoodAnalyticsPage() {
     queryKey: ['/api/session/durations', currentUser?.id],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !loading && !!currentUser && !!user,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache this data
   });
 
   // Session durations loaded successfully
@@ -128,10 +133,6 @@ export default function MoodAnalyticsPage() {
       
       const session = sessionMap.get(sessionDate)!;
       
-      // Get session duration from API data
-      const sessionDuration = sessionDurations?.find((d: any) => d.sessionDate === sessionDate)?.duration || 0;
-      session.timeSpent = Math.round(sessionDuration / 60); // Convert seconds to minutes
-      
       if (entry.moodType === 'pre') {
         // Keep the most recent pre entry for this session
         if (!session.preEntry || new Date(entry.createdAt) > new Date(session.preEntry.createdAt)) {
@@ -145,20 +146,38 @@ export default function MoodAnalyticsPage() {
       }
     });
 
-    // Calculate improvements and filter to only include complete sessions
-    const completeSessions: SessionAnalytics[] = [];
+    // Merge session durations
+    if (sessionDurations && Array.isArray(sessionDurations)) {
+      sessionDurations.forEach((duration: any) => {
+        const sessionDate = duration.sessionDate;
+        if (sessionMap.has(sessionDate)) {
+          const session = sessionMap.get(sessionDate)!;
+          session.timeSpent = Math.round(duration.duration / 60); // Convert seconds to minutes
+        } else {
+          // Create a session entry for days with only duration data
+          sessionMap.set(sessionDate, {
+            sessionDate,
+            timeSpent: Math.round(duration.duration / 60),
+            improvement: 0,
+          });
+        }
+      });
+    }
+
+    // Calculate improvements and return all sessions (not just complete ones)
+    const allSessions: SessionAnalytics[] = [];
     
     sessionMap.forEach((session) => {
       if (session.preEntry && session.postEntry) {
         session.improvement = session.postEntry.emotionLevel - session.preEntry.emotionLevel;
-        completeSessions.push(session);
       }
+      allSessions.push(session);
     });
 
-    return completeSessions.sort((a, b) => 
+    return allSessions.sort((a, b) => 
       new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime()
     );
-  }, [moodEntries]);
+  }, [moodEntries, sessionDurations]);
 
   const filteredData = useMemo(() => {
     const now = new Date();
@@ -264,6 +283,44 @@ export default function MoodAnalyticsPage() {
 
   const handleCloseSessionDetail = () => {
     setSelectedSessionDetail(null);
+  };
+
+  // Calendar navigation functions
+  const handlePreviousMonth = () => {
+    const newDate = new Date(calendarDate);
+    newDate.setMonth(newDate.getMonth() - 1);
+    setCalendarDate(newDate);
+  };
+
+  const handleNextMonth = () => {
+    const newDate = new Date(calendarDate);
+    newDate.setMonth(newDate.getMonth() + 1);
+    setCalendarDate(newDate);
+  };
+
+  const handleCurrentMonth = () => {
+    setCalendarDate(new Date());
+  };
+
+  // Generate calendar days for the current month
+  const getCalendarDays = () => {
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    const days = [];
+    const current = new Date(startDate);
+    
+    // Generate 6 weeks (42 days) to show full calendar
+    for (let i = 0; i < 42; i++) {
+      days.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+    
+    return days;
   };
 
   // Handle escape key for closing modals
@@ -566,6 +623,39 @@ export default function MoodAnalyticsPage() {
           ) : (
             // Calendar View
             <div className="space-y-4">
+              {/* Month Navigation */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePreviousMonth}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCurrentMonth}
+                    disabled={calendarDate.getMonth() === new Date().getMonth() && calendarDate.getFullYear() === new Date().getFullYear()}
+                  >
+                    Current Month
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextMonth}
+                    disabled={calendarDate.getMonth() >= new Date().getMonth() && calendarDate.getFullYear() >= new Date().getFullYear()}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+                <h3 className="text-lg font-semibold">
+                  {calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </h3>
+              </div>
+              
+              {/* Calendar Grid */}
               <div className="grid grid-cols-7 gap-2 text-center text-sm font-medium text-muted-foreground">
                 <div>Sun</div>
                 <div>Mon</div>
@@ -575,31 +665,33 @@ export default function MoodAnalyticsPage() {
                 <div>Fri</div>
                 <div>Sat</div>
               </div>
+              
               <div className="grid grid-cols-7 gap-2">
-                {Array.from({ length: 35 }, (_, index) => {
-                  const weekStart = new Date();
-                  weekStart.setDate(weekStart.getDate() - weekStart.getDay() + (currentWeekOffset * 7));
-                  const date = new Date(weekStart);
-                  date.setDate(weekStart.getDate() + index);
-                  
+                {getCalendarDays().map((date, index) => {
                   const dateStr = date.toISOString().split('T')[0];
                   const session = searchFilteredData.find(s => s.sessionDate === dateStr);
                   const isToday = dateStr === new Date().toISOString().split('T')[0];
+                  const isCurrentMonth = date.getMonth() === calendarDate.getMonth();
                   
                   return (
                     <div
                       key={index}
-                      className={`aspect-square p-1 border rounded cursor-pointer transition-colors flex flex-col items-center justify-center ${
+                      className={`aspect-square p-1 border rounded cursor-pointer transition-colors relative ${
                         isToday ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' : 'border-neutral-200 dark:border-[var(--border)]'
                       } ${
                         session ? 'bg-green-50 dark:bg-green-950 hover:bg-green-100 dark:hover:bg-green-900' : 'hover:bg-neutral-50 dark:hover:bg-[var(--muted)]'
+                      } ${
+                        !isCurrentMonth ? 'opacity-40' : ''
                       }`}
                       onClick={() => session && handleSessionClick(session)}
                     >
-                      <div className="text-xs font-medium mb-1">{date.getDate()}</div>
+                      {/* Date number in top-left corner */}
+                      <div className="absolute top-1 left-1 text-xs font-medium">{date.getDate()}</div>
+                      
+                      {/* Session content centered */}
                       {session && (
-                        <div className="flex flex-col items-center space-y-1">
-                          <div className="text-[10px] font-medium text-center">
+                        <div className="flex flex-col items-center justify-center h-full pt-3">
+                          <div className="text-[10px] font-medium text-center mb-1">
                             {formatTime(session.timeSpent)}
                           </div>
                           <div className="flex items-center space-x-1">
@@ -621,6 +713,7 @@ export default function MoodAnalyticsPage() {
                   );
                 })}
               </div>
+              
               {searchFilteredData.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   {searchQuery ? 'No sessions match your search criteria.' : 'No mood tracking data found for the selected time period.'}

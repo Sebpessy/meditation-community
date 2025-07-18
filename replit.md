@@ -35,6 +35,12 @@ Preferred communication style: Simple, everyday language.
   - Created comprehensive search functionality for filtering by date or comment text
   - Added detailed session modal showing before/after mood states and improvements
   - Enhanced week filtering to show specific week ranges with proper navigation controls
+  - Upgraded to full monthly calendar view with month/year navigation and proper date positioning
+  - Fixed session duration display issues by improving data fetching and processing logic
+  - Removed "Add Sample Data" button for non-admin users (admin-only feature)
+  - Enhanced calendar day cards to show date numbers in top-left corner and session duration in center
+  - Added before/after chakra color dots with arrow indicators for mood progression visualization
+  - Implemented comprehensive escape key functionality for closing all overlays and modals
 
 ### July 17, 2025
 - ✅ Fixed message duplication by implementing proper WebSocket deduplication
