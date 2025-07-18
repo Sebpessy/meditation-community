@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ interface LiveChatProps {
 export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatProps) {
   const [inputMessage, setInputMessage] = useState("");
   const [clickedUser, setClickedUser] = useState<number | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
   const [messageLikes, setMessageLikes] = useState<{ [messageId: number]: number }>({});
   const [likedMessages, setLikedMessages] = useState<Set<number>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -134,11 +136,17 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const handleUserClick = (userId: number) => {
+  const handleUserClick = (userId: number, event: React.MouseEvent) => {
     // Toggle name display on click
     if (clickedUser === userId) {
       setClickedUser(null);
+      setTooltipPosition(null);
     } else {
+      const rect = (event.target as HTMLElement).getBoundingClientRect();
+      setTooltipPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top - 10
+      });
       setClickedUser(userId);
     }
   };
@@ -177,21 +185,14 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                     <div key={user.id} className="relative flex-shrink-0" style={{ zIndex: clickedUser === user.id ? 9999 : 1 }}>
                       <Avatar 
                         className="w-7 h-7 border border-white dark:border-neutral-700 cursor-pointer transition-transform hover:scale-110"
-                        onClick={() => handleUserClick(user.id)}
+                        onClick={(e) => handleUserClick(user.id, e)}
                       >
                         <AvatarImage src={user.profilePicture || ""} alt={user.name} />
                         <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
                           {user.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      {clickedUser === user.id && (
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 z-[9999] pointer-events-none">
-                          <div className="bg-black text-white text-sm font-medium rounded-lg px-3 py-2 whitespace-nowrap shadow-xl border-2 border-white">
-                            {user.name}
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-black"></div>
-                          </div>
-                        </div>
-                      )}
+
                     </div>
                   ))}
                 </div>
@@ -297,6 +298,26 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
           Mobile chat is handled by the parent component
         </p>
       </div>
+
+      {/* Portal-based Tooltip */}
+      {clickedUser && tooltipPosition && onlineUsers && (
+        createPortal(
+          <div 
+            className="fixed z-[10000] pointer-events-none"
+            style={{
+              left: tooltipPosition.x,
+              top: tooltipPosition.y,
+              transform: 'translate(-50%, -100%)'
+            }}
+          >
+            <div className="bg-black text-white text-sm font-medium rounded-lg px-3 py-2 whitespace-nowrap shadow-xl border-2 border-white">
+              {onlineUsers.find(user => user.id === clickedUser)?.name}
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-black"></div>
+            </div>
+          </div>,
+          document.body
+        )
+      )}
     </>
   );
 }
