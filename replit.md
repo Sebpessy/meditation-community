@@ -25,6 +25,16 @@ Preferred communication style: Simple, everyday language.
 - ✅ Implemented portal-based tooltip system using React createPortal to bypass container overflow constraints
 - ✅ Fixed tooltip positioning to properly display above chat header area without clipping
 - ✅ Reduced tooltip size by 50% with smaller text, padding, and arrow for better visual balance
+- ✅ Fixed mobile avatar sizes to match chat avatars (w-8 h-8 on mobile, w-10 h-10 on desktop)
+- ✅ Added dynamic screen positioning to prevent tooltips from disappearing off-screen
+- ✅ Implemented click-anywhere-to-dismiss functionality with proper event handling
+- ✅ Enhanced mood tracker with comprehensive overlay and analytics features:
+  - Journey mode now displays as full-screen overlay with exit button and click-outside dismissal
+  - Added calendar view for session history with clickable day details
+  - Implemented week-based navigation with previous/next arrows for historical data
+  - Created comprehensive search functionality for filtering by date or comment text
+  - Added detailed session modal showing before/after mood states and improvements
+  - Enhanced week filtering to show specific week ranges with proper navigation controls
 
 ### July 17, 2025
 - ✅ Fixed message duplication by implementing proper WebSocket deduplication

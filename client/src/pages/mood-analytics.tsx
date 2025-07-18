@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, TrendingUp, BarChart3, Activity, Play, Pause, SkipBack, SkipForward } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Calendar, Clock, TrendingUp, BarChart3, Activity, Play, Pause, SkipBack, SkipForward, X, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
@@ -82,6 +83,11 @@ export default function MoodAnalyticsPage() {
   const [viewMode, setViewMode] = useState<'analytics' | 'journey'>('analytics');
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSessionIndex, setCurrentSessionIndex] = useState(0);
+  const [showJourneyOverlay, setShowJourneyOverlay] = useState(false);
+  const [selectedSessionDetail, setSelectedSessionDetail] = useState<SessionAnalytics | null>(null);
+  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [historyViewMode, setHistoryViewMode] = useState<'list' | 'calendar'>('list');
 
   const { data: currentUser } = useQuery({
     queryKey: ['/api/auth/user', user?.uid],
@@ -154,32 +160,52 @@ export default function MoodAnalyticsPage() {
     );
   }, [moodEntries]);
 
-  const filteredData = processedData.filter(session => {
-    const sessionDate = new Date(session.sessionDate);
+  const filteredData = useMemo(() => {
     const now = new Date();
-    const daysDiff = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() + (currentWeekOffset * 7)); // Start of week + offset
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // End of week
     
-    switch (timeFilter) {
-      case 'week':
-        return daysDiff <= 7;
-      case 'month':
-        return daysDiff <= 30;
-      default:
-        return true;
+    if (timeFilter === 'week') {
+      return processedData.filter(session => {
+        const sessionDate = new Date(session.sessionDate);
+        return sessionDate >= startOfWeek && sessionDate <= endOfWeek;
+      });
+    } else if (timeFilter === 'month') {
+      const filterDate = new Date();
+      filterDate.setDate(now.getDate() - 30);
+      return processedData.filter(session => 
+        new Date(session.sessionDate) >= filterDate
+      );
     }
-  });
+    
+    return processedData;
+  }, [processedData, timeFilter, currentWeekOffset]);
 
-  const avgImprovement = filteredData.length > 0 
-    ? filteredData.reduce((sum, session) => sum + (session.improvement || 0), 0) / filteredData.length
+  const searchFilteredData = useMemo(() => {
+    if (!searchQuery.trim()) return filteredData;
+    
+    return filteredData.filter(session => {
+      const dateMatch = formatDate(session.sessionDate).toLowerCase().includes(searchQuery.toLowerCase());
+      const preCommentMatch = session.preEntry?.comment?.toLowerCase().includes(searchQuery.toLowerCase());
+      const postCommentMatch = session.postEntry?.comment?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      return dateMatch || preCommentMatch || postCommentMatch;
+    });
+  }, [filteredData, searchQuery]);
+
+  const avgImprovement = searchFilteredData.length > 0 
+    ? searchFilteredData.reduce((sum, session) => sum + (session.improvement || 0), 0) / searchFilteredData.length
     : 0;
 
   // Auto-play functionality for journey mode
   useEffect(() => {
-    if (!isPlaying || filteredData.length === 0) return;
+    if (!isPlaying || searchFilteredData.length === 0) return;
     
     const interval = setInterval(() => {
       setCurrentSessionIndex(prev => {
-        if (prev >= filteredData.length - 1) {
+        if (prev >= searchFilteredData.length - 1) {
           setIsPlaying(false);
           return 0;
         }
@@ -188,7 +214,7 @@ export default function MoodAnalyticsPage() {
     }, 3000);
     
     return () => clearInterval(interval);
-  }, [isPlaying, filteredData.length]);
+  }, [isPlaying, searchFilteredData.length]);
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
@@ -199,7 +225,7 @@ export default function MoodAnalyticsPage() {
   };
 
   const handleNext = () => {
-    setCurrentSessionIndex(prev => Math.min(filteredData.length - 1, prev + 1));
+    setCurrentSessionIndex(prev => Math.min(searchFilteredData.length - 1, prev + 1));
   };
 
   const handleReset = () => {
@@ -207,11 +233,44 @@ export default function MoodAnalyticsPage() {
     setIsPlaying(false);
   };
 
-  const avgTimeSpent = filteredData.length > 0
-    ? filteredData.reduce((sum, session) => sum + session.timeSpent, 0) / filteredData.length
+  // Week navigation handlers
+  const handlePreviousWeek = () => {
+    setCurrentWeekOffset(prev => prev - 1);
+  };
+
+  const handleNextWeek = () => {
+    setCurrentWeekOffset(prev => prev + 1);
+  };
+
+  const handleCurrentWeek = () => {
+    setCurrentWeekOffset(0);
+  };
+
+  // Journey overlay handlers
+  const handleJourneyClick = () => {
+    setShowJourneyOverlay(true);
+  };
+
+  const handleCloseJourneyOverlay = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setShowJourneyOverlay(false);
+    setIsPlaying(false);
+  };
+
+  // Calendar view handlers
+  const handleSessionClick = (session: SessionAnalytics) => {
+    setSelectedSessionDetail(session);
+  };
+
+  const handleCloseSessionDetail = () => {
+    setSelectedSessionDetail(null);
+  };
+
+  const avgTimeSpent = searchFilteredData.length > 0
+    ? searchFilteredData.reduce((sum, session) => sum + session.timeSpent, 0) / searchFilteredData.length
     : 0;
 
-  const totalSessions = filteredData.length;
+  const totalSessions = searchFilteredData.length;
 
   if (isLoading) {
     return (
@@ -239,9 +298,9 @@ export default function MoodAnalyticsPage() {
               Analytics
             </Button>
             <Button
-              variant={viewMode === 'journey' ? 'default' : 'ghost'}
+              variant="ghost"
               size="sm"
-              onClick={() => setViewMode('journey')}
+              onClick={handleJourneyClick}
             >
               <Activity className="w-4 h-4 mr-1" />
               Journey
@@ -261,6 +320,35 @@ export default function MoodAnalyticsPage() {
               </Button>
             ))}
           </div>
+          
+          {/* Week Navigation - only show when week filter is active */}
+          {timeFilter === 'week' && (
+            <div className="flex items-center space-x-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousWeek}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCurrentWeek}
+                disabled={currentWeekOffset === 0}
+              >
+                Current Week
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextWeek}
+                disabled={currentWeekOffset >= 0}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
           
           {/* Sample Data Button */}
           <Button
@@ -318,17 +406,58 @@ export default function MoodAnalyticsPage() {
         </Card>
       </div>
 
+      {/* Search Bar */}
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by date or comment..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        {searchQuery && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSearchQuery('')}
+          >
+            Clear
+          </Button>
+        )}
+      </div>
+
       {/* Session History */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Activity className="h-5 w-5 mr-2" />
-            Session History
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Activity className="h-5 w-5 mr-2" />
+              Session History
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant={historyViewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setHistoryViewMode('list')}
+              >
+                List
+              </Button>
+              <Button
+                variant={historyViewMode === 'calendar' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setHistoryViewMode('calendar')}
+              >
+                Calendar
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {filteredData.map((session, index) => (
+          {historyViewMode === 'list' ? (
+            <div className="space-y-4">
+            {searchFilteredData.map((session, index) => (
               <div key={session.sessionDate} className="p-4 border border-neutral-200 dark:border-[var(--border)] rounded-lg space-y-3 bg-white dark:bg-[var(--chat-message)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                   <div className="flex items-center space-x-4">
@@ -410,89 +539,232 @@ export default function MoodAnalyticsPage() {
               </div>
             ))}
             
-            {filteredData.length === 0 && (
+            {searchFilteredData.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
-                No mood tracking data found for the selected time period.
+                {searchQuery ? 'No sessions match your search criteria.' : 'No mood tracking data found for the selected time period.'}
               </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Energy Centers Journey Mode */}
-      {viewMode === 'journey' && filteredData.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Activity className="h-5 w-5 mr-2" />
-                Energy Centers Flow Journey
+            </div>
+          ) : (
+            // Calendar View
+            <div className="space-y-4">
+              <div className="grid grid-cols-7 gap-2 text-center text-sm font-medium text-muted-foreground">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleReset}
-                  disabled={currentSessionIndex === 0 && !isPlaying}
-                >
-                  <SkipBack className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePrevious}
-                  disabled={currentSessionIndex === 0}
-                >
-                  <SkipBack className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePlayPause}
-                >
-                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNext}
-                  disabled={currentSessionIndex >= filteredData.length - 1}
-                >
-                  <SkipForward className="h-4 w-4" />
-                </Button>
+              <div className="grid grid-cols-7 gap-2">
+                {Array.from({ length: 35 }, (_, index) => {
+                  const weekStart = new Date();
+                  weekStart.setDate(weekStart.getDate() - weekStart.getDay() + (currentWeekOffset * 7));
+                  const date = new Date(weekStart);
+                  date.setDate(weekStart.getDate() + index);
+                  
+                  const dateStr = date.toISOString().split('T')[0];
+                  const session = searchFilteredData.find(s => s.sessionDate === dateStr);
+                  const isToday = dateStr === new Date().toISOString().split('T')[0];
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={`aspect-square p-2 border rounded cursor-pointer transition-colors ${
+                        isToday ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' : 'border-neutral-200 dark:border-[var(--border)]'
+                      } ${
+                        session ? 'bg-green-50 dark:bg-green-950 hover:bg-green-100 dark:hover:bg-green-900' : 'hover:bg-neutral-50 dark:hover:bg-[var(--muted)]'
+                      }`}
+                      onClick={() => session && handleSessionClick(session)}
+                    >
+                      <div className="text-xs font-medium">{date.getDate()}</div>
+                      {session && (
+                        <div className="mt-1">
+                          <div className="w-2 h-2 rounded-full mx-auto" 
+                               style={{ backgroundColor: chakraColors[session.postEntry?.emotionLevel || session.preEntry?.emotionLevel || 0]?.color || '#E53E3E' }} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4">
-              <p className="text-sm text-muted-foreground mb-2">
-                Watch your energy flow through the chakra centers as you progress through meditation sessions.
-                Energy moves up the spine, blockages dissolve, and balance improves over time.
-              </p>
-              {filteredData[currentSessionIndex] && (
-                <div className="flex items-center space-x-4 text-sm">
-                  <Badge variant="outline">
-                    {formatDate(filteredData[currentSessionIndex].sessionDate)}
-                  </Badge>
-                  <span className="text-muted-foreground">
-                    Session {currentSessionIndex + 1} of {filteredData.length}
-                  </span>
-                  {filteredData[currentSessionIndex].improvement > 0 && (
-                    <Badge variant="secondary" className="text-green-600">
-                      +{filteredData[currentSessionIndex].improvement} levels improved
-                    </Badge>
-                  )}
+              {searchFilteredData.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  {searchQuery ? 'No sessions match your search criteria.' : 'No mood tracking data found for the selected time period.'}
                 </div>
               )}
             </div>
-            
-            <EnergyFlowAnimation
-              sessionData={filteredData}
-              isPlaying={isPlaying}
-              currentSessionIndex={currentSessionIndex}
-            />
-          </CardContent>
-        </Card>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Session Detail Modal */}
+      {selectedSessionDetail && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={handleCloseSessionDetail}>
+          <Card className="w-full max-w-md bg-white dark:bg-[var(--background)] border-neutral-200 dark:border-[var(--border)]" onClick={(e) => e.stopPropagation()}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Calendar className="h-5 w-5 mr-2" />
+                  {formatDate(selectedSessionDetail.sessionDate)}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCloseSessionDetail}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Session Duration:</span>
+                <span className="text-sm">{formatTime(selectedSessionDetail.timeSpent)}</span>
+              </div>
+              
+              <div className="space-y-3">
+                {selectedSessionDetail.preEntry && (
+                  <div>
+                    <div className="text-sm font-medium mb-2">Before Meditation:</div>
+                    <Badge 
+                      variant="outline" 
+                      style={{ 
+                        borderColor: chakraColors[selectedSessionDetail.preEntry.emotionLevel]?.color || '#E53E3E',
+                        color: chakraColors[selectedSessionDetail.preEntry.emotionLevel]?.color || '#E53E3E'
+                      }}
+                      className="mb-2"
+                    >
+                      {chakraColors[selectedSessionDetail.preEntry.emotionLevel]?.name || 'Root Center'}
+                    </Badge>
+                    {selectedSessionDetail.preEntry.comment && (
+                      <div className="text-xs text-gray-600 dark:text-[var(--text-medium-contrast)] bg-gray-50 dark:bg-[var(--muted)] p-2 rounded italic">
+                        "{selectedSessionDetail.preEntry.comment}"
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {selectedSessionDetail.postEntry && (
+                  <div>
+                    <div className="text-sm font-medium mb-2">After Meditation:</div>
+                    <Badge 
+                      variant="outline" 
+                      style={{ 
+                        borderColor: chakraColors[selectedSessionDetail.postEntry.emotionLevel]?.color || '#E53E3E',
+                        color: chakraColors[selectedSessionDetail.postEntry.emotionLevel]?.color || '#E53E3E'
+                      }}
+                      className="mb-2"
+                    >
+                      {chakraColors[selectedSessionDetail.postEntry.emotionLevel]?.name || 'Root Center'}
+                    </Badge>
+                    {selectedSessionDetail.postEntry.comment && (
+                      <div className="text-xs text-gray-600 dark:text-[var(--text-medium-contrast)] bg-gray-50 dark:bg-[var(--muted)] p-2 rounded italic">
+                        "{selectedSessionDetail.postEntry.comment}"
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {selectedSessionDetail.improvement !== 0 && (
+                  <div className="text-center pt-2 border-t">
+                    <div className={`text-sm font-medium ${
+                      selectedSessionDetail.improvement > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      {selectedSessionDetail.improvement > 0 ? '+' : ''}{selectedSessionDetail.improvement} levels improvement
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Journey Overlay */}
+      {showJourneyOverlay && searchFilteredData.length > 0 && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={handleCloseJourneyOverlay}>
+          <Card className="w-full max-w-4xl bg-white dark:bg-[var(--background)] border-neutral-200 dark:border-[var(--border)] max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Activity className="h-5 w-5 mr-2" />
+                  Energy Centers Flow Journey
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleReset}
+                    disabled={currentSessionIndex === 0 && !isPlaying}
+                  >
+                    <SkipBack className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevious}
+                    disabled={currentSessionIndex === 0}
+                  >
+                    <SkipBack className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePlayPause}
+                  >
+                    {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNext}
+                    disabled={currentSessionIndex >= searchFilteredData.length - 1}
+                  >
+                    <SkipForward className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCloseJourneyOverlay}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Watch your energy flow through the chakra centers as you progress through meditation sessions.
+                  Energy moves up the spine, blockages dissolve, and balance improves over time.
+                </p>
+                {searchFilteredData[currentSessionIndex] && (
+                  <div className="flex items-center space-x-4 text-sm">
+                    <Badge variant="outline">
+                      {formatDate(searchFilteredData[currentSessionIndex].sessionDate)}
+                    </Badge>
+                    <span className="text-muted-foreground">
+                      Session {currentSessionIndex + 1} of {searchFilteredData.length}
+                    </span>
+                    {searchFilteredData[currentSessionIndex].improvement > 0 && (
+                      <Badge variant="secondary" className="text-green-600">
+                        +{searchFilteredData[currentSessionIndex].improvement} levels improved
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              <EnergyFlowAnimation
+                sessionData={searchFilteredData}
+                isPlaying={isPlaying}
+                currentSessionIndex={currentSessionIndex}
+              />
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );
