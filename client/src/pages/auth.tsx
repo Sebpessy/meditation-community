@@ -187,7 +187,7 @@ export default function AuthPage() {
             <img 
               src={logoImg} 
               alt="Evolving Hearts Logo" 
-              className="w-40 h-40 object-contain animate-pulse"
+              className="w-40 h-40 object-contain logo-pulse"
             />
           </div>
           <CardTitle className="text-2xl font-bold text-neutral-800">
