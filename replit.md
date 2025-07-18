@@ -82,6 +82,10 @@ Preferred communication style: Simple, everyday language.
 - ✅ Minimized chat header padding on both mobile and desktop from p-4 to p-2 for compact layout
 - ✅ Reduced avatar sizes in header from w-8 h-8 to w-6 h-6 for space efficiency
 - ✅ Added horizontal scrolling for online user avatars with visual indicators when more than 3 users
+- ✅ Moved online user avatars to a second line below chat header for better visibility
+- ✅ Implemented click-to-show-name functionality for user avatars
+- ✅ Enhanced mobile and desktop layouts with full-width avatar scrolling
+- ✅ Adjusted scroll indicators to appear when more than 8 users on mobile and 10 on desktop
 - ✅ Implemented gradient fade indicators showing scrollability for avatar overflow
 
 ### July 15, 2025

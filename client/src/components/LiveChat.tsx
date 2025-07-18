@@ -155,63 +155,61 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
       <div className="hidden md:flex h-full flex-col">
         <Card className="h-full flex flex-col bg-white dark:bg-[var(--chat-background)] border-neutral-200 dark:border-[var(--border)]">
           {/* Desktop Chat Header */}
-          <div className="p-2 border-b border-neutral-200 dark:border-[var(--border)] bg-white dark:bg-[var(--chat-background)] flex-shrink-0">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="font-semibold text-neutral-800 dark:text-[var(--text-high-contrast)] text-sm">Live Chat</h3>
-              <div className="flex items-center gap-2 flex-1 justify-end">
+          <div className="border-b border-neutral-200 dark:border-[var(--border)] bg-white dark:bg-[var(--chat-background)] flex-shrink-0">
+            <div className="p-2 pb-1">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-semibold text-neutral-800 dark:text-[var(--text-high-contrast)] text-sm">Live Chat</h3>
                 <div className="flex items-center space-x-1">
                   <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-neutral-400 dark:bg-neutral-600'}`} />
                   <span className="text-xs text-neutral-600 dark:text-white font-medium whitespace-nowrap">
                     {onlineCount} online
                   </span>
                 </div>
-                
-                {/* Online Users Display */}
-                {onlineUsers.length > 0 && (
-                  <div className="flex items-center gap-1 min-w-0 relative">
-                    {onlineUsers.length > 3 && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-full bg-gradient-to-r from-white dark:from-[var(--chat-background)] to-transparent z-10 flex items-center justify-start">
-                        <svg className="w-3 h-3 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                      </div>
-                    )}
-                    <div className="flex gap-1 overflow-x-auto scrollbar-none scroll-smooth" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-                      {onlineUsers.map((user) => (
-                        <div key={user.id} className="relative flex-shrink-0">
-                          <Avatar 
-                            className="w-6 h-6 border border-white dark:border-[var(--chat-background)] cursor-pointer hover:z-10 transition-transform hover:scale-110"
-                            onMouseEnter={() => setHoveredUser(user.id)}
-                            onMouseLeave={() => setHoveredUser(null)}
-                            onClick={() => handleUserClick(user.id)}
-                          >
-                            <AvatarImage src={user.profilePicture || ""} alt={user.name} />
-                            <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
-                              {user.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          {hoveredUser === user.id && (
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 z-20">
-                              <div className="bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-800 text-xs rounded px-2 py-1 whitespace-nowrap">
-                                {user.name}
-                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-800 dark:border-t-neutral-200"></div>
-                              </div>
-                            </div>
-                          )}
+              </div>
+            </div>
+            
+            {/* Online Users Display - Second Line */}
+            {onlineUsers.length > 0 && (
+              <div className="px-2 pb-2 relative">
+                {onlineUsers.length > 10 && (
+                  <div className="absolute left-2 top-1/2 -translate-y-1/2 w-6 h-full bg-gradient-to-r from-white dark:from-[var(--chat-background)] to-transparent z-10 flex items-center justify-start pointer-events-none">
+                    <svg className="w-3 h-3 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </div>
+                )}
+                <div className="flex gap-1 overflow-x-auto scrollbar-none scroll-smooth" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                  {onlineUsers.map((user) => (
+                    <div key={user.id} className="relative flex-shrink-0">
+                      <Avatar 
+                        className="w-7 h-7 border border-white dark:border-neutral-700 cursor-pointer hover:z-10 transition-transform hover:scale-110"
+                        onClick={() => handleUserClick(user.id)}
+                      >
+                        <AvatarImage src={user.profilePicture || ""} alt={user.name} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
+                          {user.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      {hoveredUser === user.id && (
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 z-20">
+                          <div className="bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-800 text-xs rounded px-2 py-1 whitespace-nowrap">
+                            {user.name}
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-800 dark:border-t-neutral-200"></div>
+                          </div>
                         </div>
-                      ))}
+                      )}
                     </div>
-                    {onlineUsers.length > 3 && (
-                      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-full bg-gradient-to-l from-white dark:from-[var(--chat-background)] to-transparent z-10 flex items-center justify-end">
-                        <svg className="w-3 h-3 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    )}
+                  ))}
+                </div>
+                {onlineUsers.length > 10 && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-full bg-gradient-to-l from-white dark:from-[var(--chat-background)] to-transparent z-10 flex items-center justify-end pointer-events-none">
+                    <svg className="w-3 h-3 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                 )}
               </div>
-            </div>
+            )}
           </div>
 
           {/* Desktop Chat Messages */}
