@@ -184,11 +184,11 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                   {onlineUsers.map((user) => (
                     <div key={user.id} className="relative flex-shrink-0" style={{ zIndex: clickedUser === user.id ? 9999 : 1 }}>
                       <Avatar 
-                        className="w-7 h-7 border border-white dark:border-neutral-700 cursor-pointer transition-transform hover:scale-110"
+                        className="w-10 h-10 border border-white dark:border-neutral-700 cursor-pointer transition-transform hover:scale-110"
                         onClick={(e) => handleUserClick(user.id, e)}
                       >
                         <AvatarImage src={user.profilePicture || ""} alt={user.name} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
+                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
                           {user.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -310,7 +310,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
               transform: 'translate(-50%, -100%)'
             }}
           >
-            <div className="bg-black text-white text-xs font-medium rounded px-2 py-1 whitespace-nowrap shadow-xl border border-white">
+            <div className="bg-black text-white text-[10px] font-medium rounded px-2 py-1 whitespace-nowrap shadow-xl border border-white">
               {onlineUsers.find(user => user.id === clickedUser)?.name}
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[4px] border-transparent border-t-black"></div>
             </div>
