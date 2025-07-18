@@ -266,6 +266,22 @@ export default function MoodAnalyticsPage() {
     setSelectedSessionDetail(null);
   };
 
+  // Handle escape key for closing modals
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (showJourneyOverlay) {
+          handleCloseJourneyOverlay();
+        } else if (selectedSessionDetail) {
+          handleCloseSessionDetail();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => document.removeEventListener('keydown', handleEscapeKey);
+  }, [showJourneyOverlay, selectedSessionDetail]);
+
   const avgTimeSpent = searchFilteredData.length > 0
     ? searchFilteredData.reduce((sum, session) => sum + session.timeSpent, 0) / searchFilteredData.length
     : 0;
@@ -350,21 +366,23 @@ export default function MoodAnalyticsPage() {
             </div>
           )}
           
-          {/* Sample Data Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={async () => {
-              try {
-                await apiRequest('POST', '/api/mood/sample-data', {});
-                window.location.reload();
-              } catch (error) {
-                console.error('Failed to add sample data:', error);
-              }
-            }}
-          >
-            Add Sample Data
-          </Button>
+          {/* Sample Data Button - Only for admins */}
+          {currentUser?.isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  await apiRequest('POST', '/api/mood/sample-data', {});
+                  window.location.reload();
+                } catch (error) {
+                  console.error('Failed to add sample data:', error);
+                }
+              }}
+            >
+              Add Sample Data
+            </Button>
+          )}
         </div>
       </div>
 
@@ -571,18 +589,32 @@ export default function MoodAnalyticsPage() {
                   return (
                     <div
                       key={index}
-                      className={`aspect-square p-2 border rounded cursor-pointer transition-colors ${
+                      className={`aspect-square p-1 border rounded cursor-pointer transition-colors flex flex-col items-center justify-center ${
                         isToday ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' : 'border-neutral-200 dark:border-[var(--border)]'
                       } ${
                         session ? 'bg-green-50 dark:bg-green-950 hover:bg-green-100 dark:hover:bg-green-900' : 'hover:bg-neutral-50 dark:hover:bg-[var(--muted)]'
                       }`}
                       onClick={() => session && handleSessionClick(session)}
                     >
-                      <div className="text-xs font-medium">{date.getDate()}</div>
+                      <div className="text-xs font-medium mb-1">{date.getDate()}</div>
                       {session && (
-                        <div className="mt-1">
-                          <div className="w-2 h-2 rounded-full mx-auto" 
-                               style={{ backgroundColor: chakraColors[session.postEntry?.emotionLevel || session.preEntry?.emotionLevel || 0]?.color || '#E53E3E' }} />
+                        <div className="flex flex-col items-center space-y-1">
+                          <div className="text-[10px] font-medium text-center">
+                            {formatTime(session.timeSpent)}
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            {session.preEntry && (
+                              <div className="w-2 h-2 rounded-full" 
+                                   style={{ backgroundColor: chakraColors[session.preEntry.emotionLevel]?.color || '#E53E3E' }} />
+                            )}
+                            {session.preEntry && session.postEntry && (
+                              <div className="text-[8px] text-muted-foreground">→</div>
+                            )}
+                            {session.postEntry && (
+                              <div className="w-2 h-2 rounded-full" 
+                                   style={{ backgroundColor: chakraColors[session.postEntry.emotionLevel]?.color || '#E53E3E' }} />
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
