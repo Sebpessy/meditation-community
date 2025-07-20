@@ -20,9 +20,11 @@ export default function GardenAngelPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
 
-  const { data: schedules = [], isLoading } = useQuery<Schedule[]>({
+  const { data: schedules = [], isLoading, error } = useQuery<Schedule[]>({
     queryKey: ['/api/garden-angel/schedules'],
   });
+
+  console.log('Garden Angel schedules:', schedules, 'Loading:', isLoading, 'Error:', error);
 
   // Filter schedules for current month
   const monthStart = startOfMonth(currentDate);
