@@ -187,9 +187,14 @@ export default function MoodAnalyticsPage() {
   const filteredData = useMemo(() => {
     const now = new Date();
     const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay() + (currentWeekOffset * 7)); // Start of week + offset
+    // Start week on Monday (getDay() returns 0-6, Sunday=0, Monday=1)
+    const dayOfWeek = now.getDay();
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // If Sunday, go back 6 days, else go back (day - 1) days
+    startOfWeek.setDate(now.getDate() - daysFromMonday + (currentWeekOffset * 7)); // Start of week + offset
+    startOfWeek.setHours(0, 0, 0, 0); // Set to beginning of day
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6); // End of week
+    endOfWeek.setHours(23, 59, 59, 999); // Set to end of day
     
     if (timeFilter === 'week') {
       return processedData.filter(session => {
@@ -404,7 +409,7 @@ export default function MoodAnalyticsPage() {
                 size="sm"
                 onClick={() => setTimeFilter(filter)}
               >
-                {filter === 'all' ? 'All Time' : `Last ${filter}`}
+                {filter === 'all' ? 'All Time' : filter === 'week' ? 'Current week' : `Last ${filter}`}
               </Button>
             ))}
           </div>

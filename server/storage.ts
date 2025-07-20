@@ -53,6 +53,7 @@ export interface IStorage {
   getMeditationSessions(userId: number, sessionDate?: string): Promise<MeditationSession[]>;
   updateMeditationSession(id: number, session: Partial<MeditationSession>): Promise<MeditationSession | undefined>;
   getSessionDuration(userId: number, sessionDate: string): Promise<number>;
+  getSessionDurations(userId: number): Promise<Array<{ sessionDate: string, duration: number }>>;
   getOrCreateTodaySession(userId: number, sessionDate: string): Promise<MeditationSession>;
   
   // User analytics
@@ -395,7 +396,7 @@ export class DatabaseStorage implements IStorage {
         id: msg.userId,
         name: msg.userName,
         profilePicture: msg.userProfilePicture,
-        isGardenAngel: msg.isGardenAngel
+        isGardenAngel: msg.isGardenAngel || false
       }
     }));
     
@@ -640,6 +641,26 @@ export class DatabaseStorage implements IStorage {
     return Math.round((totalDuration[0]?.totalDuration || 0) / 60);
   }
 
+  // Get session durations by date for a user
+  async getSessionDurations(userId: number): Promise<Array<{ sessionDate: string, duration: number }>> {
+    const sessions = await db.select({
+      sessionDate: meditationSessions.sessionDate,
+      totalDuration: sql<number>`COALESCE(SUM(${meditationSessions.duration}), 0)`
+    })
+    .from(meditationSessions)
+    .where(and(
+      eq(meditationSessions.userId, userId),
+      isNotNull(meditationSessions.duration)
+    ))
+    .groupBy(meditationSessions.sessionDate)
+    .orderBy(desc(meditationSessions.sessionDate));
+
+    return sessions.map(session => ({
+      sessionDate: session.sessionDate,
+      duration: Number(session.totalDuration) || 0
+    }));
+  }
+
   // Profile picture operations
   async getAllProfilePictures(): Promise<ProfilePicture[]> {
     return await db
@@ -688,7 +709,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(profilePictures)
       .where(eq(profilePictures.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async banIp(ipAddress: string, bannedBy: number, reason?: string): Promise<BannedIp> {

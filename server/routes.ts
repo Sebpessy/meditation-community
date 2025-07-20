@@ -776,9 +776,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
+      console.log('Fetching session durations for user:', user.id);
       const durations = await storage.getSessionDurations(user.id);
+      console.log('Session durations result:', durations);
       res.json(durations);
     } catch (error) {
+      console.error('Error in getSessionDurations endpoint:', error);
       res.status(500).json({ error: 'Failed to get session durations' });
     }
   });
