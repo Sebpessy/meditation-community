@@ -85,6 +85,8 @@ export default function AdminPage() {
   const [importPreview, setImportPreview] = useState<any[]>([]);
   const [isProcessingImport, setIsProcessingImport] = useState(false);
   const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
+  const [banningUser, setBanningUser] = useState<User | null>(null);
+  const [banReason, setBanReason] = useState("");
 
   const [templateForm, setTemplateForm] = useState({
     title: "",
@@ -311,6 +313,64 @@ export default function AdminPage() {
       toast({
         title: "Error",
         description: "Failed to delete user. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const banUserMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: number; reason: string }) => 
+      apiRequest("POST", `/api/admin/users/${id}/ban`, { reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "User banned",
+        description: "The user has been banned successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to ban user. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const unbanUserMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("POST", `/api/admin/users/${id}/unban`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "User unbanned",
+        description: "The user has been unbanned successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to unban user. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const toggleGardenAngelMutation = useMutation({
+    mutationFn: ({ id, isGardenAngel }: { id: number; isGardenAngel: boolean }) => 
+      isGardenAngel 
+        ? apiRequest("DELETE", `/api/admin/users/${id}/garden-angel`)
+        : apiRequest("POST", `/api/admin/users/${id}/garden-angel`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "Role updated",
+        description: "The user's role has been updated successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update user role. Please try again.",
         variant: "destructive"
       });
     }
@@ -688,6 +748,32 @@ export default function AdminPage() {
     user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(userSearchTerm.toLowerCase())
   ) || [];
+
+  const handleBanUser = (user: User) => {
+    setBanningUser(user);
+    setBanReason("");
+  };
+
+  const confirmBanUser = () => {
+    if (banningUser && banReason.trim()) {
+      banUserMutation.mutate({ id: banningUser.id, reason: banReason });
+      setBanningUser(null);
+      setBanReason("");
+    }
+  };
+
+  const handleUnbanUser = (user: User) => {
+    if (confirm(`Are you sure you want to unban ${user.name}?`)) {
+      unbanUserMutation.mutate(user.id);
+    }
+  };
+
+  const handleToggleGardenAngel = (user: User) => {
+    const action = user.isGardenAngel ? "remove Garden Angel status from" : "make Garden Angel";
+    if (confirm(`Are you sure you want to ${action} ${user.name}?`)) {
+      toggleGardenAngelMutation.mutate({ id: user.id, isGardenAngel: user.isGardenAngel });
+    }
+  };
 
 
 
@@ -1594,9 +1680,8 @@ export default function AdminPage() {
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">User</th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Email</th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Role</th>
+                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Status</th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Joined</th>
-                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Last Login</th>
-                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Time Spent</th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Actions</th>
                         </tr>
                       </thead>
@@ -1628,9 +1713,34 @@ export default function AdminPage() {
                               <p className="text-neutral-800 dark:text-[var(--text-high-contrast)]">{user.email}</p>
                             </td>
                             <td className="p-4">
-                              <Badge variant={user.isAdmin ? "default" : "secondary"}>
-                                {user.isAdmin ? "Admin" : "User"}
-                              </Badge>
+                              <div className="flex space-x-2">
+                                {user.isAdmin ? (
+                                  <Badge className="bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800">
+                                    Admin
+                                  </Badge>
+                                ) : user.isGardenAngel ? (
+                                  <Badge className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
+                                    Garden Angel
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="secondary" className="dark:bg-[var(--muted)] dark:text-[var(--text-medium-contrast)]">
+                                    User
+                                  </Badge>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex space-x-2">
+                                {user.isBanned ? (
+                                  <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800">
+                                    Banned
+                                  </Badge>
+                                ) : (
+                                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800">
+                                    Active
+                                  </Badge>
+                                )}
+                              </div>
                             </td>
                             <td className="p-4">
                               <p className="text-neutral-600 dark:text-[var(--text-medium-contrast)]">
@@ -1638,64 +1748,59 @@ export default function AdminPage() {
                               </p>
                             </td>
                             <td className="p-4">
-                              <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
-                                {user.lastLogin ? (
-                                  <div>
-                                    <p>{new Date(user.lastLogin).toLocaleDateString('en-US', { 
-                                      weekday: 'short', 
-                                      month: 'short', 
-                                      day: 'numeric',
-                                      timeZone: 'America/Chicago'
-                                    })}</p>
-                                    <p className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">
-                                      {new Date(user.lastLogin).toLocaleTimeString('en-US', { 
-                                        hour: 'numeric', 
-                                        minute: '2-digit',
-                                        hour12: true,
-                                        timeZone: 'America/Chicago'
-                                      })} CST
-                                    </p>
-                                  </div>
+                              <div className="flex items-center gap-1 flex-wrap">
+                                {!user.isBanned ? (
+                                  <Button 
+                                    size="sm" 
+                                    variant="destructive"
+                                    onClick={() => handleBanUser(user)}
+                                    disabled={banUserMutation.isPending}
+                                    className="text-xs"
+                                  >
+                                    Ban
+                                  </Button>
                                 ) : (
-                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">Never</span>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => handleUnbanUser(user)}
+                                    disabled={unbanUserMutation.isPending}
+                                    className="text-xs"
+                                  >
+                                    Unban
+                                  </Button>
                                 )}
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
-                                {user.totalTimeSpent > 0 ? (
-                                  <span>{user.totalTimeSpent} min</span>
-                                ) : (
-                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">0 min</span>
+                                
+                                {!user.isAdmin && (
+                                  <Button 
+                                    size="sm" 
+                                    variant={user.isGardenAngel ? "ghost" : "secondary"}
+                                    onClick={() => handleToggleGardenAngel(user)}
+                                    disabled={toggleGardenAngelMutation.isPending}
+                                    className="text-xs"
+                                  >
+                                    {user.isGardenAngel ? "Remove GA" : "Make GA"}
+                                  </Button>
                                 )}
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center space-x-2">
+                                
                                 <Button 
                                   size="sm" 
                                   variant="outline"
                                   onClick={() => toggleUserAdminStatus(user)}
                                   disabled={updateUserMutation.isPending}
+                                  className="text-xs"
                                 >
                                   {user.isAdmin ? "Remove Admin" : "Make Admin"}
                                 </Button>
+                                
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  onClick={() => handleEditUser(user)}
-                                  disabled={updateUserMutation.isPending}
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost" 
-                                  className="text-red-500 hover:text-red-600"
                                   onClick={() => handleDeleteUser(user.id)}
                                   disabled={deleteUserMutation.isPending}
+                                  className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="w-3 h-3" />
                                 </Button>
                               </div>
                             </td>
@@ -1727,13 +1832,34 @@ export default function AdminPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-medium text-neutral-800 truncate">{user.name}</h3>
-                          <Badge variant={user.isAdmin ? "default" : "secondary"} className="text-xs">
-                            {user.isAdmin ? "Admin" : "User"}
-                          </Badge>
+                          <h3 className="font-medium text-neutral-800 dark:text-[var(--text-high-contrast)] truncate">{user.name}</h3>
+                          <div className="flex space-x-1">
+                            {user.isAdmin ? (
+                              <Badge className="bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 text-xs">
+                                Admin
+                              </Badge>
+                            ) : user.isGardenAngel ? (
+                              <Badge className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 text-xs">
+                                GA
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="dark:bg-[var(--muted)] dark:text-[var(--text-medium-contrast)] text-xs">
+                                User
+                              </Badge>
+                            )}
+                            {user.isBanned ? (
+                              <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 text-xs">
+                                Banned
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800 text-xs">
+                                Active
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-sm text-neutral-600 truncate mb-1">{user.email}</p>
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)] truncate mb-1">{user.email}</p>
+                        <p className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">
                           ID: {user.id} • Joined: {new Date(user.createdAt).toLocaleDateString()}
                         </p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-neutral-500">
@@ -1753,33 +1879,59 @@ export default function AdminPage() {
                             <span className="font-medium">Time:</span> {user.totalTimeSpent || 0} min
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2 mt-3">
+                        <div className="flex flex-wrap gap-1 mt-3">
+                          {!user.isBanned ? (
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => handleBanUser(user)}
+                              disabled={banUserMutation.isPending}
+                              className="text-xs"
+                            >
+                              Ban
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleUnbanUser(user)}
+                              disabled={unbanUserMutation.isPending}
+                              className="text-xs"
+                            >
+                              Unban
+                            </Button>
+                          )}
+                          
+                          {!user.isAdmin && (
+                            <Button 
+                              size="sm" 
+                              variant={user.isGardenAngel ? "ghost" : "secondary"}
+                              onClick={() => handleToggleGardenAngel(user)}
+                              disabled={toggleGardenAngelMutation.isPending}
+                              className="text-xs"
+                            >
+                              {user.isGardenAngel ? "Remove GA" : "Make GA"}
+                            </Button>
+                          )}
+                          
                           <Button 
                             size="sm" 
                             variant="outline"
                             onClick={() => toggleUserAdminStatus(user)}
                             disabled={updateUserMutation.isPending}
-                            className="flex-1 text-xs"
+                            className="text-xs"
                           >
                             {user.isAdmin ? "Remove Admin" : "Make Admin"}
                           </Button>
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={() => handleEditUser(user)}
-                            disabled={updateUserMutation.isPending}
-                            className="px-3"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
+                          
                           <Button 
                             size="sm" 
                             variant="ghost"
                             onClick={() => handleDeleteUser(user.id)}
                             disabled={deleteUserMutation.isPending}
-                            className="px-3 text-red-500 hover:text-red-600"
+                            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs px-2"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>
@@ -1835,6 +1987,49 @@ export default function AdminPage() {
                       disabled={updateUserMutation.isPending}
                     >
                       Save Changes
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Ban User Modal */}
+          <Dialog open={banningUser !== null} onOpenChange={() => setBanningUser(null)}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Ban User</DialogTitle>
+              </DialogHeader>
+              {banningUser && (
+                <div className="space-y-4">
+                  <p className="text-neutral-600 dark:text-[var(--text-medium-contrast)]">
+                    You are about to ban <strong>{banningUser.name}</strong> ({banningUser.email}).
+                    This will immediately log them out and prevent them from accessing the platform.
+                  </p>
+                  <div>
+                    <Label htmlFor="banReason">Reason for ban</Label>
+                    <textarea
+                      id="banReason"
+                      className="w-full mt-1 p-2 border border-gray-300 dark:border-[var(--border)] rounded-md bg-white dark:bg-[var(--muted)] text-neutral-800 dark:text-[var(--text-high-contrast)] resize-none"
+                      rows={3}
+                      placeholder="Enter the reason for banning this user..."
+                      value={banReason}
+                      onChange={(e) => setBanReason(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setBanningUser(null)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      variant="destructive"
+                      onClick={confirmBanUser}
+                      disabled={banUserMutation.isPending || !banReason.trim()}
+                    >
+                      {banUserMutation.isPending ? "Banning..." : "Ban User"}
                     </Button>
                   </div>
                 </div>

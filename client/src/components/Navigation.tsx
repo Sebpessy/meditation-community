@@ -41,6 +41,14 @@ export function Navigation({ onlineCount }: NavigationProps) {
           if (response.ok) {
             const userData = await response.json();
             setBackendUser({ name: userData.name, email: userData.email, isAdmin: userData.isAdmin, profilePicture: userData.profilePicture });
+          } else if (response.status === 403) {
+            // User is banned or IP is blocked
+            const errorData = await response.json();
+            console.log("User access denied:", errorData);
+            // Force logout and redirect to auth
+            await signOut(auth);
+            alert(`Access denied: ${errorData.reason}`);
+            window.location.href = '/auth';
           } else if (response.status === 404) {
             // User doesn't exist in backend, register them
             const registerResponse = await apiRequest("POST", "/api/auth/register", {

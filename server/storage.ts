@@ -1,4 +1,4 @@
-import { users, meditationTemplates, schedules, chatMessages, messageLikes, moodEntries, meditationSessions, profilePictures, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type ChatMessageWithUser, type InsertChatMessage, type MessageLike, type InsertMessageLike, type MoodEntry, type InsertMoodEntry, type MeditationSession, type InsertMeditationSession, type ProfilePicture, type InsertProfilePicture } from "@shared/schema";
+import { users, meditationTemplates, schedules, chatMessages, messageLikes, moodEntries, meditationSessions, profilePictures, bannedIps, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type ChatMessageWithUser, type InsertChatMessage, type MessageLike, type InsertMessageLike, type MoodEntry, type InsertMoodEntry, type MeditationSession, type InsertMeditationSession, type ProfilePicture, type InsertProfilePicture, type BannedIp, type InsertBannedIp } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, count, and, sql, isNotNull } from "drizzle-orm";
 
@@ -10,6 +10,11 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
+  banUser(id: number, reason: string, bannedBy: number): Promise<User | undefined>;
+  unbanUser(id: number): Promise<User | undefined>;
+  makeGardenAngel(id: number): Promise<User | undefined>;
+  removeGardenAngel(id: number): Promise<User | undefined>;
+  updateUserLastLoginIp(id: number, ip: string): Promise<void>;
   
   // Template operations
   getAllTemplates(): Promise<MeditationTemplate[]>;
@@ -28,6 +33,7 @@ export interface IStorage {
   // Chat operations
   getChatMessages(sessionDate: string, limit?: number): Promise<ChatMessageWithUser[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessageWithUser>;
+  deleteChatMessage(messageId: number): Promise<boolean>;
   flushChatMessages(sessionDate: string): Promise<boolean>;
   flushOldChatMessages(currentDate: string): Promise<boolean>;
   
@@ -60,6 +66,12 @@ export interface IStorage {
   createProfilePicture(picture: InsertProfilePicture): Promise<ProfilePicture>;
   updateProfilePicture(id: number, picture: Partial<InsertProfilePicture>): Promise<ProfilePicture | undefined>;
   deleteProfilePicture(id: number): Promise<boolean>;
+
+  // IP ban operations
+  banIp(ipAddress: string, bannedBy: number, reason?: string): Promise<BannedIp>;
+  unbanIp(ipAddress: string): Promise<boolean>;
+  isIpBanned(ipAddress: string): Promise<boolean>;
+  getBannedIps(): Promise<BannedIp[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -216,6 +228,63 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async banUser(id: number, reason: string, bannedBy: number): Promise<User | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set({ 
+        isBanned: true, 
+        bannedAt: new Date(),
+        bannedReason: reason 
+      })
+      .where(eq(users.id, id))
+      .returning();
+    
+    // Also ban their IP if they have one
+    if (updated?.lastLoginIp) {
+      await this.banIp(updated.lastLoginIp, bannedBy, `Auto-banned with user: ${reason}`);
+    }
+    
+    return updated || undefined;
+  }
+
+  async unbanUser(id: number): Promise<User | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set({ 
+        isBanned: false, 
+        bannedAt: null,
+        bannedReason: null 
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async makeGardenAngel(id: number): Promise<User | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set({ isGardenAngel: true })
+      .where(eq(users.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async removeGardenAngel(id: number): Promise<User | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set({ isGardenAngel: false })
+      .where(eq(users.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async updateUserLastLoginIp(id: number, ip: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ lastLoginIp: ip })
+      .where(eq(users.id, id));
+  }
+
   async getAllTemplates(): Promise<MeditationTemplate[]> {
     return await db.select().from(meditationTemplates);
   }
@@ -335,6 +404,20 @@ export class DatabaseStorage implements IStorage {
         profilePicture: user?.profilePicture || null
       }
     };
+  }
+
+  async deleteChatMessage(messageId: number): Promise<boolean> {
+    try {
+      // First delete any likes for this message
+      await db.delete(messageLikes).where(eq(messageLikes.messageId, messageId));
+      
+      // Then delete the message
+      const result = await db.delete(chatMessages).where(eq(chatMessages.id, messageId));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting chat message:', error);
+      return false;
+    }
   }
 
   async flushChatMessages(sessionDate: string): Promise<boolean> {
@@ -569,6 +652,44 @@ export class DatabaseStorage implements IStorage {
       .delete(profilePictures)
       .where(eq(profilePictures.id, id));
     return result.rowCount > 0;
+  }
+
+  async banIp(ipAddress: string, bannedBy: number, reason?: string): Promise<BannedIp> {
+    const [bannedIp] = await db
+      .insert(bannedIps)
+      .values({
+        ipAddress,
+        bannedBy,
+        reason: reason || 'Banned by admin'
+      })
+      .returning();
+    return bannedIp;
+  }
+
+  async unbanIp(ipAddress: string): Promise<boolean> {
+    const result = await db
+      .update(bannedIps)
+      .set({ isActive: false })
+      .where(eq(bannedIps.ipAddress, ipAddress));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async isIpBanned(ipAddress: string): Promise<boolean> {
+    const [banned] = await db
+      .select()
+      .from(bannedIps)
+      .where(and(
+        eq(bannedIps.ipAddress, ipAddress),
+        eq(bannedIps.isActive, true)
+      ));
+    return !!banned;
+  }
+
+  async getBannedIps(): Promise<BannedIp[]> {
+    return await db
+      .select()
+      .from(bannedIps)
+      .where(eq(bannedIps.isActive, true));
   }
 }
 

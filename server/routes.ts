@@ -16,6 +16,12 @@ async function getCurrentUser(req: any) {
   
   try {
     const user = await storage.getUserByFirebaseUid(firebaseUid);
+    
+    // Check if user is banned
+    if (user && user.isBanned) {
+      return null; // Return null for banned users to prevent access
+    }
+    
     return user;
   } catch (error) {
     console.error('Error fetching user:', error);
@@ -252,11 +258,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user/:firebaseUid', async (req, res) => {
     try {
       console.log('Fetching user with Firebase UID:', req.params.firebaseUid);
+      
+      // Check if IP is banned first
+      const clientIp = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
+      if (clientIp) {
+        const isIpBanned = await storage.isIpBanned(clientIp.toString());
+        if (isIpBanned) {
+          console.log('Banned IP attempted access:', clientIp);
+          return res.status(403).json({ 
+            error: 'Access denied',
+            reason: 'Your IP address has been blocked'
+          });
+        }
+      }
+      
       const user = await storage.getUserByFirebaseUid(req.params.firebaseUid);
       if (!user) {
         console.log('User not found for Firebase UID:', req.params.firebaseUid);
         return res.status(404).json({ error: 'User not found' });
       }
+      
+      // Check if user is banned
+      if (user.isBanned) {
+        console.log('Banned user attempted access:', user.email);
+        return res.status(403).json({ 
+          error: 'User is banned',
+          reason: user.bannedReason || 'Account has been suspended',
+          bannedAt: user.bannedAt
+        });
+      }
+      
       console.log('User found:', user);
       res.json(user);
     } catch (error) {
@@ -1003,6 +1034,189 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting profile picture:', error);
       res.status(500).json({ error: 'Failed to delete profile picture' });
+    }
+  });
+
+  // User management routes (Admin and Garden Angel only)
+  app.post('/api/admin/users/:id/ban', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { reason } = req.body;
+      
+      if (!reason) {
+        return res.status(400).json({ error: 'Ban reason is required' });
+      }
+
+      const bannedUser = await storage.banUser(id, reason, user.id);
+      
+      if (!bannedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      res.json({ success: true, user: bannedUser });
+    } catch (error) {
+      console.error('Error banning user:', error);
+      res.status(500).json({ error: 'Failed to ban user' });
+    }
+  });
+
+  app.post('/api/admin/users/:id/unban', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const id = parseInt(req.params.id);
+      const unbannedUser = await storage.unbanUser(id);
+      
+      if (!unbannedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      res.json({ success: true, user: unbannedUser });
+    } catch (error) {
+      console.error('Error unbanning user:', error);
+      res.status(500).json({ error: 'Failed to unban user' });
+    }
+  });
+
+  app.post('/api/admin/users/:id/garden-angel', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const id = parseInt(req.params.id);
+      const gardenAngel = await storage.makeGardenAngel(id);
+      
+      if (!gardenAngel) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      res.json({ success: true, user: gardenAngel });
+    } catch (error) {
+      console.error('Error making user Garden Angel:', error);
+      res.status(500).json({ error: 'Failed to make user Garden Angel' });
+    }
+  });
+
+  app.delete('/api/admin/users/:id/garden-angel', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const id = parseInt(req.params.id);
+      const normalUser = await storage.removeGardenAngel(id);
+      
+      if (!normalUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      res.json({ success: true, user: normalUser });
+    } catch (error) {
+      console.error('Error removing Garden Angel status:', error);
+      res.status(500).json({ error: 'Failed to remove Garden Angel status' });
+    }
+  });
+
+  // Chat message management routes (Admin and Garden Angel only)
+  app.delete('/api/admin/messages/:id', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user || (!user.isAdmin && !user.isGardenAngel)) {
+        return res.status(403).json({ error: 'Admin or Garden Angel access required' });
+      }
+
+      const messageId = parseInt(req.params.id);
+      const success = await storage.deleteChatMessage(messageId);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Message not found' });
+      }
+      
+      // Broadcast message deletion to all connected clients
+      const deleteMessage = JSON.stringify({
+        type: 'message-deleted',
+        messageId: messageId
+      });
+      
+      for (const [ws, connectionInfo] of activeConnections) {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(deleteMessage);
+        }
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      res.status(500).json({ error: 'Failed to delete message' });
+    }
+  });
+
+  // IP ban management routes (Admin only)
+  app.get('/api/admin/banned-ips', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const bannedIps = await storage.getBannedIps();
+      res.json(bannedIps);
+    } catch (error) {
+      console.error('Error fetching banned IPs:', error);
+      res.status(500).json({ error: 'Failed to fetch banned IPs' });
+    }
+  });
+
+  app.post('/api/admin/ban-ip', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { ipAddress, reason } = req.body;
+      
+      if (!ipAddress) {
+        return res.status(400).json({ error: 'IP address is required' });
+      }
+
+      const bannedIp = await storage.banIp(ipAddress, user.id, reason);
+      res.json({ success: true, bannedIp });
+    } catch (error) {
+      console.error('Error banning IP:', error);
+      res.status(500).json({ error: 'Failed to ban IP' });
+    }
+  });
+
+  app.delete('/api/admin/banned-ips/:ip', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const ipAddress = req.params.ip;
+      const success = await storage.unbanIp(ipAddress);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'IP not found or already unbanned' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error unbanning IP:', error);
+      res.status(500).json({ error: 'Failed to unban IP' });
     }
   });
 

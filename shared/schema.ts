@@ -9,6 +9,11 @@ export const users = pgTable("users", {
   firebaseUid: text("firebase_uid").notNull().unique(),
   profilePicture: text("profile_picture"),
   isAdmin: boolean("is_admin").default(false),
+  isGardenAngel: boolean("is_garden_angel").default(false),
+  isBanned: boolean("is_banned").default(false),
+  bannedAt: timestamp("banned_at"),
+  bannedReason: text("banned_reason"),
+  lastLoginIp: text("last_login_ip"),
   profileCompleted: boolean("profile_completed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -85,6 +90,15 @@ export const profilePictures = pgTable("profile_pictures", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const bannedIps = pgTable("banned_ips", {
+  id: serial("id").primaryKey(),
+  ipAddress: text("ip_address").notNull().unique(),
+  bannedAt: timestamp("banned_at").defaultNow(),
+  bannedBy: integer("banned_by").references(() => users.id),
+  reason: text("reason"),
+  isActive: boolean("is_active").default(true),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   name: true,
@@ -135,6 +149,11 @@ export const insertProfilePictureSchema = createInsertSchema(profilePictures).om
   updatedAt: true,
 });
 
+export const insertBannedIpSchema = createInsertSchema(bannedIps).omit({
+  id: true,
+  bannedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type MeditationTemplate = typeof meditationTemplates.$inferSelect;
@@ -163,3 +182,5 @@ export type MeditationSession = typeof meditationSessions.$inferSelect;
 export type InsertMeditationSession = z.infer<typeof insertMeditationSessionSchema>;
 export type ProfilePicture = typeof profilePictures.$inferSelect;
 export type InsertProfilePicture = z.infer<typeof insertProfilePictureSchema>;
+export type BannedIp = typeof bannedIps.$inferSelect;
+export type InsertBannedIp = z.infer<typeof insertBannedIpSchema>;
