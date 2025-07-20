@@ -23,6 +23,13 @@ Preferred communication style: Simple, everyday language.
 - ✅ Updated Admin Users section to display "Gardien Angel" instead of "Garden Angel" 
 - ✅ Added "(Gardien Angel)" role indicator in live chat between user names and timestamps
 - ✅ Applied Gardien Angel indicator to both desktop and mobile chat interfaces
+- ✅ Fixed session durations endpoint returning correct meditation time data instead of mood entries
+- ✅ Updated mood analytics default filter from "Last week" to "Current week" for better user experience
+- ✅ Implemented proper week calculation logic starting on Monday as requested
+- ✅ Fixed mobile and desktop chat heart button styling for consistent filled state display
+- ✅ Resolved mood analytics time display showing 0 - now shows accurate meditation session durations
+- ✅ Added proper error handling and logging to session durations endpoint for debugging
+- ✅ Fixed data type conversion for session durations from string to number format
 
 ### July 18, 2025
 - ✅ Successfully deployed to production domain newself.me and Replit domain newself.replit.app
