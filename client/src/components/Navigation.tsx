@@ -30,7 +30,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
   const [location] = useLocation();
   const [user] = useAuthState(auth);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [backendUser, setBackendUser] = useState<{ name: string; email: string; isAdmin: boolean; profilePicture?: string } | null>(null);
+  const [backendUser, setBackendUser] = useState<{ name: string; email: string; isAdmin: boolean; isGardenAngel: boolean; profilePicture?: string } | null>(null);
 
   // Fetch backend user info
   useEffect(() => {
@@ -40,7 +40,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
           const response = await apiRequest("GET", `/api/auth/user/${user.uid}`);
           if (response.ok) {
             const userData = await response.json();
-            setBackendUser({ name: userData.name, email: userData.email, isAdmin: userData.isAdmin, profilePicture: userData.profilePicture });
+            setBackendUser({ name: userData.name, email: userData.email, isAdmin: userData.isAdmin, isGardenAngel: userData.isGardenAngel, profilePicture: userData.profilePicture });
           } else if (response.status === 403) {
             // User is banned or IP is blocked
             const errorData = await response.json();
@@ -58,7 +58,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
             });
             if (registerResponse.ok) {
               const userData = await registerResponse.json();
-              setBackendUser({ name: userData.name, email: userData.email, isAdmin: userData.isAdmin, profilePicture: userData.profilePicture });
+              setBackendUser({ name: userData.name, email: userData.email, isAdmin: userData.isAdmin, isGardenAngel: userData.isGardenAngel, profilePicture: userData.profilePicture });
             }
           }
         } catch (error) {
@@ -137,6 +137,18 @@ export function Navigation({ onlineCount }: NavigationProps) {
                     : "text-neutral-600 dark:text-[var(--text-medium-contrast)] hover:text-neutral-800 dark:hover:text-[var(--text-high-contrast)]"
                 }`}>
                   Admin
+                </span>
+              </Link>
+            )}
+
+            {user && backendUser?.isGardenAngel && !isFirstTimeUser && (
+              <Link href="/garden-angel">
+                <span className={`font-medium transition-colors cursor-pointer ${
+                  isActive("/garden-angel") 
+                    ? "text-primary border-b-2 border-primary pb-1" 
+                    : "text-neutral-600 dark:text-[var(--text-medium-contrast)] hover:text-neutral-800 dark:hover:text-[var(--text-high-contrast)]"
+                }`}>
+                  Garden Angel
                 </span>
               </Link>
             )}
@@ -230,6 +242,17 @@ export function Navigation({ onlineCount }: NavigationProps) {
                     className="block px-3 py-2 text-base font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] hover:text-neutral-900 dark:hover:text-[var(--text-high-contrast)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] rounded-md cursor-pointer"
                   >
                     Admin
+                  </span>
+                </Link>
+              )}
+
+              {user && backendUser?.isGardenAngel && !isFirstTimeUser && (
+                <Link href="/garden-angel">
+                  <span 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-base font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] hover:text-neutral-900 dark:hover:text-[var(--text-high-contrast)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] rounded-md cursor-pointer"
+                  >
+                    Garden Angel
                   </span>
                 </Link>
               )}

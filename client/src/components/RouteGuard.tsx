@@ -89,6 +89,17 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
   // Allow access to all pages for users who have completed their profile
   if (!isFirstTimeUser) {
+    // Check for role-based access
+    if (location === "/admin" && !backendUser?.isAdmin) {
+      setLocation("/");
+      return <>{children}</>;
+    }
+    
+    if (location === "/garden-angel" && !backendUser?.isGardenAngel && !backendUser?.isAdmin) {
+      setLocation("/");
+      return <>{children}</>;
+    }
+    
     return <>{children}</>;
   }
 

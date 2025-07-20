@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import AuthPage from "@/pages/auth";
 import MeditationPage from "@/pages/meditation";
 import AdminPage from "@/pages/admin";
+import GardenAngelPage from "@/pages/garden-angel";
 import SettingsPage from "@/pages/settings";
 import MoodAnalyticsPage from "@/pages/mood-analytics";
 import NotFound from "@/pages/not-found";
@@ -54,6 +55,7 @@ function AppContent() {
           <Route path="/auth" component={AuthPage} />
           <Route path="/meditation" component={MeditationPage} />
           <Route path="/admin" component={AdminPage} />
+          <Route path="/garden-angel" component={GardenAngelPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/mood-analytics" component={MoodAnalyticsPage} />
           <Route path="/" component={MeditationPage} />

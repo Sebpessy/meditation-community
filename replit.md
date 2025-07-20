@@ -10,6 +10,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 20, 2025
+- ✅ Created Garden Angel page with calendar view access for moderation purposes
+- ✅ Added Garden Angel navigation links to both desktop and mobile menus
+- ✅ Implemented role-based access control for Garden Angel page in RouteGuard
+- ✅ Enhanced backend user interface to include isGardenAngel property
+- ✅ Added calendar and list view functionality for Garden Angels to monitor meditation schedules
+- ✅ Integrated comprehensive chat moderation features with message deletion for Garden Angels
+- ✅ Restored Last Login and Time Spent columns in admin user management interface
+- ✅ Added clickable usernames in chat that navigate to admin page for user management
+
 ### July 18, 2025
 - ✅ Successfully deployed to production domain newself.me and Replit domain newself.replit.app
 - ✅ Configured Firebase authentication for production domains
