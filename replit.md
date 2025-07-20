@@ -20,6 +20,9 @@ Preferred communication style: Simple, everyday language.
 - ✅ Restored Last Login and Time Spent columns in admin user management interface
 - ✅ Added clickable usernames in chat that navigate to admin page for user management
 - ✅ Renamed "Garden Angel" to "Gardien Angel" throughout the application
+- ✅ Updated Admin Users section to display "Gardien Angel" instead of "Garden Angel" 
+- ✅ Added "(Gardien Angel)" role indicator in live chat between user names and timestamps
+- ✅ Applied Gardien Angel indicator to both desktop and mobile chat interfaces
 
 ### July 18, 2025
 - ✅ Successfully deployed to production domain newself.me and Replit domain newself.replit.app

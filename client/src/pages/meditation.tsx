@@ -574,6 +574,11 @@ export default function MeditationPage() {
                       >
                         {message.user.name}
                       </a>
+                      {(message.user as any).isGardenAngel && (
+                        <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                          (Gardien Angel)
+                        </span>
+                      )}
                       <span className="text-xs text-neutral-500 dark:text-neutral-400">
                         {formatTime(message.timestamp)}
                       </span>
