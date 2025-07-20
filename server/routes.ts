@@ -86,7 +86,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   user: {
                     id: msg.user.id,
                     name: msg.user.name,
-                    profilePicture: msg.user.profilePicture
+                    profilePicture: msg.user.profilePicture,
+                    isGardenAngel: msg.user.isGardenAngel
                   }
                 };
               });

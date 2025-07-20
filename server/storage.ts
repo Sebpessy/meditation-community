@@ -374,7 +374,8 @@ export class DatabaseStorage implements IStorage {
       timestamp: chatMessages.timestamp,
       userId: chatMessages.userId,
       userName: users.name,
-      userProfilePicture: users.profilePicture
+      userProfilePicture: users.profilePicture,
+      isGardenAngel: users.isGardenAngel
     })
       .from(chatMessages)
       .innerJoin(users, eq(chatMessages.userId, users.id))
@@ -393,7 +394,8 @@ export class DatabaseStorage implements IStorage {
       user: {
         id: msg.userId,
         name: msg.userName,
-        profilePicture: msg.userProfilePicture
+        profilePicture: msg.userProfilePicture,
+        isGardenAngel: msg.isGardenAngel
       }
     }));
     
@@ -419,7 +421,8 @@ export class DatabaseStorage implements IStorage {
       user: {
         id: user?.id || null,
         name: user?.name || 'Unknown',
-        profilePicture: user?.profilePicture || null
+        profilePicture: user?.profilePicture || null,
+        isGardenAngel: user?.isGardenAngel || false
       }
     };
   }
