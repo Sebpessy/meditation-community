@@ -90,7 +90,7 @@ export default function MoodAnalyticsPage() {
   const [historyViewMode, setHistoryViewMode] = useState<'list' | 'calendar'>('list');
   const [calendarDate, setCalendarDate] = useState(new Date());
 
-  const { data: currentUser } = useQuery({
+  const { data: currentUser } = useQuery<{id: number, isAdmin: boolean} | null>({
     queryKey: ['/api/auth/user', user?.uid],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!user?.uid,
@@ -101,7 +101,7 @@ export default function MoodAnalyticsPage() {
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!currentUser,
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0, // Don't cache this data
+    gcTime: 0, // Don't cache this data
   });
 
   // Fetch session durations for each day - wait for Firebase auth to be ready
@@ -110,7 +110,7 @@ export default function MoodAnalyticsPage() {
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !loading && !!currentUser && !!user,
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0, // Don't cache this data
+    gcTime: 0, // Don't cache this data
   });
 
   // Session durations loaded successfully

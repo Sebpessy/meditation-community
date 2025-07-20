@@ -753,6 +753,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics endpoint that returns all mood entries for the user
+  app.get('/api/mood/analytics', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const entries = await storage.getMoodEntries(user.id);
+      res.json(entries);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get mood analytics' });
+    }
+  });
+
+  // Sessions endpoint that returns all mood entries for the user
+  app.get('/api/mood/sessions', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const entries = await storage.getMoodEntries(user.id);
+      res.json(entries);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get mood sessions' });
+    }
+  });
+
   // Admin routes
   app.get('/api/admin/templates', async (req, res) => {
     try {
