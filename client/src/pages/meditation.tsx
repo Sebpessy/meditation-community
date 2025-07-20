@@ -83,6 +83,8 @@ export default function MeditationPage() {
   const [user] = useAuthState(auth);
   const [onlineCount, setOnlineCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<number | undefined>();
+  const [currentUserIsAdmin, setCurrentUserIsAdmin] = useState<boolean>(false);
+  const [currentUserIsGardenAngel, setCurrentUserIsGardenAngel] = useState<boolean>(false);
   const [wsOnlineCount, setWsOnlineCount] = useState(0);
   const [inputMessage, setInputMessage] = useState("");
   const [clickedUser, setClickedUser] = useState<number | null>(null);
@@ -126,6 +128,8 @@ export default function MeditationPage() {
           if (response.ok) {
             const userData = await response.json();
             setCurrentUserId(userData.id);
+            setCurrentUserIsAdmin(userData.isAdmin || false);
+            setCurrentUserIsGardenAngel(userData.isGardenAngel || false);
           } else if (response.status === 404) {
             // User doesn't exist in backend, register them
             console.log("User not found, registering:", user.uid);
@@ -287,6 +291,31 @@ export default function MeditationPage() {
   const handleLike = (messageId: number) => {
     if (!currentUserId) return;
     likeMutation.mutate(messageId);
+  };
+
+  // Delete message mutation (admin/Garden Angel only)
+  const deleteMutation = useMutation({
+    mutationFn: async (messageId: number) => {
+      const response = await apiRequest('DELETE', `/api/messages/${messageId}`);
+      if (!response.ok) {
+        throw new Error('Failed to delete message');
+      }
+      return messageId;
+    },
+    onSuccess: (deletedMessageId) => {
+      // Remove message from UI immediately (WebSocket will broadcast deletion to others)
+      console.log('Message deleted successfully:', deletedMessageId);
+    },
+    onError: (error) => {
+      console.error('Failed to delete message:', error);
+    },
+  });
+
+  const handleDeleteMessage = (messageId: number) => {
+    if (!currentUserIsAdmin && !currentUserIsGardenAngel) return;
+    if (confirm('Are you sure you want to delete this message?')) {
+      deleteMutation.mutate(messageId);
+    }
   };
 
   // Auto-scroll to bottom when new messages arrive
@@ -530,13 +559,34 @@ export default function MeditationPage() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-neutral-800 dark:text-white">
-                      {message.user.name}
-                    </span>
-                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                      {formatTime(message.timestamp)}
-                    </span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <a
+                        href={`/admin#users`}
+                        className="text-sm font-medium text-neutral-800 dark:text-white hover:text-primary hover:underline cursor-pointer"
+                        onClick={(e) => {
+                          if (currentUserIsAdmin || currentUserIsGardenAngel) {
+                            // Allow navigation to admin page
+                          } else {
+                            e.preventDefault();
+                          }
+                        }}
+                      >
+                        {message.user.name}
+                      </a>
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                        {formatTime(message.timestamp)}
+                      </span>
+                    </div>
+                    {(currentUserIsAdmin || currentUserIsGardenAngel) && (
+                      <button
+                        onClick={() => handleDeleteMessage(message.id)}
+                        className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                        disabled={deleteMutation.isPending}
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                   <p className="text-sm text-neutral-700 dark:text-neutral-300 break-words mb-0">
                     {message.message}
@@ -619,6 +669,8 @@ export default function MeditationPage() {
               userId={currentUserId}
               sessionDate={meditation.date}
               onOnlineCountChange={setWsOnlineCount}
+              isAdmin={currentUserIsAdmin}
+              isGardenAngel={currentUserIsGardenAngel}
             />
           </div>
         </div>

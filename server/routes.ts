@@ -972,6 +972,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chat Message Moderation Routes
+  app.delete('/api/messages/:id', async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      const firebaseUid = req.headers['x-firebase-uid'];
+      
+      if (!firebaseUid) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      
+      const user = await storage.getUserByFirebaseUid(firebaseUid as string);
+      if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+      
+      // Check if user is admin or Garden Angel
+      if (!user.isAdmin && !user.isGardenAngel) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      const success = await storage.deleteChatMessage(messageId);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Message not found' });
+      }
+      
+      // Broadcast message deletion to all users in the session
+      const sessionDate = new Date().toISOString().split('T')[0];
+      broadcastToSession(sessionDate, {
+        type: 'message-deleted',
+        messageId: messageId
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      res.status(500).json({ error: 'Failed to delete message' });
+    }
+  });
+
   // Profile Picture Management Routes
   app.get('/api/profile-pictures', async (req, res) => {
     try {

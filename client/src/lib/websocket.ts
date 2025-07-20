@@ -105,6 +105,9 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
               return combined.length > 30 ? combined.slice(-30) : combined;
             });
             break;
+          case 'message-deleted':
+            setMessages(prev => prev.filter(msg => msg.id !== message.messageId));
+            break;
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);

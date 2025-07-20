@@ -13,9 +13,11 @@ interface LiveChatProps {
   userId?: number;
   sessionDate: string;
   onOnlineCountChange?: (count: number) => void;
+  isAdmin?: boolean;
+  isGardenAngel?: boolean;
 }
 
-export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatProps) {
+export function LiveChat({ userId, sessionDate, onOnlineCountChange, isAdmin, isGardenAngel }: LiveChatProps) {
   const [inputMessage, setInputMessage] = useState("");
   const [clickedUser, setClickedUser] = useState<number | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
@@ -93,6 +95,32 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
   const handleLike = (messageId: number) => {
     if (!userId) return;
     likeMutation.mutate(messageId);
+  };
+
+  // Delete message mutation (admin/Garden Angel only)
+  const deleteMutation = useMutation({
+    mutationFn: async (messageId: number) => {
+      const response = await apiRequest('DELETE', `/api/messages/${messageId}`);
+      if (!response.ok) {
+        throw new Error('Failed to delete message');
+      }
+      return messageId;
+    },
+    onSuccess: (deletedMessageId) => {
+      // Remove message from UI immediately (WebSocket will broadcast deletion to others)
+      // The actual removal will be handled by WebSocket message
+      console.log('Message deleted successfully:', deletedMessageId);
+    },
+    onError: (error) => {
+      console.error('Failed to delete message:', error);
+    },
+  });
+
+  const handleDeleteMessage = (messageId: number) => {
+    if (!isAdmin && !isGardenAngel) return;
+    if (confirm('Are you sure you want to delete this message?')) {
+      deleteMutation.mutate(messageId);
+    }
   };
 
   const scrollToBottom = () => {
@@ -249,13 +277,34 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange }: LiveChatP
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-neutral-800 dark:text-[var(--text-high-contrast)]">
-                        {message.user.name}
-                      </span>
-                      <span className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">
-                        {formatTime(message.timestamp)}
-                      </span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <a
+                          href={`/admin#users`}
+                          className="text-sm font-medium text-neutral-800 dark:text-[var(--text-high-contrast)] hover:text-primary hover:underline cursor-pointer"
+                          onClick={(e) => {
+                            if (isAdmin || isGardenAngel) {
+                              // Allow navigation to admin page
+                            } else {
+                              e.preventDefault();
+                            }
+                          }}
+                        >
+                          {message.user.name}
+                        </a>
+                        <span className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">
+                          {formatTime(message.timestamp)}
+                        </span>
+                      </div>
+                      {(isAdmin || isGardenAngel) && (
+                        <button
+                          onClick={() => handleDeleteMessage(message.id)}
+                          className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                          disabled={deleteMutation.isPending}
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                     <p className="text-sm text-neutral-700 dark:text-[var(--text-medium-contrast)] break-words mb-0">
                       {message.message}

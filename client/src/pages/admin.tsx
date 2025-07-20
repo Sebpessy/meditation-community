@@ -1682,6 +1682,8 @@ export default function AdminPage() {
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Role</th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Status</th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Joined</th>
+                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Last Login</th>
+                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Time Spent</th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Actions</th>
                         </tr>
                       </thead>
@@ -1746,6 +1748,39 @@ export default function AdminPage() {
                               <p className="text-neutral-600 dark:text-[var(--text-medium-contrast)]">
                                 {new Date(user.createdAt).toLocaleDateString()}
                               </p>
+                            </td>
+                            <td className="p-4">
+                              <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
+                                {user.lastLogin ? (
+                                  <div>
+                                    <p>{new Date(user.lastLogin).toLocaleDateString('en-US', { 
+                                      weekday: 'short', 
+                                      month: 'short', 
+                                      day: 'numeric',
+                                      timeZone: 'America/Chicago'
+                                    })}</p>
+                                    <p className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">
+                                      {new Date(user.lastLogin).toLocaleTimeString('en-US', { 
+                                        hour: 'numeric', 
+                                        minute: '2-digit',
+                                        hour12: true,
+                                        timeZone: 'America/Chicago'
+                                      })} CST
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">Never</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
+                                {user.totalTimeSpent > 0 ? (
+                                  <span>{user.totalTimeSpent} min</span>
+                                ) : (
+                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">0 min</span>
+                                )}
+                              </div>
                             </td>
                             <td className="p-4">
                               <div className="flex items-center gap-1 flex-wrap">
