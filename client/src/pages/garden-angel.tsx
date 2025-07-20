@@ -68,7 +68,7 @@ export default function GardenAngelPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Garden Angel Dashboard</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Gardien Angel Dashboard</h1>
           <p className="text-neutral-600 dark:text-neutral-400">View meditation schedule and moderate sessions</p>
         </div>
         <div className="flex items-center space-x-2">
@@ -153,15 +153,15 @@ export default function GardenAngelPage() {
                     {schedule && (
                       <div className="mt-1 space-y-1">
                         <div className="text-xs font-medium text-primary bg-primary/10 rounded px-2 py-1 truncate">
-                          {schedule.template.title}
+                          {schedule.template?.title || 'No Title'}
                         </div>
                         <div className="flex items-center text-xs text-neutral-600 dark:text-neutral-400">
                           <User className="w-3 h-3 mr-1" />
-                          <span className="truncate">{schedule.template.instructor}</span>
+                          <span className="truncate">{schedule.template?.instructor || 'Unknown'}</span>
                         </div>
                         <div className="flex items-center text-xs text-neutral-600 dark:text-neutral-400">
                           <Clock className="w-3 h-3 mr-1" />
-                          <span>{schedule.template.duration} min</span>
+                          <span>{schedule.template?.duration || 0} min</span>
                         </div>
                       </div>
                     )}
@@ -188,17 +188,17 @@ export default function GardenAngelPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="font-medium text-neutral-900 dark:text-white">
-                          {schedule.template.title}
+                          {schedule.template?.title || 'No Title'}
                         </h3>
                         <div className="flex items-center space-x-4 mt-1 text-sm text-neutral-600 dark:text-neutral-400">
                           <span>{format(parseISO(schedule.date), 'EEEE, MMMM d, yyyy')}</span>
                           <div className="flex items-center">
                             <User className="w-4 h-4 mr-1" />
-                            {schedule.template.instructor}
+                            {schedule.template?.instructor || 'Unknown'}
                           </div>
                           <div className="flex items-center">
                             <Clock className="w-4 h-4 mr-1" />
-                            {schedule.template.duration} minutes
+                            {schedule.template?.duration || 0} minutes
                           </div>
                         </div>
                       </div>

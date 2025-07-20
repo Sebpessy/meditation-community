@@ -322,7 +322,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllSchedules(): Promise<Schedule[]> {
-    return await db.select().from(schedules);
+    const results = await db
+      .select({
+        id: schedules.id,
+        date: schedules.date,
+        templateId: schedules.templateId,
+        scheduledTime: schedules.scheduledTime,
+        isActive: schedules.isActive,
+        repeatWeeks: schedules.repeatWeeks,
+        repeatCount: schedules.repeatCount,
+        createdAt: schedules.createdAt,
+        template: meditationTemplates,
+      })
+      .from(schedules)
+      .leftJoin(meditationTemplates, eq(schedules.templateId, meditationTemplates.id));
+    
+    return results.map(result => ({
+      ...result,
+      template: result.template || undefined,
+    }));
   }
 
   async createSchedule(schedule: InsertSchedule): Promise<Schedule> {
