@@ -998,7 +998,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/messages/:id', async (req, res) => {
     try {
       const messageId = parseInt(req.params.id);
-      const firebaseUid = req.headers['x-firebase-uid'];
+      const firebaseUid = req.headers['firebase-uid'];
       
       if (!firebaseUid) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -1014,15 +1014,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: 'Access denied' });
       }
       
-      const success = await storage.deleteChatMessage(messageId);
-      
-      if (!success) {
+      // Get the message first to find its session date
+      const messageData = await storage.getChatMessageById(messageId);
+      if (!messageData) {
         return res.status(404).json({ error: 'Message not found' });
       }
       
-      // Broadcast message deletion to all users in the session
-      const sessionDate = new Date().toISOString().split('T')[0];
-      broadcastToSession(sessionDate, {
+      const success = await storage.deleteChatMessage(messageId);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Failed to delete message' });
+      }
+      
+      // Broadcast message deletion to all users in the same session
+      broadcastToSession(messageData.sessionDate, {
         type: 'message-deleted',
         messageId: messageId
       });

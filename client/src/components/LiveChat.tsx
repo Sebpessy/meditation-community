@@ -40,7 +40,8 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange, isAdmin, is
     queryFn: async () => {
       if (!userId) return [];
       const response = await apiRequest('GET', `/api/users/${userId}/liked-messages`);
-      return response.likedMessages || [];
+      const data = await response.json();
+      return data.likedMessages || [];
     },
     enabled: !!userId,
   });

@@ -172,6 +172,7 @@ export interface ChatMessageWithUser {
     id: number | null;
     name: string;
     profilePicture: string | null;
+    isGardenAngel?: boolean;
   };
 }
 export type MessageLike = typeof messageLikes.$inferSelect;

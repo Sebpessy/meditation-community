@@ -174,7 +174,8 @@ export default function MeditationPage() {
     queryFn: async () => {
       if (!currentUserId) return [];
       const response = await apiRequest('GET', `/api/users/${currentUserId}/liked-messages`);
-      return response.likedMessages || [];
+      const data = await response.json();
+      return data.likedMessages || [];
     },
     enabled: !!currentUserId,
   });

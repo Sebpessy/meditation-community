@@ -198,24 +198,24 @@ export class DatabaseStorage implements IStorage {
 
       // Delete all related data to avoid foreign key constraints
       // Delete chat messages by this user
-      await db.delete(chatMessages).where(eq(chatMessages.user_id, id));
+      await db.delete(chatMessages).where(eq(chatMessages.userId, id));
       
       // Delete message likes by this user
-      await db.delete(messageLikes).where(eq(messageLikes.user_id, id));
+      await db.delete(messageLikes).where(eq(messageLikes.userId, id));
       
       // Delete mood entries by this user
-      await db.delete(moodEntries).where(eq(moodEntries.user_id, id));
+      await db.delete(moodEntries).where(eq(moodEntries.userId, id));
       
       // Delete meditation sessions by this user
-      await db.delete(meditationSessions).where(eq(meditationSessions.user_id, id));
+      await db.delete(meditationSessions).where(eq(meditationSessions.userId, id));
       
       // Delete the user from PostgreSQL
       const result = await db.delete(users).where(eq(users.id, id));
-      const dbDeleted = result.rowCount ? result.rowCount > 0 : false;
+      const dbDeleted = (result.rowCount || 0) > 0;
 
       // Delete user from Firebase Auth
       const { deleteFirebaseUser } = await import('./firebase-admin');
-      const firebaseDeleted = await deleteFirebaseUser(user.firebase_uid);
+      const firebaseDeleted = await deleteFirebaseUser(user.firebaseUid);
 
       if (!firebaseDeleted) {
         console.warn(`Failed to delete user ${id} from Firebase Auth, but deleted from database`);
@@ -425,6 +425,22 @@ export class DatabaseStorage implements IStorage {
         isGardenAngel: user?.isGardenAngel || false
       }
     };
+  }
+
+  async getChatMessageById(messageId: number): Promise<{ sessionDate: string } | null> {
+    try {
+      const [message] = await db.select({
+        sessionDate: chatMessages.sessionDate
+      })
+      .from(chatMessages)
+      .where(eq(chatMessages.id, messageId))
+      .limit(1);
+      
+      return message || null;
+    } catch (error) {
+      console.error('Error getting chat message:', error);
+      return null;
+    }
   }
 
   async deleteChatMessage(messageId: number): Promise<boolean> {
