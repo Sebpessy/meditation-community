@@ -1031,7 +1031,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/messages/:id', async (req, res) => {
     try {
       const messageId = parseInt(req.params.id);
-      const firebaseUid = req.headers['firebase-uid'];
+      const firebaseUid = req.headers['firebase-uid'] || req.headers['x-firebase-uid'];
       
       if (!firebaseUid) {
         return res.status(401).json({ error: 'Unauthorized' });

@@ -73,6 +73,20 @@ export default function AdminPage() {
     repeatCount: 1
   });
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState("templates");
+  
+  // Handle URL parameters for selected user
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userIdParam = urlParams.get('selectedUser');
+    const hash = window.location.hash;
+    
+    if (userIdParam && hash === '#users') {
+      setActiveTab('users');
+      setSelectedUserId(parseInt(userIdParam));
+    }
+  }, []);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
   const [scheduleSortBy, setScheduleSortBy] = useState<"date" | "template">("date");
   const [scheduleViewMode, setScheduleViewMode] = useState<"list" | "calendar">("list");
@@ -799,12 +813,12 @@ export default function AdminPage() {
         <p className="text-neutral-600 dark:text-[var(--text-medium-contrast)]">Manage meditation templates and schedules</p>
       </div>
 
-      <Tabs defaultValue="dashboard" className="space-y-8">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value)} className="space-y-8">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="schedules">Schedules</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="profile-pictures">Profile Pictures</TabsTrigger>
         </TabsList>
 
@@ -1689,7 +1703,7 @@ export default function AdminPage() {
                       </thead>
                       <tbody>
                         {filteredUsers.map((user) => (
-                          <tr key={user.id} className="border-b dark:border-[var(--border)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors">
+                          <tr key={user.id} className={`border-b dark:border-[var(--border)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors ${selectedUserId === user.id ? 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-200 dark:ring-blue-800' : ''}`}>
                             <td className="p-4">
                               <div className="flex items-center space-x-3">
                                 <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 dark:border-[var(--border)] flex items-center justify-center bg-gray-50 dark:bg-[var(--muted)]">

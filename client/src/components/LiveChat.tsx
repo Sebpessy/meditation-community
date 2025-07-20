@@ -4,7 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Heart } from "lucide-react";
+import { Send, Heart, Ban } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/lib/websocket";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -20,12 +23,15 @@ interface LiveChatProps {
 export function LiveChat({ userId, sessionDate, onOnlineCountChange, isAdmin, isGardenAngel }: LiveChatProps) {
   const [inputMessage, setInputMessage] = useState("");
   const [clickedUser, setClickedUser] = useState<number | null>(null);
+  const [quickBanUser, setQuickBanUser] = useState<{id: number, name: string} | null>(null);
+  const [banReason, setBanReason] = useState("");
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
   const [messageLikes, setMessageLikes] = useState<{ [messageId: number]: number }>({});
   const [likedMessages, setLikedMessages] = useState<Set<number>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, onlineCount, onlineUsers, isConnected, sendMessage } = useWebSocket(userId, sessionDate);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Update parent component when online count changes
   useEffect(() => {
@@ -121,6 +127,40 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange, isAdmin, is
     if (!isAdmin && !isGardenAngel) return;
     if (confirm('Are you sure you want to delete this message?')) {
       deleteMutation.mutate(messageId);
+    }
+  };
+
+  // Ban user mutation
+  const banUserMutation = useMutation({
+    mutationFn: async ({ userId, reason }: { userId: number; reason: string }) => {
+      const response = await apiRequest('PUT', `/api/admin/users/${userId}/ban`, { reason });
+      if (!response.ok) {
+        throw new Error('Failed to ban user');
+      }
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "User Banned",
+        description: "User has been banned successfully.",
+      });
+      setQuickBanUser(null);
+      setBanReason("");
+    },
+    onError: (error) => {
+      console.error('Failed to ban user:', error);
+      toast({
+        title: "Ban Failed",
+        description: "Failed to ban user. Please try again.",
+        variant: "destructive"
+      });
+    },
+  });
+
+  const handleBanUser = () => {
+    if (!quickBanUser || !banReason.trim()) return;
+    if (confirm(`Are you sure you want to ban ${quickBanUser.name}?`)) {
+      banUserMutation.mutate({ userId: quickBanUser.id, reason: banReason.trim() });
     }
   };
 
@@ -280,19 +320,18 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange, isAdmin, is
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <a
-                          href={`/admin#users`}
+                        <button
                           className="text-sm font-medium text-neutral-800 dark:text-[var(--text-high-contrast)] hover:text-primary hover:underline cursor-pointer"
                           onClick={(e) => {
+                            e.preventDefault();
                             if (isAdmin || isGardenAngel) {
-                              // Allow navigation to admin page
-                            } else {
-                              e.preventDefault();
+                              // Show quick ban popup instead of navigating to admin page
+                              setQuickBanUser(message.user);
                             }
                           }}
                         >
                           {message.user.name}
-                        </a>
+                        </button>
                         {(message.user as any).isGardenAngel && (
                           <span className="text-xs text-neutral-500 dark:text-neutral-400 font-normal">
                             (Gardien Angel)
@@ -400,6 +439,50 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange, isAdmin, is
           document.body
         )
       )}
+
+      {/* Quick Ban Dialog */}
+      <Dialog open={!!quickBanUser} onOpenChange={() => setQuickBanUser(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Ban className="w-5 h-5 text-red-500" />
+              Ban User
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
+              You are about to ban <strong>{quickBanUser?.name}</strong>. This action will prevent them from accessing the application.
+            </p>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Reason for ban</label>
+              <Textarea
+                placeholder="Enter the reason for banning this user..."
+                value={banReason}
+                onChange={(e) => setBanReason(e.target.value)}
+                className="min-h-[80px]"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setQuickBanUser(null);
+                  setBanReason("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleBanUser}
+                disabled={!banReason.trim() || banUserMutation.isPending}
+              >
+                {banUserMutation.isPending ? "Banning..." : "Ban User"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
