@@ -876,6 +876,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Garden Angel endpoint for viewing schedules (read-only)
+  app.get('/api/garden-angel/schedules', async (req, res) => {
+    try {
+      // Get current user to verify Garden Angel status
+      const firebaseUid = req.headers['firebase-uid'] as string;
+      if (!firebaseUid) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const user = await storage.getUserByFirebaseUid(firebaseUid);
+      if (!user || (!user.isGardenAngel && !user.isAdmin)) {
+        return res.status(403).json({ error: 'Garden Angel or Admin access required' });
+      }
+
+      const schedules = await storage.getAllSchedules();
+      res.json(schedules);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch schedules' });
+    }
+  });
+
   app.post('/api/admin/schedules', async (req, res) => {
     try {
       const scheduleData = insertScheduleSchema.parse(req.body);
