@@ -608,9 +608,10 @@ export default function MeditationPage() {
                           size={12} 
                           className={`transition-colors ${
                             (messageLikes[message.id] || 0) > 0 
-                              ? "text-red-500 fill-current" 
-                              : "text-neutral-400 dark:text-neutral-500 hover:text-red-500"
+                              ? "text-red-500 fill-red-500" 
+                              : "text-neutral-400 dark:text-neutral-500"
                           }`}
+                          fill={(messageLikes[message.id] || 0) > 0 ? "currentColor" : "none"}
                         />
                         <span className="dark:text-neutral-400">{messageLikes[message.id] || 0}</span>
                       </button>

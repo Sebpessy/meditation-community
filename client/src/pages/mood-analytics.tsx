@@ -97,7 +97,7 @@ export default function MoodAnalyticsPage() {
   });
 
   const { data: moodEntries, isLoading, error } = useQuery({
-    queryKey: ['/api/mood/entries', currentUser?.id],
+    queryKey: ['/api/mood/analytics'],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!currentUser,
     staleTime: 0, // Always fetch fresh data
@@ -106,7 +106,7 @@ export default function MoodAnalyticsPage() {
 
   // Fetch session durations for each day - wait for Firebase auth to be ready
   const { data: sessionDurations } = useQuery({
-    queryKey: ['/api/session/durations', currentUser?.id],
+    queryKey: ['/api/mood/sessions'],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !loading && !!currentUser && !!user,
     staleTime: 0, // Always fetch fresh data
@@ -116,7 +116,12 @@ export default function MoodAnalyticsPage() {
   // Session durations loaded successfully
 
   const processedData = useMemo(() => {
-    if (!moodEntries || !Array.isArray(moodEntries)) return [];
+    if (!moodEntries || !Array.isArray(moodEntries)) {
+      console.log('No mood entries found or not an array:', moodEntries);
+      return [];
+    }
+    
+    console.log('Processing mood entries:', moodEntries.length, 'entries');
     
     const sessionMap = new Map<string, SessionAnalytics>();
     
@@ -344,6 +349,16 @@ export default function MoodAnalyticsPage() {
     : 0;
 
   const totalSessions = searchFilteredData.length;
+
+  console.log('Mood Analytics Debug:', {
+    isLoading,
+    error,
+    currentUser,
+    moodEntries: Array.isArray(moodEntries) ? moodEntries.length : 0,
+    sessionDurations: Array.isArray(sessionDurations) ? sessionDurations.length : 0,
+    processedData: processedData.length,
+    filteredData: filteredData.length
+  });
 
   if (isLoading) {
     return (

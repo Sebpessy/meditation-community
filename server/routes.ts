@@ -768,7 +768,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Sessions endpoint that returns all mood entries for the user
+  // Sessions endpoint that returns session durations for the user
   app.get('/api/mood/sessions', async (req, res) => {
     try {
       const user = await getCurrentUser(req);
@@ -776,10 +776,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const entries = await storage.getMoodEntries(user.id);
-      res.json(entries);
+      const durations = await storage.getSessionDurations(user.id);
+      res.json(durations);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to get mood sessions' });
+      res.status(500).json({ error: 'Failed to get session durations' });
     }
   });
 

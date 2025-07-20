@@ -326,9 +326,10 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange, isAdmin, is
                             size={12} 
                             className={`transition-colors ${
                               (messageLikes[message.id] || 0) > 0 
-                                ? "text-red-500 fill-current" 
-                                : "text-neutral-400 dark:text-neutral-600 hover:text-red-500"
+                                ? "text-red-500 fill-red-500" 
+                                : "text-neutral-400 dark:text-neutral-600"
                             }`}
+                            fill={(messageLikes[message.id] || 0) > 0 ? "currentColor" : "none"}
                           />
                           <span className="dark:text-[var(--text-medium-contrast)]">{messageLikes[message.id] || 0}</span>
                         </button>
