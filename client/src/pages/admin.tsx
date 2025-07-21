@@ -2076,8 +2076,8 @@ export default function AdminPage() {
         </TabsContent>
 
         {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <h2 className="text-2xl font-semibold mb-6">Analytics Dashboard</h2>
+        <TabsContent value="analytics" className="space-y-4 sm:space-y-6">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Analytics Dashboard</h2>
           
           {analyticsLoading ? (
             <div className="flex justify-center items-center py-8">
@@ -2086,58 +2086,58 @@ export default function AdminPage() {
           ) : analytics ? (
             <>
               {/* Overview Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
                 <Card>
-                  <CardContent className="p-6">
+                  <CardContent className="p-3 sm:p-4 lg:p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">Total Users</p>
-                        <p className="text-2xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">{analytics.totalUsers || 0}</p>
+                        <p className="text-xs sm:text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">Total Users</p>
+                        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">{analytics.totalUsers || 0}</p>
                       </div>
-                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                        <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                        <Users className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-blue-600 dark:text-blue-400" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardContent className="p-6">
+                  <CardContent className="p-3 sm:p-4 lg:p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">Total Minutes</p>
-                        <p className="text-2xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">{analytics.totalMinutes || 0}</p>
+                        <p className="text-xs sm:text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">Total Minutes</p>
+                        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">{analytics.totalMinutes || 0}</p>
                       </div>
-                      <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
-                        <Clock className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                        <Clock className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-green-600 dark:text-green-400" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardContent className="p-6">
+                  <CardContent className="p-3 sm:p-4 lg:p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">Daily Average</p>
-                        <p className="text-2xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">{analytics.dailyAverage || 0} min</p>
+                        <p className="text-xs sm:text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">Daily Average</p>
+                        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">{analytics.dailyAverage || 0} min</p>
                       </div>
-                      <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center">
-                        <TrendingUp className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center">
+                        <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-yellow-600 dark:text-yellow-400" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardContent className="p-6">
+                  <CardContent className="p-3 sm:p-4 lg:p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">This Month</p>
-                        <p className="text-2xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">{analytics.monthlyTotal || 0} min</p>
+                        <p className="text-xs sm:text-sm font-medium text-neutral-600 dark:text-[var(--text-medium-contrast)]">This Month</p>
+                        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">{analytics.monthlyTotal || 0} min</p>
                       </div>
-                      <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
-                        <Calendar className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
+                        <Calendar className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-purple-600 dark:text-purple-400" />
                       </div>
                     </div>
                   </CardContent>
@@ -2146,36 +2146,36 @@ export default function AdminPage() {
 
               {/* Top 10 Users by Time Spent */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Trophy className="w-5 h-5 mr-2" />
+                <CardHeader className="pb-3 sm:pb-6">
+                  <CardTitle className="flex items-center text-base sm:text-lg">
+                    <Trophy className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     Top 10 Users by Meditation Time
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs sm:text-sm">
                     Users with the most meditation minutes
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                <CardContent className="pt-0">
+                  <div className="space-y-2 sm:space-y-3 lg:space-y-4">
                     {analytics.topUsers?.map((user: any, index: number) => (
-                      <div key={user.id} className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                      <div key={user.id} className="flex items-center justify-between p-2 sm:p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          <div className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                             {index + 1}
                           </div>
                           <div>
-                            <p className="font-medium text-neutral-800 dark:text-[var(--text-high-contrast)]">{user.name}</p>
+                            <p className="font-medium text-neutral-800 dark:text-[var(--text-high-contrast)] text-sm sm:text-base truncate max-w-[120px] sm:max-w-none">{user.name}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">{user.totalTimeSpent} min</p>
-                          <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">
+                          <p className="font-bold text-neutral-800 dark:text-[var(--text-high-contrast)] text-sm sm:text-base">{user.totalTimeSpent} min</p>
+                          <p className="text-xs sm:text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">
                             {Math.round(user.totalTimeSpent / 60 * 100) / 100} hrs
                           </p>
                         </div>
                       </div>
                     )) || (
-                      <p className="text-center text-neutral-600 dark:text-[var(--text-medium-contrast)] py-8">
+                      <p className="text-center text-neutral-600 dark:text-[var(--text-medium-contrast)] py-6 sm:py-8 text-sm">
                         No meditation data available yet
                       </p>
                     )}
