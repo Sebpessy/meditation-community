@@ -25,6 +25,7 @@ interface Schedule {
 }
 
 export default function GardenAngelPage() {
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [calendarView, setCalendarView] = useState<"week" | "month" | "year">("month");
 
@@ -265,107 +266,131 @@ export default function GardenAngelPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Garden Angel Dashboard</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Gardian Angel Dashboard</h1>
           <p className="text-neutral-600 dark:text-neutral-400">View meditation schedule and moderate sessions</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Label className="text-sm text-neutral-600 dark:text-neutral-400">View:</Label>
+          <div className="flex rounded-lg border border-neutral-200 dark:border-neutral-700">
+            <Button
+              size="sm"
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              onClick={() => setViewMode('list')}
+              className="rounded-r-none"
+            >
+              List
+            </Button>
+            <Button
+              size="sm"
+              variant={viewMode === 'calendar' ? 'default' : 'ghost'}
+              onClick={() => setViewMode('calendar')}
+              className="rounded-l-none"
+            >
+              Calendar
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Calendar Controls */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => navigateCalendar('prev')}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                {calendarView === 'week' && 
-                  `Week of ${calendarDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
-                }
-                {calendarView === 'month' && 
-                  calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-                }
-                {calendarView === 'year' && 
-                  calendarDate.getFullYear()
-                }
-              </h2>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => navigateCalendar('next')}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Label className="text-sm">View:</Label>
-              <Select
-                value={calendarView}
-                onValueChange={(value) => setCalendarView(value as "week" | "month" | "year")}
-              >
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="week">Week</SelectItem>
-                  <SelectItem value="month">Month</SelectItem>
-                  <SelectItem value="year">Year</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {renderCalendarContent()}
-        </CardContent>
-      </Card>
-
-      {/* Schedule List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Schedules</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {schedules.slice(0, 10).map((schedule) => {
-              const template = templates.find(t => t.id === schedule.templateId);
-              return (
-                <div 
-                  key={schedule.id} 
-                  className="flex items-center justify-between p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[var(--card)]"
+      {/* Main Content */}
+      {viewMode === 'calendar' ? (
+        <Card>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => navigateCalendar('prev')}
                 >
-                  <div className="flex items-center space-x-4">
-                    <Calendar className="h-4 w-4 text-neutral-500" />
-                    <div>
-                      <div className="font-medium text-neutral-900 dark:text-white">
-                        {template?.title || 'Unknown Template'}
-                      </div>
-                      <div className="text-sm text-neutral-600 dark:text-neutral-400">
-                        {new Date(schedule.date).toLocaleDateString('en-US', { 
-                          weekday: 'long', 
-                          month: 'long', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })}
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
+                  {calendarView === 'week' && 
+                    `Week of ${calendarDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+                  }
+                  {calendarView === 'month' && 
+                    calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                  }
+                  {calendarView === 'year' && 
+                    calendarDate.getFullYear()
+                  }
+                </h2>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => navigateCalendar('next')}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Label className="text-sm">View:</Label>
+                <Select
+                  value={calendarView}
+                  onValueChange={(value) => setCalendarView(value as "week" | "month" | "year")}
+                >
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="week">Week</SelectItem>
+                    <SelectItem value="month">Month</SelectItem>
+                    <SelectItem value="year">Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {renderCalendarContent()}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Meditation Schedules</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {schedules
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .map((schedule) => {
+                const template = templates.find(t => t.id === schedule.templateId);
+                return (
+                  <div 
+                    key={schedule.id} 
+                    className="flex items-center justify-between p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[var(--card)]"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <Calendar className="h-4 w-4 text-neutral-500" />
+                      <div>
+                        <div className="font-medium text-neutral-900 dark:text-white">
+                          {template?.title || 'Unknown Template'}
+                        </div>
+                        <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                          {new Date(schedule.date).toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            month: 'long', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })} at {schedule.scheduledTime}
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center space-x-2 text-sm text-neutral-600 dark:text-neutral-400">
+                      <Clock className="h-4 w-4" />
+                      <span>{template?.duration || 0} min</span>
+                      <User className="h-4 w-4 ml-4" />
+                      <span>{template?.instructor || 'Unknown'}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-neutral-600 dark:text-neutral-400">
-                    <Clock className="h-4 w-4" />
-                    <span>{template?.duration || 0} min</span>
-                    <User className="h-4 w-4 ml-4" />
-                    <span>{template?.instructor || 'Unknown'}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

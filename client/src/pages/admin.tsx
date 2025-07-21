@@ -783,7 +783,7 @@ export default function AdminPage() {
   };
 
   const handleToggleGardenAngel = (user: User) => {
-    const action = user.isGardenAngel ? "remove Garden Angel status from" : "make Garden Angel";
+    const action = user.isGardenAngel ? "remove Gardian Angel status from" : "make Gardian Angel";
     if (confirm(`Are you sure you want to ${action} ${user.name}?`)) {
       toggleGardenAngelMutation.mutate({ id: user.id, isGardenAngel: user.isGardenAngel });
     }

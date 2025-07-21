@@ -25,6 +25,9 @@ Preferred communication style: Simple, everyday language.
 - ✅ Added duration display for each scheduled meditation in calendar view
 - ✅ Implemented week, month, and year views for Garden Angel calendar
 - ✅ Added recent schedules list showing template details and durations
+- ✅ Implemented 2-button solution (List/Calendar toggle) in Gardian Angel tab header
+- ✅ Created list view for meditation schedules with full details and duration display
+- ✅ Fixed all remaining "Garden Angel" spelling to "Gardian Angel" across the entire codebase
 
 ### July 20, 2025
 - ✅ Created Gardien Angel page with calendar view access for moderation purposes

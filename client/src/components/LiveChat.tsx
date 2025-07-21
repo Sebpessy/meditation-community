@@ -104,7 +104,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange, isAdmin, is
     likeMutation.mutate(messageId);
   };
 
-  // Delete message mutation (admin/Garden Angel only)
+  // Delete message mutation (admin/Gardian Angel only)
   const deleteMutation = useMutation({
     mutationFn: async (messageId: number) => {
       const response = await apiRequest('DELETE', `/api/messages/${messageId}`);
@@ -334,7 +334,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange, isAdmin, is
                         </button>
                         {(message.user as any).isGardenAngel && (
                           <span className="text-xs text-neutral-500 dark:text-neutral-400 font-normal">
-                            (Garden Angel)
+                            (Gardian Angel)
                           </span>
                         )}
                         <span className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">

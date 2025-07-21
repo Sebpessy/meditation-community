@@ -294,7 +294,7 @@ export default function MeditationPage() {
     likeMutation.mutate(messageId);
   };
 
-  // Delete message mutation (admin/Garden Angel only)
+  // Delete message mutation (admin/Gardian Angel only)
   const deleteMutation = useMutation({
     mutationFn: async (messageId: number) => {
       const response = await apiRequest('DELETE', `/api/messages/${messageId}`);
