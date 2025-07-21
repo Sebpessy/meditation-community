@@ -8,7 +8,7 @@ import { z } from "zod";
 // Helper function to get current user from request
 async function getCurrentUser(req: any) {
   // For now, we'll use a simple approach - the frontend should send the Firebase UID
-  const firebaseUid = req.body.firebaseUid || req.headers['x-firebase-uid'];
+  const firebaseUid = req.body.firebaseUid || req.headers['firebase-uid'] || req.headers['x-firebase-uid'];
   
   if (!firebaseUid) {
     return null;
