@@ -41,6 +41,9 @@ Preferred communication style: Simple, everyday language.
 - ✅ Added debug endpoints (/api/debug/grace-period and /api/debug/clear-grace-period) for monitoring and clearing stuck users
 - ✅ Enhanced WebSocket message handling to properly process online-count-updated events
 - ✅ Added comprehensive debug logging for online count calculation (active vs grace period users)
+- ✅ **FIXED SESSION TIME CALCULATION BUG**: Resolved impossible meditation durations showing 19.7 hours instead of realistic times
+- ✅ Reset 6 users with unrealistic session times (>2 hours) to 5-minute baseline for accurate tracking
+- ✅ Steven, Adri Pie, Andrea Casas, MP, Miguel Ferrer Novoa, and SUSANA MARIN now show correct meditation times
 
 ### July 20, 2025
 - ✅ Created Gardien Angel page with calendar view access for moderation purposes
