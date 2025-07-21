@@ -35,7 +35,9 @@ export function VideoPlayer({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [embedError, setEmbedError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -108,6 +110,31 @@ export function VideoPlayer({
     return null;
   };
 
+  const getYouTubeDirectUrl = (url: string) => {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    if (match) {
+      return `https://www.youtube.com/watch?v=${match[1]}`;
+    }
+    return url;
+  };
+
+  const getYouTubeVideoId = (url: string) => {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  };
+
+  const handleEmbedError = () => {
+    console.log('YouTube embed failed due to restrictions');
+    setEmbedError(true);
+  };
+
+  const openYouTubeDirectly = () => {
+    const directUrl = getYouTubeDirectUrl(videoUrl);
+    window.open(directUrl, '_blank', 'noopener,noreferrer');
+  };
+
   const isYouTubeUrl = (url: string) => {
     return url.includes('youtube.com') || url.includes('youtu.be');
   };
@@ -126,16 +153,57 @@ export function VideoPlayer({
     <div className={isPiP ? "w-full h-full" : "space-y-6"}>
       <Card className={isPiP ? "w-full h-full border-0 shadow-none" : "overflow-hidden"}>
         <div className={isPiP ? "w-full h-full bg-neutral-900 relative" : "aspect-video bg-neutral-900 relative"}>
-          {isYouTubeUrl(videoUrl) ? (
+          {isYouTubeUrl(videoUrl) && !embedError ? (
             <iframe
+              ref={iframeRef}
               className="w-full h-full"
               src={getYouTubeEmbedUrl(videoUrl) || ''}
               title={title}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
+              onError={handleEmbedError}
+              onLoad={() => {
+                // Check if iframe content is accessible (not blocked)
+                setTimeout(() => {
+                  try {
+                    const iframe = iframeRef.current;
+                    if (iframe && iframe.contentWindow) {
+                      // Try to access the iframe - if blocked, this will fail
+                      iframe.contentWindow.postMessage('test', '*');
+                    }
+                  } catch (error) {
+                    console.log('Iframe access blocked, likely embedding restriction');
+                    setEmbedError(true);
+                  }
+                }, 2000);
+              }}
             />
-          ) : (
+          ) : isYouTubeUrl(videoUrl) && embedError ? (
+            // YouTube embedding blocked - show fallback
+            <div className="absolute inset-0 bg-gradient-to-br from-red-900/30 to-red-800/30 flex items-center justify-center">
+              <div className="text-center text-white p-8 max-w-md">
+                <div className="text-red-400 mb-4">
+                  <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Video Embedding Restricted</h3>
+                <p className="text-neutral-200 mb-4 text-sm">
+                  This video cannot be played directly on our website due to content restrictions.
+                </p>
+                <Button
+                  onClick={openYouTubeDirectly}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Watch on YouTube
+                </Button>
+                <p className="text-xs text-neutral-400 mt-3">
+                  Video ID: {getYouTubeVideoId(videoUrl)}
+                </p>
+              </div>
+            </div>
+          ) : !isYouTubeUrl(videoUrl) ? (
             <video
               ref={videoRef}
               className="w-full h-full object-cover"
@@ -154,16 +222,16 @@ export function VideoPlayer({
                 }
               }}
             />
-          )}
-          {!videoUrl && (
+          ) : !videoUrl ? (
+            // No video URL provided
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
               <div className="text-center text-white">
                 <h3 className="text-xl font-semibold mb-2">{title}</h3>
                 <p className="text-neutral-200">Video player placeholder</p>
-                <p className="text-sm text-neutral-300 mt-1">{videoUrl}</p>
+                <p className="text-sm text-neutral-300 mt-1">No video URL provided</p>
               </div>
             </div>
-          )}
+          ) : null}
           
           {/* Video Controls Overlay - only for non-YouTube videos and not in PiP mode */}
           {!isYouTubeUrl(videoUrl) && !isPiP && (
