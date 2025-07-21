@@ -220,7 +220,7 @@ export default function AdminPage() {
       setImportPreview([]);
       toast({
         title: "Templates imported",
-        description: `Successfully imported ${response.imported} templates.`
+        description: `Successfully imported ${(response as any).imported} templates.`
       });
     },
     onError: () => {
@@ -576,7 +576,7 @@ export default function AdminPage() {
 
     // Handle repeat functionality for both create and edit
     if (scheduleData.repeatWeeks > 0 && scheduleData.repeatCount > 1) {
-      const schedules = [];
+      const schedules: any[] = [];
       const startDate = new Date(scheduleData.date);
       
       for (let i = 0; i < scheduleData.repeatCount; i++) {
@@ -785,7 +785,7 @@ export default function AdminPage() {
   const handleToggleGardenAngel = (user: User) => {
     const action = user.isGardenAngel ? "remove Gardian Angel status from" : "make Gardian Angel";
     if (confirm(`Are you sure you want to ${action} ${user.name}?`)) {
-      toggleGardenAngelMutation.mutate({ id: user.id, isGardenAngel: user.isGardenAngel });
+      toggleGardenAngelMutation.mutate({ id: user.id, isGardenAngel: !!user.isGardenAngel });
     }
   };
 
@@ -1760,40 +1760,17 @@ export default function AdminPage() {
                             </td>
                             <td className="p-4">
                               <p className="text-neutral-600 dark:text-[var(--text-medium-contrast)]">
-                                {new Date(user.createdAt).toLocaleDateString()}
+                                {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}
                               </p>
                             </td>
                             <td className="p-4">
                               <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
-                                {user.lastLogin ? (
-                                  <div>
-                                    <p>{new Date(user.lastLogin).toLocaleDateString('en-US', { 
-                                      weekday: 'short', 
-                                      month: 'short', 
-                                      day: 'numeric',
-                                      timeZone: 'America/Chicago'
-                                    })}</p>
-                                    <p className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">
-                                      {new Date(user.lastLogin).toLocaleTimeString('en-US', { 
-                                        hour: 'numeric', 
-                                        minute: '2-digit',
-                                        hour12: true,
-                                        timeZone: 'America/Chicago'
-                                      })} CST
-                                    </p>
-                                  </div>
-                                ) : (
-                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">Never</span>
-                                )}
+                                <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">Not Available</span>
                               </div>
                             </td>
                             <td className="p-4">
                               <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
-                                {user.totalTimeSpent > 0 ? (
-                                  <span>{user.totalTimeSpent} min</span>
-                                ) : (
-                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">0 min</span>
-                                )}
+                                <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">Not Available</span>
                               </div>
                             </td>
                             <td className="p-4">
@@ -1909,23 +1886,14 @@ export default function AdminPage() {
                         </div>
                         <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)] truncate mb-1">{user.email}</p>
                         <p className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">
-                          ID: {user.id} • Joined: {new Date(user.createdAt).toLocaleDateString()}
+                          ID: {user.id} • Joined: {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}
                         </p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-neutral-500">
                           <div>
-                            <span className="font-medium">Last Login:</span> {user.lastLogin ? 
-                              new Date(user.lastLogin).toLocaleDateString('en-US', { 
-                                weekday: 'short', 
-                                month: 'short', 
-                                day: 'numeric',
-                                hour: 'numeric',
-                                minute: '2-digit',
-                                timeZone: 'America/Chicago'
-                              }) + ' CST' : 'Never'
-                            }
+                            <span className="font-medium">Last Login:</span> Not Available
                           </div>
                           <div>
-                            <span className="font-medium">Time:</span> {user.totalTimeSpent || 0} min
+                            <span className="font-medium">Time:</span> Not Available
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-1 mt-3">
@@ -2019,7 +1987,7 @@ export default function AdminPage() {
                     <input
                       type="checkbox"
                       id="isAdmin"
-                      checked={editingUser.isAdmin}
+                      checked={!!editingUser.isAdmin}
                       onChange={(e) => setEditingUser({ ...editingUser, isAdmin: e.target.checked })}
                     />
                     <Label htmlFor="isAdmin">Administrator</Label>
