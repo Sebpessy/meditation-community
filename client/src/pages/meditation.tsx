@@ -233,6 +233,51 @@ export default function MeditationPage() {
 
     startSession();
 
+    // Add listeners for fullscreen and picture-in-picture events
+    const handleFullscreenChange = () => {
+      console.log('Fullscreen state changed:', !!document.fullscreenElement);
+      // Session tracking continues regardless of fullscreen state
+    };
+
+    const handlePiPChange = () => {
+      console.log('Picture-in-picture state changed:', !!document.pictureInPictureElement);
+      // Session tracking continues regardless of PiP state
+    };
+
+    const handleVisibilityChange = () => {
+      console.log('Page visibility changed:', document.visibilityState);
+      // Continue session tracking even when page is hidden (fullscreen/PiP)
+      // Only pause if user actually navigates away
+      if (document.visibilityState === 'visible') {
+        // Ensure session tracking is still active when page becomes visible again
+        if (!updateInterval.current && sessionId.current) {
+          console.log('Resuming session tracking after visibility change');
+          updateInterval.current = setInterval(async () => {
+            if (sessionId.current) {
+              const duration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
+              console.log('Updating session duration:', duration, 'seconds');
+              try {
+                const updateResponse = await apiRequest('PUT', `/api/session/${sessionId.current}`, {
+                  duration
+                });
+                if (!updateResponse.ok && updateResponse.status === 404) {
+                  sessionId.current = null;
+                }
+              } catch (error) {
+                console.error('Error updating session:', error);
+              }
+            }
+          }, 30000);
+        }
+      }
+    };
+
+    // Add event listeners
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('enterpictureinpicture', handlePiPChange);
+    document.addEventListener('leavepictureinpicture', handlePiPChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     // Cleanup function to update session on unmount
     return () => {
       if (updateInterval.current) {
@@ -246,6 +291,12 @@ export default function MeditationPage() {
         const blob = new Blob([data], { type: 'application/json' });
         navigator.sendBeacon(`/api/session/${sessionId.current}`, blob);
       }
+
+      // Remove event listeners
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('enterpictureinpicture', handlePiPChange);
+      document.removeEventListener('leavepictureinpicture', handlePiPChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [currentUserId]);
 
