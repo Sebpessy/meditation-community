@@ -46,7 +46,7 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
     try {
       await apiRequest('POST', '/api/mood/entry', {
         sessionDate,
-        emotionLevel: selectedLevel,
+        emotionLevel: selectedLevel + 1, // Add 1 to convert from 0-based index to 1-based level
         moodType,
         notes: null,
         comment: comment.trim() || null
@@ -145,7 +145,7 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
               {/* Comment Field */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Share your thoughts (optional)
+                  It's Diary time (Optional)
                 </label>
                 <textarea
                   value={comment}
@@ -197,7 +197,7 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
                     >
                       {/* Chakra circle */}
                       <div
-                        className={`w-6 sm:w-8 h-6 sm:h-8 rounded-full border-2 cursor-pointer transition-all duration-300 hover:scale-125 ${
+                        className={`w-6 sm:w-8 h-6 sm:h-8 rounded-full border-2 transition-all duration-300 hover:scale-125 ${
                           index === 0 ? 'border-gray-400' : 'border-white'
                         }`}
                         style={getEnergyStyle(index)}

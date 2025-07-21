@@ -10,6 +10,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 21, 2025
+- ✅ Fixed authentication header handling to support both firebase-uid and x-firebase-uid headers
+- ✅ Resolved mood analytics page data loading issues 
+- ✅ Updated energy tracker UI: removed cursor on left of energy centers
+- ✅ Changed "Share your thoughts (optional)" to "It's Diary time (Optional)"
+- ✅ Fixed energy level values to use 1-based indexing (No awareness=1, Root=2, up to Crown=8)
+- ✅ Updated mood analytics page to properly display 1-based energy levels
+
 ### July 20, 2025
 - ✅ Created Gardien Angel page with calendar view access for moderation purposes
 - ✅ Added Gardien Angel navigation links to both desktop and mobile menus

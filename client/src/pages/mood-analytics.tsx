@@ -11,6 +11,7 @@ import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import { EnergyFlowAnimation } from "@/components/EnergyFlowAnimation";
 
 const chakraColors = [
+  { color: '#000000', name: 'No Awareness', description: 'Disconnected' },
   { color: '#E53E3E', name: 'Root Center', description: 'Grounded & Stable' },
   { color: '#FF8C00', name: 'Sacral Center', description: 'Creative & Flowing' },
   { color: '#FFD700', name: 'Solar Plexus Center', description: 'Confident & Powerful' },
@@ -570,11 +571,11 @@ export default function MoodAnalyticsPage() {
                           <Badge 
                             variant="outline" 
                             style={{ 
-                              borderColor: chakraColors[session.preEntry.emotionLevel]?.color || '#E53E3E',
-                              color: chakraColors[session.preEntry.emotionLevel]?.color || '#E53E3E'
+                              borderColor: chakraColors[session.preEntry.emotionLevel - 1]?.color || '#000000',
+                              color: chakraColors[session.preEntry.emotionLevel - 1]?.color || '#000000'
                             }}
                           >
-                            {chakraColors[session.preEntry.emotionLevel]?.name || 'No Awareness'}
+                            {chakraColors[session.preEntry.emotionLevel - 1]?.name || 'No Awareness'}
                           </Badge>
                         </div>
                       )}
@@ -589,11 +590,11 @@ export default function MoodAnalyticsPage() {
                           <Badge 
                             variant="outline" 
                             style={{ 
-                              borderColor: chakraColors[session.postEntry.emotionLevel]?.color || '#E53E3E',
-                              color: chakraColors[session.postEntry.emotionLevel]?.color || '#E53E3E'
+                              borderColor: chakraColors[session.postEntry.emotionLevel - 1]?.color || '#000000',
+                              color: chakraColors[session.postEntry.emotionLevel - 1]?.color || '#000000'
                             }}
                           >
-                            {chakraColors[session.postEntry.emotionLevel]?.name || 'No Awareness'}
+                            {chakraColors[session.postEntry.emotionLevel - 1]?.name || 'No Awareness'}
                           </Badge>
                         </div>
                       )}
@@ -710,14 +711,14 @@ export default function MoodAnalyticsPage() {
                           <div className="flex items-center space-x-1">
                             {session.preEntry && (
                               <div className="w-2 h-2 rounded-full" 
-                                   style={{ backgroundColor: chakraColors[session.preEntry.emotionLevel]?.color || '#E53E3E' }} />
+                                   style={{ backgroundColor: chakraColors[session.preEntry.emotionLevel - 1]?.color || '#000000' }} />
                             )}
                             {session.preEntry && session.postEntry && (
                               <div className="text-[8px] text-muted-foreground">→</div>
                             )}
                             {session.postEntry && (
                               <div className="w-2 h-2 rounded-full" 
-                                   style={{ backgroundColor: chakraColors[session.postEntry.emotionLevel]?.color || '#E53E3E' }} />
+                                   style={{ backgroundColor: chakraColors[session.postEntry.emotionLevel - 1]?.color || '#000000' }} />
                             )}
                           </div>
                         </div>
@@ -769,12 +770,12 @@ export default function MoodAnalyticsPage() {
                     <Badge 
                       variant="outline" 
                       style={{ 
-                        borderColor: chakraColors[selectedSessionDetail.preEntry.emotionLevel]?.color || '#E53E3E',
-                        color: chakraColors[selectedSessionDetail.preEntry.emotionLevel]?.color || '#E53E3E'
+                        borderColor: chakraColors[selectedSessionDetail.preEntry.emotionLevel - 1]?.color || '#000000',
+                        color: chakraColors[selectedSessionDetail.preEntry.emotionLevel - 1]?.color || '#000000'
                       }}
                       className="mb-2"
                     >
-                      {chakraColors[selectedSessionDetail.preEntry.emotionLevel]?.name || 'No Awareness'}
+                      {chakraColors[selectedSessionDetail.preEntry.emotionLevel - 1]?.name || 'No Awareness'}
                     </Badge>
                     {selectedSessionDetail.preEntry.comment && (
                       <div className="text-xs text-gray-600 dark:text-[var(--text-medium-contrast)] bg-gray-50 dark:bg-[var(--muted)] p-2 rounded italic">
@@ -790,12 +791,12 @@ export default function MoodAnalyticsPage() {
                     <Badge 
                       variant="outline" 
                       style={{ 
-                        borderColor: chakraColors[selectedSessionDetail.postEntry.emotionLevel]?.color || '#E53E3E',
-                        color: chakraColors[selectedSessionDetail.postEntry.emotionLevel]?.color || '#E53E3E'
+                        borderColor: chakraColors[selectedSessionDetail.postEntry.emotionLevel - 1]?.color || '#000000',
+                        color: chakraColors[selectedSessionDetail.postEntry.emotionLevel - 1]?.color || '#000000'
                       }}
                       className="mb-2"
                     >
-                      {chakraColors[selectedSessionDetail.postEntry.emotionLevel]?.name || 'No Awareness'}
+                      {chakraColors[selectedSessionDetail.postEntry.emotionLevel - 1]?.name || 'No Awareness'}
                     </Badge>
                     {selectedSessionDetail.postEntry.comment && (
                       <div className="text-xs text-gray-600 dark:text-[var(--text-medium-contrast)] bg-gray-50 dark:bg-[var(--muted)] p-2 rounded italic">
