@@ -28,6 +28,7 @@ Preferred communication style: Simple, everyday language.
 - ✅ Implemented 2-button solution (List/Calendar toggle) in Gardian Angel tab header
 - ✅ Created list view for meditation schedules with full details and duration display
 - ✅ Fixed all remaining "Garden Angel" spelling to "Gardian Angel" across the entire codebase
+- ✅ Removed vertical slider from energy tracker on all devices - users now interact directly with chakra visualization
 
 ### July 20, 2025
 - ✅ Created Gardien Angel page with calendar view access for moderation purposes

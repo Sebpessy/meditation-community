@@ -161,28 +161,9 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
               </div>
             </div>
 
-            {/* Left side: Slider and Chakra visualization */}
-            <div className="flex items-center justify-center space-x-4 sm:space-x-6">
-              {/* Vertical Slider - always on left */}
-              <div className="relative h-60 sm:h-80 w-6 sm:w-8 flex items-center justify-center touch-none">
-                <input
-                  type="range"
-                  min="0"
-                  max="7"
-                  value={selectedLevel}
-                  onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onTouchMove={(e) => e.stopPropagation()}
-                  className="slider-vertical h-full w-2 bg-gray-200 rounded-lg appearance-none cursor-pointer touch-none"
-                  style={{
-                    writingMode: 'vertical-lr' as any,
-                    WebkitAppearance: 'slider-vertical',
-                    background: `linear-gradient(to top, ${chakraColors[selectedLevel].color} 0%, ${chakraColors[selectedLevel].color} ${((selectedLevel + 1) / 8) * 100}%, #E2E8F0 ${((selectedLevel + 1) / 8) * 100}%, #E2E8F0 100%)`
-                  }}
-                />
-              </div>
-
-              {/* Energy Conduit Visualization - in middle */}
+            {/* Chakra visualization */}
+            <div className="flex items-center justify-center">
+              {/* Energy Conduit Visualization - centered */}
               <div className="relative w-16 sm:w-20 h-60 sm:h-80">
                 {/* Vertical energy line */}
                 <div className="absolute left-1/2 top-0 w-1 h-full bg-gradient-to-t from-purple-400 to-purple-600 transform -translate-x-1/2 rounded-full opacity-30" />
