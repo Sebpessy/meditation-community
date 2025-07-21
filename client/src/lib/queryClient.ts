@@ -21,7 +21,7 @@ export async function apiRequest(
   
   // Add Firebase UID to headers if user is authenticated
   if (auth.currentUser) {
-    headers["x-firebase-uid"] = auth.currentUser.uid;
+    headers["firebase-uid"] = auth.currentUser.uid;
   }
   
   const res = await fetch(url, {
@@ -45,7 +45,7 @@ export const getQueryFn: <T>(options: {
     
     // Add Firebase UID to headers if user is authenticated
     if (auth.currentUser) {
-      headers["x-firebase-uid"] = auth.currentUser.uid;
+      headers["firebase-uid"] = auth.currentUser.uid;
     }
     
     const res = await fetch(queryKey.join("/") as string, {
