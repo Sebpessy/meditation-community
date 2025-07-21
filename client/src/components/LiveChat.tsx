@@ -334,7 +334,7 @@ export function LiveChat({ userId, sessionDate, onOnlineCountChange, isAdmin, is
                         </button>
                         {(message.user as any).isGardenAngel && (
                           <span className="text-xs text-neutral-500 dark:text-neutral-400 font-normal">
-                            (Gardien Angel)
+                            (Garden Angel)
                           </span>
                         )}
                         <span className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">

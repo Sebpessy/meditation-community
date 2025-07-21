@@ -1736,7 +1736,7 @@ export default function AdminPage() {
                                   </Badge>
                                 ) : user.isGardenAngel ? (
                                   <Badge className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
-                                    Gardien Angel
+                                    Garden Angel
                                   </Badge>
                                 ) : (
                                   <Badge variant="secondary" className="dark:bg-[var(--muted)] dark:text-[var(--text-medium-contrast)]">

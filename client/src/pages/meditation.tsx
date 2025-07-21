@@ -577,7 +577,7 @@ export default function MeditationPage() {
                       </a>
                       {(message.user as any).isGardenAngel && (
                         <span className="text-xs text-neutral-500 dark:text-neutral-400 font-normal">
-                          (Gardien Angel)
+                          (Gardian Angel)
                         </span>
                       )}
                       <span className="text-xs text-neutral-500 dark:text-neutral-400">

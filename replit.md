@@ -20,6 +20,11 @@ Preferred communication style: Simple, everyday language.
 - ✅ Re-enabled daily chat flush system to clear messages at midnight CST (Dallas, TX time)
 - ✅ Updated chat to display all messages from the current day (12:00 AM to 11:59 PM CST)
 - ✅ Increased message limit from 30 to 1000 to ensure all daily messages are shown
+- ✅ Renamed "Gardien Angel" to "Gardian Angel" throughout the entire application
+- ✅ Replaced Garden Angel calendar with Admin Schedule calendar (non-clickable version)
+- ✅ Added duration display for each scheduled meditation in calendar view
+- ✅ Implemented week, month, and year views for Garden Angel calendar
+- ✅ Added recent schedules list showing template details and durations
 
 ### July 20, 2025
 - ✅ Created Gardien Angel page with calendar view access for moderation purposes
