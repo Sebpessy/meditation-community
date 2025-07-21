@@ -47,7 +47,11 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
     console.log('Starting WebSocket connection for user:', userId, 'session:', sessionDate);
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    // Handle production domain newself.me specifically
+    const host = window.location.host;
+    const wsUrl = `${protocol}//${host}/ws`;
+    
+    console.log(`Connecting to WebSocket: ${wsUrl} (host: ${host}, protocol: ${protocol})`);
     
     const ws = new WebSocket(wsUrl);
     

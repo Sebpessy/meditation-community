@@ -44,6 +44,9 @@ Preferred communication style: Simple, everyday language.
 - ✅ **FIXED SESSION TIME CALCULATION BUG**: Resolved impossible meditation durations showing 19.7 hours instead of realistic times
 - ✅ Reset 6 users with unrealistic session times (>2 hours) to 5-minute baseline for accurate tracking
 - ✅ Steven, Adri Pie, Andrea Casas, MP, Miguel Ferrer Novoa, and SUSANA MARIN now show correct meditation times
+- ✅ **FIXED LAST LOGIN TRACKING**: Corrected Steven's last login time from incorrect timezone to show accurate July 21st activity
+- ✅ **PRODUCTION WEBSOCKET DEBUGGING**: Enhanced grace period functionality with comprehensive debug endpoints for newself.me deployment
+- ✅ Added debug endpoints for testing grace period functionality on production domain (/api/debug/grace-period-test)
 
 ### July 20, 2025
 - ✅ Created Gardien Angel page with calendar view access for moderation purposes

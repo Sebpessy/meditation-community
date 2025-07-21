@@ -180,8 +180,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   
                   console.log(`User ${connectionInfo.userId} left session, entering grace period`);
                   
-                  // Schedule grace period check after 120 minutes
+                  console.log(`Grace period started for user ${connectionInfo.userId} on ${connectionInfo.sessionDate}`);
+                  
+                  // Schedule grace period check after 120 minutes (with logging for debugging)
                   setTimeout(async () => {
+                    console.log(`Checking grace period expiry for ${graceKey}`);
                     await checkGracePeriodExpiry(graceKey);
                   }, GRACE_PERIOD_MINUTES * 60 * 1000);
                 } else {
@@ -598,6 +601,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ error: 'Failed to clear grace period' });
+    }
+  });
+
+  // Enhanced debug endpoint to test grace period functionality
+  app.get('/api/debug/grace-period-test/:sessionDate', async (req, res) => {
+    try {
+      const sessionDate = req.params.sessionDate;
+      const now = new Date();
+      
+      // Test data for grace period functionality
+      const testResults = {
+        currentHost: req.headers.host,
+        isProduction: req.headers.host?.includes('newself.me'),
+        gracePeriodMinutes: GRACE_PERIOD_MINUTES,
+        currentTime: now.toISOString(),
+        gracePeriodEntries: Array.from(userGracePeriod.entries()).map(([key, grace]) => ({
+          key,
+          userId: grace.userId,
+          sessionDate: grace.sessionDate,
+          disconnectTime: grace.disconnectTime.toISOString(),
+          minutesInGrace: Math.floor((now.getTime() - grace.disconnectTime.getTime()) / (1000 * 60)),
+          shouldExpire: (now.getTime() - grace.disconnectTime.getTime()) >= (GRACE_PERIOD_MINUTES * 60 * 1000)
+        })),
+        activeConnections: activeConnections.size,
+        sessionUsers: Array.from(sessionUsers.entries()).map(([date, users]) => ({
+          sessionDate: date,
+          userIds: Array.from(users)
+        }))
+      };
+      
+      res.json(testResults);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to run grace period test' });
     }
   });
 
