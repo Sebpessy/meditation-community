@@ -1808,8 +1808,16 @@ export default function AdminPage() {
                             </td>
                             <td className="p-4">
                               <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
-                                {(user as any).lastLogin ? new Date((user as any).lastLogin).toLocaleDateString() : 
-                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">Never</span>}
+                                {(user as any).lastLogin ? (
+                                  <div>
+                                    <div>{new Date((user as any).lastLogin).toLocaleDateString()}</div>
+                                    <div className="text-xs text-neutral-400 dark:text-[var(--text-low-contrast)]">
+                                      {new Date((user as any).lastLogin).toLocaleTimeString()}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">Never</span>
+                                )}
                               </div>
                             </td>
                             <td className="p-4">
