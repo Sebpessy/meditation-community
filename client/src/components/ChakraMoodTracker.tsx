@@ -13,6 +13,7 @@ interface ChakraMoodTrackerProps {
 }
 
 const chakraColors = [
+  { color: '#000000', name: 'No Awareness', description: 'Disconnected' },          // Black - Level 0
   { color: '#E53E3E', name: 'Root Center', description: 'Grounded & Stable' },      // Red
   { color: '#FF8C00', name: 'Sacral Center', description: 'Creative & Flowing' },    // Orange
   { color: '#FFD700', name: 'Solar Plexus Center', description: 'Confident & Powerful' }, // Yellow
@@ -24,7 +25,7 @@ const chakraColors = [
 
 export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onClose }: ChakraMoodTrackerProps) {
   const [user] = useAuthState(auth);
-  const [selectedLevel, setSelectedLevel] = useState<number>(4); // Start at heart chakra
+  const [selectedLevel, setSelectedLevel] = useState<number>(5); // Start at heart chakra (adjusted for 0 index)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
   const [moodType, setMoodType] = useState<'pre' | 'post'>(initialMoodType);
@@ -66,6 +67,17 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
     const isActive = index <= selectedLevel;
     const pulseIntensity = isActive ? Math.sin((animationPhase + index * 10) * 0.1) * 0.3 + 0.7 : 0.3;
     
+    // Special styling for "No Awareness" level
+    if (index === 0) {
+      return {
+        backgroundColor: isActive ? '#000000' : '#E2E8F0',
+        opacity: isActive ? 0.9 : 0.3,
+        transform: `scale(${isActive ? 1.05 : 1})`,
+        boxShadow: isActive ? '0 0 15px rgba(0,0,0,0.5)' : 'none',
+        transition: 'all 0.3s ease'
+      };
+    }
+    
     return {
       backgroundColor: isActive ? chakraColors[index].color : '#E2E8F0',
       opacity: pulseIntensity,
@@ -76,16 +88,31 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md md:max-w-lg bg-white/95 backdrop-blur-sm border-2 border-purple-200 max-h-[90vh] overflow-y-auto">
-        <CardContent className="p-4 md:p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-6 space-y-3 sm:space-y-0">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-              <h3 className="text-lg font-semibold text-gray-800">Track Your Mood</h3>
-              <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overscroll-contain" onClick={onClose}>
+      <Card className="w-full max-w-md md:max-w-lg bg-white/95 backdrop-blur-sm border-2 border-purple-200 max-h-[90vh] overflow-y-auto touch-none" onClick={(e) => e.stopPropagation()}>
+        <CardContent className="p-4 md:p-6 relative">
+          {/* X button in top right corner */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="absolute top-4 right-4 h-8 w-8 p-0 hover:bg-purple-100 z-10"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+
+          <div className="mb-4 md:mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Track Your Energy</h3>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start justify-center space-y-4 sm:space-y-0 sm:space-x-8">
+            {/* Right side: Buttons and energy center info */}
+            <div className="flex flex-col space-y-4 w-full sm:w-64 order-first sm:order-last">
+              {/* Before/After buttons - full width */}
+              <div className="flex w-full bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setMoodType('pre')}
-                  className={`px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                  className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     moodType === 'pre' 
                       ? 'bg-white text-gray-800 shadow-sm' 
                       : 'text-gray-600 hover:text-gray-800'
@@ -95,7 +122,7 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
                 </button>
                 <button
                   onClick={() => setMoodType('post')}
-                  className={`px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                  className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     moodType === 'post' 
                       ? 'bg-white text-gray-800 shadow-sm' 
                       : 'text-gray-600 hover:text-gray-800'
@@ -104,33 +131,53 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
                   After
                 </button>
               </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0 hover:bg-purple-100"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+              
+              {/* Current Selection Display */}
+              <div className="text-center space-y-2">
+                <div className="text-xl sm:text-2xl font-bold" style={{ color: chakraColors[selectedLevel].color }}>
+                  {chakraColors[selectedLevel].name}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {chakraColors[selectedLevel].description}
+                </div>
+              </div>
 
-          <div className="flex flex-col sm:flex-row items-start justify-center space-y-4 sm:space-y-0 sm:space-x-8">
+              {/* Comment Field */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Share your thoughts (optional)
+                </label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="How are you feeling? What's on your mind?"
+                  className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  rows={3}
+                  maxLength={500}
+                />
+                <div className="text-xs text-gray-500 text-right">
+                  {comment.length}/500 characters
+                </div>
+              </div>
+            </div>
+
             {/* Left side: Slider and Chakra visualization */}
             <div className="flex items-center justify-center space-x-4 sm:space-x-6">
               {/* Vertical Slider - always on left */}
-              <div className="relative h-60 sm:h-80 w-6 sm:w-8 flex items-center justify-center">
+              <div className="relative h-60 sm:h-80 w-6 sm:w-8 flex items-center justify-center touch-none">
                 <input
                   type="range"
                   min="0"
-                  max="6"
+                  max="7"
                   value={selectedLevel}
                   onChange={(e) => setSelectedLevel(parseInt(e.target.value))}
-                  className="slider-vertical h-full w-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}
+                  className="slider-vertical h-full w-2 bg-gray-200 rounded-lg appearance-none cursor-pointer touch-none"
                   style={{
-                    writingMode: 'bt-lr',
+                    writingMode: 'vertical-lr' as any,
                     WebkitAppearance: 'slider-vertical',
-                    background: `linear-gradient(to top, ${chakraColors[selectedLevel].color} 0%, ${chakraColors[selectedLevel].color} ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 ${((selectedLevel + 1) / 7) * 100}%, #E2E8F0 100%)`
+                    background: `linear-gradient(to top, ${chakraColors[selectedLevel].color} 0%, ${chakraColors[selectedLevel].color} ${((selectedLevel + 1) / 8) * 100}%, #E2E8F0 ${((selectedLevel + 1) / 8) * 100}%, #E2E8F0 100%)`
                   }}
                 />
               </div>
@@ -150,7 +197,9 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
                     >
                       {/* Chakra circle */}
                       <div
-                        className="w-6 sm:w-8 h-6 sm:h-8 rounded-full border-2 border-white cursor-pointer transition-all duration-300 hover:scale-125"
+                        className={`w-6 sm:w-8 h-6 sm:h-8 rounded-full border-2 cursor-pointer transition-all duration-300 hover:scale-125 ${
+                          index === 0 ? 'border-gray-400' : 'border-white'
+                        }`}
                         style={getEnergyStyle(index)}
                       />
                       
@@ -176,39 +225,7 @@ export function ChakraMoodTracker({ sessionDate, moodType: initialMoodType, onCl
                 </div>
               </div>
 
-              {/* Right side: Stacked text and comment field */}
-              <div className="flex flex-col space-y-4 w-full sm:w-64">
-                {/* Current Selection Display - on right, stacked on top */}
-                <div className="text-center space-y-2">
-                  <div className="text-xl sm:text-2xl font-bold" style={{ color: chakraColors[selectedLevel].color }}>
-                    {chakraColors[selectedLevel].name}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {chakraColors[selectedLevel].description}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Level {selectedLevel + 1} of 7
-                  </div>
-                </div>
 
-                {/* Comment Field - stacked underneath on right */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Share your thoughts (optional)
-                  </label>
-                  <textarea
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="How are you feeling? What's on your mind?"
-                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                    rows={3}
-                    maxLength={500}
-                  />
-                  <div className="text-xs text-gray-500 text-right">
-                    {comment.length}/500 characters
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 

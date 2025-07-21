@@ -42,7 +42,7 @@ export function MoodTrackerIcon({ sessionDate, className = '' }: MoodTrackerIcon
           background: `radial-gradient(circle, ${getAnimatedColor()}20, transparent 70%)`,
           border: `2px solid ${getAnimatedColor()}40`,
         }}
-        title="Track your mood"
+        title="Track your energy"
       >
         {/* Chakra symbol */}
         <div className="relative w-6 h-6">

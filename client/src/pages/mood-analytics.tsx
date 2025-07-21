@@ -355,7 +355,7 @@ export default function MoodAnalyticsPage() {
 
   const totalSessions = searchFilteredData.length;
 
-  console.log('Mood Analytics Debug:', {
+  console.log('Energy Analytics Debug:', {
     isLoading,
     error,
     currentUser,
@@ -376,7 +376,7 @@ export default function MoodAnalyticsPage() {
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
       <div className="flex flex-col space-y-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">Mood Analytics</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-neutral-800 dark:text-[var(--text-high-contrast)]">Energy Analytics</h1>
         
         {/* Mobile Responsive Controls */}
         <div className="flex flex-col sm:flex-row gap-2">

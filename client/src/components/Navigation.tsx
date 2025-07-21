@@ -124,7 +124,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                     ? "text-primary border-b-2 border-primary pb-1" 
                     : "text-neutral-600 dark:text-[var(--text-medium-contrast)] hover:text-neutral-800 dark:hover:text-[var(--text-high-contrast)]"
                 }`}>
-                  Mood Tracker
+                  Energy Tracker
                 </span>
               </Link>
             )}
@@ -230,7 +230,7 @@ export function Navigation({ onlineCount }: NavigationProps) {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block px-3 py-2 text-base font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] hover:text-neutral-900 dark:hover:text-[var(--text-high-contrast)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] rounded-md cursor-pointer"
                   >
-                    Mood Tracker
+                    Energy Tracker
                   </span>
                 </Link>
               )}

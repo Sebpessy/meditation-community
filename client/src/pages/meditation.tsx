@@ -674,7 +674,7 @@ export default function MeditationPage() {
           <div className="lg:col-span-1 h-[600px]">
             <LiveChat
               userId={currentUserId}
-              sessionDate={meditation.date}
+              sessionDate={getCSTDate()}
               onOnlineCountChange={setWsOnlineCount}
               isAdmin={currentUserIsAdmin}
               isGardenAngel={currentUserIsGardenAngel}
