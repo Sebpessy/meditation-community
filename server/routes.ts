@@ -62,24 +62,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             sessionUsers.get(message.sessionDate)!.add(message.userId);
             
-            // Daily chat flush disabled to preserve chat history
-            // Comment out the following code if you want to re-enable daily chat flush
-            /*
             // Check if it's a new day and flush old chat messages if needed
-            // Use CST time for consistency
+            // Use CST time (Dallas, TX) for consistency
             const now = new Date();
             const cstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
             const today = cstTime.toISOString().split('T')[0];
+            
+            // Only flush if we're on today's session date
+            // This ensures messages from 12:00 AM to 11:59 PM CST are preserved for the current day
             if (message.sessionDate === today) {
               // Flush messages from previous days (not today's session)
               await storage.flushOldChatMessages(today);
-              console.log(`Checked and flushed old chat messages before ${today}`);
+              console.log(`Flushed old chat messages before ${today} at ${cstTime.toLocaleTimeString()}`);
             }
-            */
             
-            // Send initial messages to the user (last 30 messages)
+            // Send all messages from the current day (12:00 AM to 11:59 PM CST)
             try {
-              const initialMessages = await storage.getChatMessages(message.sessionDate, 30);
+              const initialMessages = await storage.getChatMessages(message.sessionDate, 1000);
               console.log('Initial messages count:', initialMessages.length);
               console.log('Sample message structure:', initialMessages[0]);
               

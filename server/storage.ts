@@ -366,7 +366,7 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
-  async getChatMessages(sessionDate: string, limit: number = 50): Promise<ChatMessageWithUser[]> {
+  async getChatMessages(sessionDate: string, limit: number = 1000): Promise<ChatMessageWithUser[]> {
     console.log('getChatMessages called for session:', sessionDate);
     
     const messages = await db.select({

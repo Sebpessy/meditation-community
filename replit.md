@@ -17,7 +17,9 @@ Preferred communication style: Simple, everyday language.
 - ✅ Changed "Share your thoughts (optional)" to "It's Diary time (Optional)"
 - ✅ Fixed energy level values to use 1-based indexing (No awareness=1, Root=2, up to Crown=8)
 - ✅ Updated mood analytics page to properly display 1-based energy levels
-- ✅ Fixed live chat deleting all messages when logging in for the first time each day by disabling daily chat flush
+- ✅ Re-enabled daily chat flush system to clear messages at midnight CST (Dallas, TX time)
+- ✅ Updated chat to display all messages from the current day (12:00 AM to 11:59 PM CST)
+- ✅ Increased message limit from 30 to 1000 to ensure all daily messages are shown
 
 ### July 20, 2025
 - ✅ Created Gardien Angel page with calendar view access for moderation purposes
