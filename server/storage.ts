@@ -51,6 +51,7 @@ export interface IStorage {
   // Meditation session operations
   createMeditationSession(session: InsertMeditationSession): Promise<MeditationSession>;
   getMeditationSessions(userId: number, sessionDate?: string): Promise<MeditationSession[]>;
+  getAllMeditationSessions(): Promise<MeditationSession[]>;
   updateMeditationSession(id: number, session: Partial<MeditationSession>): Promise<MeditationSession | undefined>;
   getSessionDuration(userId: number, sessionDate: string): Promise<number>;
   getSessionDurations(userId: number): Promise<Array<{ sessionDate: string, duration: number }>>;
@@ -576,6 +577,10 @@ export class DatabaseStorage implements IStorage {
       .from(meditationSessions)
       .where(and(...conditions))
       .orderBy(desc(meditationSessions.createdAt));
+  }
+
+  async getAllMeditationSessions(): Promise<MeditationSession[]> {
+    return await db.select().from(meditationSessions).orderBy(desc(meditationSessions.createdAt));
   }
 
   async getMeditationSessionById(id: number): Promise<MeditationSession | undefined> {

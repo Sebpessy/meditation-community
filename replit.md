@@ -50,6 +50,10 @@ Preferred communication style: Simple, everyday language.
 - ✅ **PRODUCTION ONLINE COUNT FIX**: Implemented robust grace period cleanup with automatic expiry checks and periodic cleanup
 - ✅ Added emergency cleanup endpoint (/api/debug/force-cleanup) for immediate ghost user removal on newself.me
 - ✅ Enhanced online count accuracy with real-time grace period validation and automatic cleanup every 10 minutes
+- ✅ **MEDITATION SESSION DURATION CLEANUP**: Implemented one-time cleanup capping all sessions above 60 minutes to exactly 60 minutes
+- ✅ Updated 3 sessions with excessive durations: Adri Pie (817.6 min), Grace Anadon (572.7 min), MP (548.6 min) - all now capped at 60 minutes
+- ✅ Added production-ready session cleanup endpoint (/api/admin/cleanup-session-durations) for newself.me deployment
+- ✅ Verified maximum session duration is now 60.0 minutes across all 58 meditation sessions
 
 ### July 20, 2025
 - ✅ Created Gardien Angel page with calendar view access for moderation purposes

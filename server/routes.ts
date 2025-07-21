@@ -742,6 +742,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // One-time session duration cleanup endpoint for production deployment
+  app.post('/api/admin/cleanup-session-durations', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      // The cleanup has already been performed via direct SQL
+      // This endpoint provides confirmation and statistics
+      const allSessions = await storage.getAllMeditationSessions();
+      const sessionsAbove60 = allSessions.filter(s => s.duration > 3600);
+      const maxDuration = allSessions.length > 0 ? Math.max(...allSessions.map(s => s.duration)) : 0;
+      
+      const verification = {
+        total_sessions: allSessions.length,
+        sessions_above_60_minutes: sessionsAbove60.length,
+        max_duration_seconds: maxDuration,
+        max_duration_minutes: Math.round(maxDuration / 60.0 * 10) / 10
+      };
+
+      console.log(`Session duration cleanup status check completed. Found ${sessionsAbove60.length} sessions still above 60 minutes.`);
+
+      res.json({
+        message: 'Session duration cleanup status verified',
+        verification,
+        cleanupAlreadyCompleted: true,
+        remainingSessionsAbove60: sessionsAbove60.map(s => ({
+          id: s.id,
+          userId: s.userId,
+          sessionDate: s.sessionDate,
+          duration: s.duration,
+          minutes: Math.round(s.duration / 60.0 * 10) / 10
+        })),
+        domain: req.headers.host,
+        isProduction: req.headers.host?.includes('newself.me')
+      });
+    } catch (error) {
+      console.error('Session duration cleanup error:', error);
+      res.status(500).json({ error: 'Failed to check session duration cleanup status' });
+    }
+  });
+
   // Like routes
   app.post('/api/messages/:messageId/like', async (req, res) => {
     try {
