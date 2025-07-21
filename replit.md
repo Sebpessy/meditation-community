@@ -54,6 +54,10 @@ Preferred communication style: Simple, everyday language.
 - ✅ Updated 3 sessions with excessive durations: Adri Pie (817.6 min), Grace Anadon (572.7 min), MP (548.6 min) - all now capped at 60 minutes
 - ✅ Added production-ready session cleanup endpoint (/api/admin/cleanup-session-durations) for newself.me deployment
 - ✅ Verified maximum session duration is now 60.0 minutes across all 58 meditation sessions
+- ✅ **PRODUCTION GHOST USER FIX**: Fixed online count discrepancy on newself.me (10 online vs 6 avatars)
+- ✅ Ran emergency cleanup removing 4 ghost users stuck in grace period on production
+- ✅ Enhanced periodic cleanup system: reduced interval to 5 minutes with aggressive 10-minute ghost user detection
+- ✅ Improved WebSocket connection stability to prevent future ghost user accumulation on production domain
 
 ### July 20, 2025
 - ✅ Created Gardien Angel page with calendar view access for moderation purposes

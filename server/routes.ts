@@ -43,24 +43,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // WebSocket server setup
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
-  // Periodic cleanup for stale grace period users (every 10 minutes)
+  // Enhanced periodic cleanup for stale grace period users (every 5 minutes with aggressive ghost user detection)
   setInterval(() => {
     const now = new Date();
     const expiredKeys: string[] = [];
+    const ghostKeys: string[] = []; // For users disconnected >10 minutes (ghost users)
     
     Array.from(userGracePeriod.entries()).forEach(([key, grace]) => {
       const timeSinceDisconnect = now.getTime() - grace.disconnectTime.getTime();
+      
+      // Normal grace period expiry (120 minutes)
       if (timeSinceDisconnect >= (GRACE_PERIOD_MINUTES * 60 * 1000)) {
         expiredKeys.push(key);
       }
+      // Aggressive cleanup for ghost users (10 minutes) to prevent online count mismatch
+      else if (timeSinceDisconnect >= (10 * 60 * 1000)) {
+        ghostKeys.push(key);
+      }
     });
     
-    if (expiredKeys.length > 0) {
-      console.log(`Periodic cleanup: removing ${expiredKeys.length} expired grace period users`);
-      expiredKeys.forEach(key => {
+    const allCleanupKeys = [...expiredKeys, ...ghostKeys];
+    
+    if (allCleanupKeys.length > 0) {
+      console.log(`Periodic cleanup: removing ${expiredKeys.length} expired + ${ghostKeys.length} ghost grace period users`);
+      allCleanupKeys.forEach(key => {
         const grace = userGracePeriod.get(key);
         if (grace) {
+          const cleanupType = expiredKeys.includes(key) ? 'expired' : 'ghost';
+          console.log(`Removing ${cleanupType} grace period user: ${grace.userId} from session ${grace.sessionDate}`);
           userGracePeriod.delete(key);
+          
           // Broadcast updated count for the session
           const onlineCount = getOnlineCount(grace.sessionDate);
           broadcastToSession(grace.sessionDate, {
@@ -70,7 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     }
-  }, 10 * 60 * 1000); // Run every 10 minutes
+  }, 5 * 60 * 1000); // Run every 5 minutes for more responsive cleanup
   
   wss.on('connection', (ws) => {
     console.log('New WebSocket connection');
