@@ -47,6 +47,9 @@ Preferred communication style: Simple, everyday language.
 - ✅ **FIXED LAST LOGIN TRACKING**: Corrected Steven's last login time from incorrect timezone to show accurate July 21st activity
 - ✅ **PRODUCTION WEBSOCKET DEBUGGING**: Enhanced grace period functionality with comprehensive debug endpoints for newself.me deployment
 - ✅ Added debug endpoints for testing grace period functionality on production domain (/api/debug/grace-period-test)
+- ✅ **PRODUCTION ONLINE COUNT FIX**: Implemented robust grace period cleanup with automatic expiry checks and periodic cleanup
+- ✅ Added emergency cleanup endpoint (/api/debug/force-cleanup) for immediate ghost user removal on newself.me
+- ✅ Enhanced online count accuracy with real-time grace period validation and automatic cleanup every 10 minutes
 
 ### July 20, 2025
 - ✅ Created Gardien Angel page with calendar view access for moderation purposes

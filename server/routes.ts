@@ -42,6 +42,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // WebSocket server setup
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+  // Periodic cleanup for stale grace period users (every 10 minutes)
+  setInterval(() => {
+    const now = new Date();
+    const expiredKeys: string[] = [];
+    
+    Array.from(userGracePeriod.entries()).forEach(([key, grace]) => {
+      const timeSinceDisconnect = now.getTime() - grace.disconnectTime.getTime();
+      if (timeSinceDisconnect >= (GRACE_PERIOD_MINUTES * 60 * 1000)) {
+        expiredKeys.push(key);
+      }
+    });
+    
+    if (expiredKeys.length > 0) {
+      console.log(`Periodic cleanup: removing ${expiredKeys.length} expired grace period users`);
+      expiredKeys.forEach(key => {
+        const grace = userGracePeriod.get(key);
+        if (grace) {
+          userGracePeriod.delete(key);
+          // Broadcast updated count for the session
+          const onlineCount = getOnlineCount(grace.sessionDate);
+          broadcastToSession(grace.sessionDate, {
+            type: 'online-count-updated',
+            onlineCount
+          });
+        }
+      });
+    }
+  }, 10 * 60 * 1000); // Run every 10 minutes
   
   wss.on('connection', (ws) => {
     console.log('New WebSocket connection');
@@ -240,8 +269,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Schedule grace period check after 120 minutes
             setTimeout(async () => {
+              console.log(`Scheduled grace period check for ${graceKey}`);
               await checkGracePeriodExpiry(graceKey);
             }, GRACE_PERIOD_MINUTES * 60 * 1000);
+            
+            // Additional shorter check for production reliability (every 30 minutes)
+            setTimeout(async () => {
+              console.log(`Mid-grace period check for ${graceKey}`);
+              await checkGracePeriodExpiry(graceKey);
+            }, 30 * 60 * 1000);
           } else {
             // If we can't get user data, remove immediately
             sessionUsers.get(connectionInfo.sessionDate)?.delete(connectionInfo.userId);
@@ -274,9 +310,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const userSet = sessionUsers.get(sessionDate);
     const baseCount = userSet ? userSet.size : 0;
     
-    // Add users in grace period for this session
-    const gracePeriodCount = Array.from(userGracePeriod.values())
-      .filter(grace => grace.sessionDate === sessionDate).length;
+    // Check grace period users for expiry before counting
+    const now = new Date();
+    const validGracePeriodUsers = Array.from(userGracePeriod.entries())
+      .filter(([key, grace]) => {
+        if (grace.sessionDate !== sessionDate) return false;
+        
+        const timeSinceDisconnect = now.getTime() - grace.disconnectTime.getTime();
+        const isExpired = timeSinceDisconnect >= (GRACE_PERIOD_MINUTES * 60 * 1000);
+        
+        if (isExpired) {
+          console.log(`Removing expired grace period user ${grace.userId}`);
+          userGracePeriod.delete(key);
+          return false;
+        }
+        return true;
+      });
+    
+    const gracePeriodCount = validGracePeriodUsers.length;
     
     console.log(`Online count debug - Active: ${baseCount}, Grace period: ${gracePeriodCount}, Total: ${baseCount + gracePeriodCount}`);
     
@@ -299,16 +350,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })
     );
     
-    // Get users in grace period for this session
-    const gracePeriodUsers = Array.from(userGracePeriod.values())
-      .filter(grace => grace.sessionDate === sessionDate)
-      .map(grace => grace.userData)
+    // Get valid grace period users (check for expiry)
+    const now = new Date();
+    const validGracePeriodUsers = Array.from(userGracePeriod.entries())
+      .filter(([key, grace]) => {
+        if (grace.sessionDate !== sessionDate) return false;
+        
+        const timeSinceDisconnect = now.getTime() - grace.disconnectTime.getTime();
+        const isExpired = timeSinceDisconnect >= (GRACE_PERIOD_MINUTES * 60 * 1000);
+        
+        if (isExpired) {
+          console.log(`Cleaning expired grace period user ${grace.userId} from display`);
+          userGracePeriod.delete(key);
+          return false;
+        }
+        return true;
+      })
+      .map(([key, grace]) => grace.userData)
       .filter(user => user !== null);
     
-    console.log(`Online users debug - Active users: ${activeUsers.filter(u => u).length}, Grace period users: ${gracePeriodUsers.length}`);
+    console.log(`Online users debug - Active users: ${activeUsers.filter(u => u).length}, Grace period users: ${validGracePeriodUsers.length}`);
     
     // Combine active users and grace period users, remove duplicates
-    const allUsers = [...activeUsers.filter(user => user !== null), ...gracePeriodUsers];
+    const allUsers = [...activeUsers.filter(user => user !== null), ...validGracePeriodUsers];
     const uniqueUsers = allUsers.filter((user, index, self) => 
       user && self.findIndex(u => u && u.id === user.id) === index
     );
@@ -634,6 +698,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(testResults);
     } catch (error) {
       res.status(500).json({ error: 'Failed to run grace period test' });
+    }
+  });
+
+  // Emergency fix endpoint for production deployment
+  app.post('/api/debug/force-cleanup/:sessionDate', async (req, res) => {
+    try {
+      const sessionDate = req.params.sessionDate;
+      const now = new Date();
+      let cleanedCount = 0;
+      
+      // Force cleanup all grace period users older than 5 minutes for immediate fix
+      const expiredKeys = Array.from(userGracePeriod.entries())
+        .filter(([key, grace]) => {
+          if (grace.sessionDate !== sessionDate) return false;
+          const timeSinceDisconnect = now.getTime() - grace.disconnectTime.getTime();
+          return timeSinceDisconnect >= (5 * 60 * 1000); // 5 minutes threshold for emergency cleanup
+        })
+        .map(([key]) => key);
+      
+      expiredKeys.forEach(key => {
+        userGracePeriod.delete(key);
+        cleanedCount++;
+      });
+      
+      // Broadcast updated count
+      const onlineUsers = await getOnlineUsers(sessionDate);
+      broadcastToSession(sessionDate, {
+        type: 'online-count-updated',
+        onlineCount: getOnlineCount(sessionDate),
+        onlineUsers: onlineUsers
+      });
+      
+      res.json({ 
+        message: 'Emergency cleanup completed',
+        cleanedCount,
+        newOnlineCount: getOnlineCount(sessionDate),
+        remainingGracePeriodUsers: Array.from(userGracePeriod.entries())
+          .filter(([key, grace]) => grace.sessionDate === sessionDate).length
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to run emergency cleanup' });
     }
   });
 
