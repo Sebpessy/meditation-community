@@ -574,7 +574,7 @@ export default function MoodAnalyticsPage() {
                               color: chakraColors[session.preEntry.emotionLevel]?.color || '#E53E3E'
                             }}
                           >
-                            {chakraColors[session.preEntry.emotionLevel]?.name || 'Root Center'}
+                            {chakraColors[session.preEntry.emotionLevel]?.name || 'No Awareness'}
                           </Badge>
                         </div>
                       )}
@@ -593,7 +593,7 @@ export default function MoodAnalyticsPage() {
                               color: chakraColors[session.postEntry.emotionLevel]?.color || '#E53E3E'
                             }}
                           >
-                            {chakraColors[session.postEntry.emotionLevel]?.name || 'Root Center'}
+                            {chakraColors[session.postEntry.emotionLevel]?.name || 'No Awareness'}
                           </Badge>
                         </div>
                       )}
@@ -601,13 +601,6 @@ export default function MoodAnalyticsPage() {
                   </div>
                   
                   <div className="text-right">
-                    {session.improvement !== 0 && (
-                      <div className={`text-sm font-medium ${
-                        session.improvement > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                      }`}>
-                        {session.improvement > 0 ? '+' : ''}{session.improvement} levels
-                      </div>
-                    )}
                     <div className="text-xs text-muted-foreground">
                       {session.preEntry && session.postEntry ? 'Complete' : 'Partial'}
                     </div>
@@ -781,7 +774,7 @@ export default function MoodAnalyticsPage() {
                       }}
                       className="mb-2"
                     >
-                      {chakraColors[selectedSessionDetail.preEntry.emotionLevel]?.name || 'Root Center'}
+                      {chakraColors[selectedSessionDetail.preEntry.emotionLevel]?.name || 'No Awareness'}
                     </Badge>
                     {selectedSessionDetail.preEntry.comment && (
                       <div className="text-xs text-gray-600 dark:text-[var(--text-medium-contrast)] bg-gray-50 dark:bg-[var(--muted)] p-2 rounded italic">
@@ -802,7 +795,7 @@ export default function MoodAnalyticsPage() {
                       }}
                       className="mb-2"
                     >
-                      {chakraColors[selectedSessionDetail.postEntry.emotionLevel]?.name || 'Root Center'}
+                      {chakraColors[selectedSessionDetail.postEntry.emotionLevel]?.name || 'No Awareness'}
                     </Badge>
                     {selectedSessionDetail.postEntry.comment && (
                       <div className="text-xs text-gray-600 dark:text-[var(--text-medium-contrast)] bg-gray-50 dark:bg-[var(--muted)] p-2 rounded italic">
@@ -812,15 +805,7 @@ export default function MoodAnalyticsPage() {
                   </div>
                 )}
                 
-                {selectedSessionDetail.improvement !== 0 && (
-                  <div className="text-center pt-2 border-t">
-                    <div className={`text-sm font-medium ${
-                      selectedSessionDetail.improvement > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                    }`}>
-                      {selectedSessionDetail.improvement > 0 ? '+' : ''}{selectedSessionDetail.improvement} levels improvement
-                    </div>
-                  </div>
-                )}
+
               </div>
             </CardContent>
           </Card>
@@ -893,11 +878,7 @@ export default function MoodAnalyticsPage() {
                     <span className="text-muted-foreground">
                       Session {currentSessionIndex + 1} of {searchFilteredData.length}
                     </span>
-                    {searchFilteredData[currentSessionIndex].improvement > 0 && (
-                      <Badge variant="secondary" className="text-green-600">
-                        +{searchFilteredData[currentSessionIndex].improvement} levels improved
-                      </Badge>
-                    )}
+
                   </div>
                 )}
               </div>

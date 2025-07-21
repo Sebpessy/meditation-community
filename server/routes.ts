@@ -63,7 +63,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sessionUsers.get(message.sessionDate)!.add(message.userId);
             
             // Check if it's a new day and flush old chat messages if needed
-            const today = new Date().toISOString().split('T')[0];
+            // Use CST time for consistency
+            const now = new Date();
+            const cstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
+            const today = cstTime.toISOString().split('T')[0];
             if (message.sessionDate === today) {
               // Flush messages from previous days (not today's session)
               await storage.flushOldChatMessages(today);
