@@ -30,8 +30,12 @@ async function getCurrentUser(req: any) {
 }
 
 // WebSocket connection management
-const activeConnections = new Map<WebSocket, { userId?: number, sessionDate?: string }>();
+const activeConnections = new Map<WebSocket, { userId?: number, sessionDate?: string, lastActivity?: Date }>();
 const sessionUsers = new Map<string, Set<number>>(); // sessionDate -> Set of userIds
+const userGracePeriod = new Map<string, { userId: number, sessionDate: string, disconnectTime: Date, userData?: any }>(); // userId-sessionDate -> grace period info
+
+// Grace period duration: 120 minutes
+const GRACE_PERIOD_MINUTES = 120;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -54,7 +58,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           case 'join-session':
             connectionInfo.userId = message.userId;
             connectionInfo.sessionDate = message.sessionDate;
+            connectionInfo.lastActivity = new Date();
             activeConnections.set(ws, connectionInfo);
+            
+            // Remove user from grace period if they're reconnecting
+            const graceKey = `${message.userId}-${message.sessionDate}`;
+            if (userGracePeriod.has(graceKey)) {
+              console.log(`User ${message.userId} reconnected, removing from grace period`);
+              userGracePeriod.delete(graceKey);
+            }
             
             // Track unique users in session
             if (!sessionUsers.has(message.sessionDate)) {
@@ -122,6 +134,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           case 'chat-message':
             if (connectionInfo.userId && connectionInfo.sessionDate) {
+              // Update last activity
+              connectionInfo.lastActivity = new Date();
+              activeConnections.set(ws, connectionInfo);
+              
               const chatMessage = await storage.createChatMessage({
                 userId: connectionInfo.userId,
                 message: message.text,
@@ -146,17 +162,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
               );
               
               if (!hasOtherConnections) {
-                sessionUsers.get(connectionInfo.sessionDate)?.delete(connectionInfo.userId);
+                // Start grace period instead of immediately removing user
+                const graceKey = `${connectionInfo.userId}-${connectionInfo.sessionDate}`;
+                const user = await storage.getUser(connectionInfo.userId);
+                
+                if (user) {
+                  userGracePeriod.set(graceKey, {
+                    userId: connectionInfo.userId,
+                    sessionDate: connectionInfo.sessionDate,
+                    disconnectTime: new Date(),
+                    userData: {
+                      id: user.id,
+                      name: user.name,
+                      profilePicture: user.profilePicture
+                    }
+                  });
+                  
+                  console.log(`User ${connectionInfo.userId} left session, entering grace period`);
+                  
+                  // Schedule grace period check after 120 minutes
+                  setTimeout(async () => {
+                    await checkGracePeriodExpiry(graceKey);
+                  }, GRACE_PERIOD_MINUTES * 60 * 1000);
+                } else {
+                  sessionUsers.get(connectionInfo.sessionDate)?.delete(connectionInfo.userId);
+                  
+                  const onlineUsers = await getOnlineUsers(connectionInfo.sessionDate);
+                  
+                  broadcastToSession(connectionInfo.sessionDate, {
+                    type: 'user-left',
+                    userId: connectionInfo.userId,
+                    onlineCount: getOnlineCount(connectionInfo.sessionDate),
+                    onlineUsers: onlineUsers
+                  });
+                }
               }
-              
-              const onlineUsers = await getOnlineUsers(connectionInfo.sessionDate);
-              
-              broadcastToSession(connectionInfo.sessionDate, {
-                type: 'user-left',
-                userId: connectionInfo.userId,
-                onlineCount: getOnlineCount(connectionInfo.sessionDate) - 1,
-                onlineUsers: onlineUsers
-              });
             }
             break;
         }
@@ -177,17 +217,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         
         if (!hasOtherConnections) {
-          sessionUsers.get(connectionInfo.sessionDate)?.delete(connectionInfo.userId);
+          // User has no active connections, start grace period
+          const graceKey = `${connectionInfo.userId}-${connectionInfo.sessionDate}`;
+          const user = await storage.getUser(connectionInfo.userId);
+          
+          if (user) {
+            userGracePeriod.set(graceKey, {
+              userId: connectionInfo.userId,
+              sessionDate: connectionInfo.sessionDate,
+              disconnectTime: new Date(),
+              userData: {
+                id: user.id,
+                name: user.name,
+                profilePicture: user.profilePicture
+              }
+            });
+            
+            console.log(`User ${connectionInfo.userId} entered grace period for ${GRACE_PERIOD_MINUTES} minutes`);
+            
+            // Schedule grace period check after 120 minutes
+            setTimeout(async () => {
+              await checkGracePeriodExpiry(graceKey);
+            }, GRACE_PERIOD_MINUTES * 60 * 1000);
+          } else {
+            // If we can't get user data, remove immediately
+            sessionUsers.get(connectionInfo.sessionDate)?.delete(connectionInfo.userId);
+            
+            const onlineUsers = await getOnlineUsers(connectionInfo.sessionDate);
+            
+            broadcastToSession(connectionInfo.sessionDate, {
+              type: 'user-left',
+              userId: connectionInfo.userId,
+              onlineCount: getOnlineCount(connectionInfo.sessionDate),
+              onlineUsers: onlineUsers
+            });
+          }
         }
-        
-        const onlineUsers = await getOnlineUsers(connectionInfo.sessionDate);
-        
-        broadcastToSession(connectionInfo.sessionDate, {
-          type: 'user-left',
-          userId: connectionInfo.userId,
-          onlineCount: getOnlineCount(connectionInfo.sessionDate),
-          onlineUsers: onlineUsers
-        });
       }
     });
   });
@@ -204,16 +269,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   function getOnlineCount(sessionDate: string): number {
     const userSet = sessionUsers.get(sessionDate);
-    return userSet ? userSet.size : 0;
+    const baseCount = userSet ? userSet.size : 0;
+    
+    // Add users in grace period for this session
+    const gracePeriodCount = Array.from(userGracePeriod.values())
+      .filter(grace => grace.sessionDate === sessionDate).length;
+    
+    return baseCount + gracePeriodCount;
   }
 
   async function getOnlineUsers(sessionDate: string): Promise<Array<{id: number, name: string, profilePicture?: string}>> {
     const userSet = sessionUsers.get(sessionDate);
-    if (!userSet || userSet.size === 0) return [];
+    const activeUserIds = userSet ? Array.from(userSet) : [];
     
-    const userIds = Array.from(userSet);
-    const users = await Promise.all(
-      userIds.map(async (userId) => {
+    // Get users currently connected
+    const activeUsers = await Promise.all(
+      activeUserIds.map(async (userId) => {
         const user = await storage.getUser(userId);
         return user ? {
           id: user.id,
@@ -223,7 +294,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })
     );
     
-    return users.filter(user => user !== null) as Array<{id: number, name: string, profilePicture?: string}>;
+    // Get users in grace period for this session
+    const gracePeriodUsers = Array.from(userGracePeriod.values())
+      .filter(grace => grace.sessionDate === sessionDate)
+      .map(grace => grace.userData)
+      .filter(user => user !== null);
+    
+    // Combine active users and grace period users, remove duplicates
+    const allUsers = [...activeUsers.filter(user => user !== null), ...gracePeriodUsers];
+    const uniqueUsers = allUsers.filter((user, index, self) => 
+      user && self.findIndex(u => u && u.id === user.id) === index
+    );
+    
+    return uniqueUsers as Array<{id: number, name: string, profilePicture?: string}>;
+  }
+
+  async function checkGracePeriodExpiry(graceKey: string) {
+    const graceInfo = userGracePeriod.get(graceKey);
+    if (!graceInfo) return;
+    
+    const now = new Date();
+    const timeSinceDisconnect = now.getTime() - graceInfo.disconnectTime.getTime();
+    const gracePeriodMs = GRACE_PERIOD_MINUTES * 60 * 1000;
+    
+    // Check if user has reconnected during grace period
+    const hasReconnected = Array.from(activeConnections.values()).some(
+      conn => conn.userId === graceInfo.userId && conn.sessionDate === graceInfo.sessionDate
+    );
+    
+    if (hasReconnected) {
+      // User reconnected, remove from grace period
+      console.log(`User ${graceInfo.userId} reconnected during grace period, removing from grace period`);
+      userGracePeriod.delete(graceKey);
+      return;
+    }
+    
+    if (timeSinceDisconnect >= gracePeriodMs) {
+      // Grace period expired, extend for another 120 minutes or remove user
+      console.log(`Grace period expired for user ${graceInfo.userId}, extending for another ${GRACE_PERIOD_MINUTES} minutes`);
+      
+      // Update disconnect time to extend grace period
+      graceInfo.disconnectTime = new Date();
+      userGracePeriod.set(graceKey, graceInfo);
+      
+      // Schedule another check in 120 minutes
+      setTimeout(async () => {
+        await finalGracePeriodCheck(graceKey);
+      }, GRACE_PERIOD_MINUTES * 60 * 1000);
+    }
+  }
+
+  async function finalGracePeriodCheck(graceKey: string) {
+    const graceInfo = userGracePeriod.get(graceKey);
+    if (!graceInfo) return;
+    
+    // Check if user has reconnected during second grace period
+    const hasReconnected = Array.from(activeConnections.values()).some(
+      conn => conn.userId === graceInfo.userId && conn.sessionDate === graceInfo.sessionDate
+    );
+    
+    if (hasReconnected) {
+      console.log(`User ${graceInfo.userId} reconnected during extended grace period`);
+      userGracePeriod.delete(graceKey);
+      return;
+    }
+    
+    // Remove user completely after second grace period
+    console.log(`Removing user ${graceInfo.userId} after extended grace period`);
+    userGracePeriod.delete(graceKey);
+    sessionUsers.get(graceInfo.sessionDate)?.delete(graceInfo.userId);
+    
+    const onlineUsers = await getOnlineUsers(graceInfo.sessionDate);
+    
+    broadcastToSession(graceInfo.sessionDate, {
+      type: 'user-left',
+      userId: graceInfo.userId,
+      onlineCount: getOnlineCount(graceInfo.sessionDate),
+      onlineUsers: onlineUsers
+    });
   }
 
   // Auth routes
