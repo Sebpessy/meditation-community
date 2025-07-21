@@ -33,6 +33,14 @@ Preferred communication style: Simple, everyday language.
 - ✅ Reset all 52 users to exactly 5 minutes meditation time for today (July 21, 2025) only
 - ✅ Enhanced admin Last Login column to display both date and time instead of date only
 - ✅ Prepared clean slate for accurate session time tracking with realistic baseline values
+- ✅ **FIXED CRITICAL WEBSOCKET ISSUE**: Resolved WebSocket disconnections during fullscreen and picture-in-picture modes
+- ✅ Enhanced session tracking to continue during fullscreen/PiP - time tracking now works seamlessly in all video modes
+- ✅ Added fullscreen and PiP event listeners to maintain WebSocket connections during video mode changes
+- ✅ **FIXED ONLINE COUNT DISCREPANCY**: Resolved issue where online count showed "7 online" but only 4 avatars displayed
+- ✅ Cleared stale grace period users that were inflating online count without showing avatars
+- ✅ Added debug endpoints (/api/debug/grace-period and /api/debug/clear-grace-period) for monitoring and clearing stuck users
+- ✅ Enhanced WebSocket message handling to properly process online-count-updated events
+- ✅ Added comprehensive debug logging for online count calculation (active vs grace period users)
 
 ### July 20, 2025
 - ✅ Created Gardien Angel page with calendar view access for moderation purposes

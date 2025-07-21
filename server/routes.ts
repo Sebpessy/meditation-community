@@ -275,6 +275,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const gracePeriodCount = Array.from(userGracePeriod.values())
       .filter(grace => grace.sessionDate === sessionDate).length;
     
+    console.log(`Online count debug - Active: ${baseCount}, Grace period: ${gracePeriodCount}, Total: ${baseCount + gracePeriodCount}`);
+    
     return baseCount + gracePeriodCount;
   }
 
@@ -300,11 +302,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .map(grace => grace.userData)
       .filter(user => user !== null);
     
+    console.log(`Online users debug - Active users: ${activeUsers.filter(u => u).length}, Grace period users: ${gracePeriodUsers.length}`);
+    
     // Combine active users and grace period users, remove duplicates
     const allUsers = [...activeUsers.filter(user => user !== null), ...gracePeriodUsers];
     const uniqueUsers = allUsers.filter((user, index, self) => 
       user && self.findIndex(u => u && u.id === user.id) === index
     );
+    
+    console.log(`Final unique users count: ${uniqueUsers.length}`);
     
     return uniqueUsers as Array<{id: number, name: string, profilePicture?: string}>;
   }
@@ -536,6 +542,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ users });
     } catch (error) {
       res.status(500).json({ error: 'Failed to get online users' });
+    }
+  });
+
+  // Debug endpoint to check grace period status
+  app.get('/api/debug/grace-period/:sessionDate', async (req, res) => {
+    try {
+      const sessionDate = req.params.sessionDate;
+      const gracePeriodData = Array.from(userGracePeriod.entries())
+        .filter(([key, grace]) => grace.sessionDate === sessionDate)
+        .map(([key, grace]) => ({
+          key,
+          userId: grace.userId,
+          sessionDate: grace.sessionDate,
+          disconnectTime: grace.disconnectTime,
+          timeSinceDisconnect: new Date().getTime() - grace.disconnectTime.getTime(),
+          userData: grace.userData
+        }));
+      
+      const activeUsers = sessionUsers.get(sessionDate);
+      const activeUserIds = activeUsers ? Array.from(activeUsers) : [];
+      
+      res.json({ 
+        gracePeriodUsers: gracePeriodData,
+        activeUserIds,
+        totalOnlineCount: getOnlineCount(sessionDate)
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get grace period status' });
+    }
+  });
+
+  // Emergency clear grace period endpoint
+  app.post('/api/debug/clear-grace-period/:sessionDate', async (req, res) => {
+    try {
+      const sessionDate = req.params.sessionDate;
+      const keysToDelete = Array.from(userGracePeriod.entries())
+        .filter(([key, grace]) => grace.sessionDate === sessionDate)
+        .map(([key]) => key);
+      
+      keysToDelete.forEach(key => userGracePeriod.delete(key));
+      
+      // Broadcast updated user list
+      const onlineUsers = await getOnlineUsers(sessionDate);
+      broadcastToSession(sessionDate, {
+        type: 'online-count-updated',
+        onlineCount: getOnlineCount(sessionDate),
+        onlineUsers: onlineUsers
+      });
+      
+      res.json({ 
+        message: 'Grace period cleared',
+        removedKeys: keysToDelete,
+        newOnlineCount: getOnlineCount(sessionDate)
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to clear grace period' });
     }
   });
 

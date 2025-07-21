@@ -82,6 +82,7 @@ export function useWebSocket(userId?: number, sessionDate?: string) {
             break;
           case 'user-joined':
           case 'user-left':
+          case 'online-count-updated':
             console.log('Online count updated:', message.onlineCount);
             setOnlineCount(message.onlineCount);
             if (message.onlineUsers) {
