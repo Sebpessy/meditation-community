@@ -578,6 +578,15 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(meditationSessions.createdAt));
   }
 
+  async getMeditationSessionById(id: number): Promise<MeditationSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(meditationSessions)
+      .where(eq(meditationSessions.id, id));
+    
+    return session;
+  }
+
   async updateMeditationSession(id: number, session: Partial<MeditationSession>): Promise<MeditationSession | undefined> {
     const [updatedSession] = await db
       .update(meditationSessions)

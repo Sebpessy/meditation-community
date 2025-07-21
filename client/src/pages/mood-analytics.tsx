@@ -186,27 +186,52 @@ export default function MoodAnalyticsPage() {
   }, [moodEntries, sessionDurations]);
 
   const filteredData = useMemo(() => {
+    // Use CST time for consistency with the rest of the app
     const now = new Date();
-    const startOfWeek = new Date(now);
-    // Start week on Monday (getDay() returns 0-6, Sunday=0, Monday=1)
-    const dayOfWeek = now.getDay();
-    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // If Sunday, go back 6 days, else go back (day - 1) days
-    startOfWeek.setDate(now.getDate() - daysFromMonday + (currentWeekOffset * 7)); // Start of week + offset
-    startOfWeek.setHours(0, 0, 0, 0); // Set to beginning of day
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6); // End of week
-    endOfWeek.setHours(23, 59, 59, 999); // Set to end of day
+    const cstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
     
     if (timeFilter === 'week') {
+      const startOfWeek = new Date(cstTime);
+      // Start week on Monday (getDay() returns 0-6, Sunday=0, Monday=1)
+      const dayOfWeek = cstTime.getDay();
+      const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // If Sunday, go back 6 days, else go back (day - 1) days
+      startOfWeek.setDate(cstTime.getDate() - daysFromMonday + (currentWeekOffset * 7)); // Start of week + offset
+      startOfWeek.setHours(0, 0, 0, 0); // Set to beginning of day
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6); // End of week
+      endOfWeek.setHours(23, 59, 59, 999); // Set to end of day
+
+      console.log('Week filter debug:', {
+        cstTime: cstTime.toISOString(),
+        startOfWeek: startOfWeek.toISOString(),
+        endOfWeek: endOfWeek.toISOString(),
+        currentWeekOffset,
+        processedDataCount: processedData.length,
+        sampleSessionDates: processedData.slice(0, 3).map(s => s.sessionDate)
+      });
+
       return processedData.filter(session => {
-        const sessionDate = new Date(session.sessionDate);
-        return sessionDate >= startOfWeek && sessionDate <= endOfWeek;
+        // Parse session date as a date string and compare directly
+        const sessionDate = new Date(session.sessionDate + 'T12:00:00'); // Add time to avoid timezone issues
+        const result = sessionDate >= startOfWeek && sessionDate <= endOfWeek;
+        
+        if (session.sessionDate === getCSTDate()) {
+          console.log('Today session filter check:', {
+            sessionDate: session.sessionDate,
+            sessionDateTime: sessionDate.toISOString(),
+            startOfWeek: startOfWeek.toISOString(),
+            endOfWeek: endOfWeek.toISOString(),
+            included: result
+          });
+        }
+        
+        return result;
       });
     } else if (timeFilter === 'month') {
-      const filterDate = new Date();
-      filterDate.setDate(now.getDate() - 30);
+      const filterDate = new Date(cstTime);
+      filterDate.setDate(cstTime.getDate() - 30);
       return processedData.filter(session => 
-        new Date(session.sessionDate) >= filterDate
+        new Date(session.sessionDate + 'T12:00:00') >= filterDate
       );
     }
     

@@ -706,7 +706,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const sessionId = parseInt(req.params.id);
-      const updatedSession = await storage.updateMeditationSession(sessionId, req.body);
+      const { duration } = req.body;
+      
+      // Get current session to check existing duration
+      const currentSession = await storage.getMeditationSessionById(sessionId);
+      if (!currentSession) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+      
+      // Simply update with the current session duration (not accumulative)
+      const updatedSession = await storage.updateMeditationSession(sessionId, {
+        duration: duration
+      });
       
       if (!updatedSession) {
         return res.status(404).json({ error: 'Session not found' });

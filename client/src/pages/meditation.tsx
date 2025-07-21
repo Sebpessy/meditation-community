@@ -199,9 +199,9 @@ export default function MeditationPage() {
           if (response.ok) {
             const data = await response.json();
             sessionId.current = data.id;
-            // Use the existing start time from DB or set a new one
-            sessionStartTime.current = data.startTime ? new Date(data.startTime).getTime() : Date.now();
-            console.log('Session started/resumed with ID:', data.id);
+            // Always start fresh time tracking for this page visit
+            sessionStartTime.current = Date.now();
+            console.log('Session started/resumed with ID:', data.id, 'Fresh time tracking started');
             
             // Update session every 30 seconds
             updateInterval.current = setInterval(async () => {
