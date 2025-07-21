@@ -2165,7 +2165,6 @@ export default function AdminPage() {
                           </div>
                           <div>
                             <p className="font-medium text-neutral-800 dark:text-[var(--text-high-contrast)]">{user.name}</p>
-                            <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">{user.email}</p>
                           </div>
                         </div>
                         <div className="text-right">
