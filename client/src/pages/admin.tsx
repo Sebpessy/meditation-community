@@ -831,75 +831,39 @@ export default function AdminPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value)} className="space-y-8">
-        <div className="w-full">
-          {/* Mobile: 2 rows layout */}
-          <div className="grid grid-cols-3 grid-rows-2 gap-2 p-2 bg-neutral-100 dark:bg-neutral-800 rounded-lg sm:hidden">
-            <TabsTrigger 
-              value="templates" 
-              className="text-xs py-2.5 px-2 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
-            >
-              Templates
-            </TabsTrigger>
-            <TabsTrigger 
-              value="schedules"
-              className="text-xs py-2.5 px-2 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
-            >
-              Schedules
-            </TabsTrigger>
-            <TabsTrigger 
-              value="users"
-              className="text-xs py-2.5 px-2 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
-            >
-              Users
-            </TabsTrigger>
-            <TabsTrigger 
-              value="analytics"
-              className="text-xs py-2.5 px-2 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
-            >
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger 
-              value="profile-pictures"
-              className="text-xs py-2.5 px-2 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium col-span-2"
-            >
-              Profile Pictures
-            </TabsTrigger>
-          </div>
-          
-          {/* Desktop: Single row layout */}
-          <TabsList className="hidden sm:grid w-full grid-cols-3 lg:grid-cols-5 h-auto gap-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
-            <TabsTrigger 
-              value="templates" 
-              className="text-sm py-2.5 px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
-            >
-              Templates
-            </TabsTrigger>
-            <TabsTrigger 
-              value="schedules"
-              className="text-sm py-2.5 px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
-            >
-              Schedules
-            </TabsTrigger>
-            <TabsTrigger 
-              value="users"
-              className="text-sm py-2.5 px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
-            >
-              Users
-            </TabsTrigger>
-            <TabsTrigger 
-              value="analytics"
-              className="text-sm py-2.5 px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium lg:col-span-1 col-span-3"
-            >
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger 
-              value="profile-pictures"
-              className="text-sm py-2.5 px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium col-span-3 lg:col-span-1"
-            >
-              Profile Pictures
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList className="grid w-full h-auto p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg grid-cols-3 grid-rows-2 gap-1 sm:grid-cols-3 sm:grid-rows-1 lg:grid-cols-5">
+          <TabsTrigger 
+            value="templates" 
+            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
+          >
+            Templates
+          </TabsTrigger>
+          <TabsTrigger 
+            value="schedules"
+            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
+          >
+            Schedules
+          </TabsTrigger>
+          <TabsTrigger 
+            value="users"
+            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
+          >
+            Users
+          </TabsTrigger>
+          <TabsTrigger 
+            value="analytics"
+            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium sm:col-span-3 lg:col-span-1"
+          >
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger 
+            value="profile-pictures"
+            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium col-span-2 sm:col-span-3 lg:col-span-1"
+          >
+            <span className="hidden sm:inline">Profile Pictures</span>
+            <span className="sm:hidden">Pictures</span>
+          </TabsTrigger>
+        </TabsList>
 
         {/* Dashboard Tab */}
         <TabsContent value="dashboard" className="space-y-6">
