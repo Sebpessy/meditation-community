@@ -827,8 +827,8 @@ export default function AdminPage() {
       aValue = a.name.toLowerCase();
       bValue = b.name.toLowerCase();
     } else if (sortField === 'timeSpent') {
-      aValue = userAnalytics.find(ua => ua.userId === a.id)?.totalTimeSpent || 0;
-      bValue = userAnalytics.find(ua => ua.userId === b.id)?.totalTimeSpent || 0;
+      aValue = (a as any).totalTimeSpent || 0;
+      bValue = (b as any).totalTimeSpent || 0;
     } else {
       return 0;
     }
@@ -1989,7 +1989,7 @@ export default function AdminPage() {
 
               {/* Mobile Card View */}
               <div className="md:hidden space-y-3">
-                {filteredUsers.map((user) => (
+                {filteredAndSortedUsers.map((user) => (
                   <Card key={user.id} className="p-4">
                     <div className="flex items-start space-x-3">
                       <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
