@@ -56,6 +56,7 @@ export interface IStorage {
   getSessionDuration(userId: number, sessionDate: string): Promise<number>;
   getSessionDurations(userId: number): Promise<Array<{ sessionDate: string, duration: number }>>;
   getOrCreateTodaySession(userId: number, sessionDate: string): Promise<MeditationSession>;
+  getMeditationSessionById(id: number): Promise<MeditationSession | undefined>;
   
   // User analytics
   getUserLastLogin(userId: number): Promise<Date | null>;

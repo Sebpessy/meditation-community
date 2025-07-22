@@ -118,8 +118,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Check if it's a new day and flush old chat messages if needed
             // Use CST time (Dallas, TX) for consistency
             const now = new Date();
-            const cstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
-            const today = cstTime.toISOString().split('T')[0];
+            // Get proper CST date for Dallas, TX timezone
+            const today = now.toLocaleDateString("en-CA", { timeZone: "America/Chicago" }); // YYYY-MM-DD format
             
             // Only flush if we're on today's session date
             // This ensures messages from 12:00 AM to 11:59 PM CST are preserved for the current day
@@ -931,6 +931,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error starting meditation session:', error);
       res.status(400).json({ error: 'Invalid session data' });
+    }
+  });
+
+  // Get specific session data
+  app.get('/api/session/:id', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const sessionId = parseInt(req.params.id);
+      if (isNaN(sessionId)) {
+        return res.status(400).json({ error: 'Invalid session ID' });
+      }
+
+      const session = await storage.getMeditationSessionById(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      // Ensure user can only access their own sessions (or admin can access any)
+      if (session.userId !== user.id && !user.isAdmin) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      res.json(session);
+    } catch (error) {
+      console.error('Error getting session:', error);
+      res.status(500).json({ error: 'Failed to get session' });
     }
   });
 

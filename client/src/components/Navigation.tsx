@@ -18,8 +18,8 @@ import { MoodTrackerIcon } from "./MoodTrackerIcon";
 
 function getCSTDate(): string {
   const now = new Date();
-  const cstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
-  return cstTime.toISOString().split('T')[0];
+  // Get CST date using proper timezone formatting
+  return now.toLocaleDateString("en-CA", { timeZone: "America/Chicago" }); // YYYY-MM-DD format
 }
 
 interface NavigationProps {

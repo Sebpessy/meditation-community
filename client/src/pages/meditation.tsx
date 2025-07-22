@@ -18,8 +18,8 @@ import { useWebSocket } from "@/lib/websocket";
 
 function getCSTDate(): string {
   const now = new Date();
-  const cstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
-  return cstTime.toISOString().split('T')[0];
+  // Get CST date using proper timezone formatting
+  return now.toLocaleDateString("en-CA", { timeZone: "America/Chicago" }); // YYYY-MM-DD format
 }
 
 function calculateTimeUntilMidnight(): string {
@@ -199,6 +199,7 @@ export default function MeditationPage() {
           if (response.ok) {
             const data = await response.json();
             sessionId.current = data.id;
+            
             // Always start fresh time tracking for this page visit
             sessionStartTime.current = Date.now();
             console.log('Session started/resumed with ID:', data.id, 'Fresh time tracking started');
@@ -206,11 +207,16 @@ export default function MeditationPage() {
             // Update session every 30 seconds
             updateInterval.current = setInterval(async () => {
               if (sessionId.current) {
-                const duration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
-                console.log('Updating session duration:', duration, 'seconds');
+                // Calculate time spent in this browser session only
+                const sessionDuration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
+                
+                // Cap at 4 hours (14400 seconds) per day - reasonable maximum
+                const cappedDuration = Math.min(sessionDuration, 14400);
+                
+                console.log('Updating session duration:', cappedDuration, 'seconds');
                 try {
                   const updateResponse = await apiRequest('PUT', `/api/session/${sessionId.current}`, {
-                    duration
+                    duration: cappedDuration
                   });
                   if (!updateResponse.ok) {
                     console.error('Failed to update session, status:', updateResponse.status);
@@ -254,13 +260,23 @@ export default function MeditationPage() {
           console.log('Resuming session tracking after visibility change');
           updateInterval.current = setInterval(async () => {
             if (sessionId.current) {
-              const duration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
-              console.log('Updating session duration:', duration, 'seconds');
+              // Get existing session data to calculate proper duration
               try {
-                const updateResponse = await apiRequest('PUT', `/api/session/${sessionId.current}`, {
-                  duration
-                });
-                if (!updateResponse.ok && updateResponse.status === 404) {
+                const sessionResponse = await apiRequest('GET', `/api/session/${sessionId.current}`);
+                if (sessionResponse.ok) {
+                  const sessionData = await sessionResponse.json();
+                  const existingDuration = sessionData.duration || 0;
+                  const sessionDuration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
+                  const totalDuration = Math.min(existingDuration + sessionDuration, 28800); // Cap at 8 hours
+                  
+                  console.log('Resuming - this visit:', sessionDuration, 'seconds, total:', totalDuration, 'seconds');
+                  const updateResponse = await apiRequest('PUT', `/api/session/${sessionId.current}`, {
+                    duration: totalDuration
+                  });
+                  if (!updateResponse.ok && updateResponse.status === 404) {
+                    sessionId.current = null;
+                  }
+                } else {
                   sessionId.current = null;
                 }
               } catch (error) {

@@ -58,6 +58,10 @@ Preferred communication style: Simple, everyday language.
 - ✅ Ran emergency cleanup removing 4 ghost users stuck in grace period on production
 - ✅ Enhanced periodic cleanup system: reduced interval to 5 minutes with aggressive 10-minute ghost user detection
 - ✅ Improved WebSocket connection stability to prevent future ghost user accumulation on production domain
+- ✅ **TIMEZONE FIX**: Fixed CST timezone calculation bug causing premature date changes and chat message resets
+- ✅ Corrected getCSTDate function across client components to properly use Dallas, TX Central Time
+- ✅ Fixed server-side timezone handling to prevent messages from being wiped at wrong times
+- ✅ Sessions now properly track time without accumulating unrealistic durations
 
 ### July 20, 2025
 - ✅ Created Gardien Angel page with calendar view access for moderation purposes
