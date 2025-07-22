@@ -1478,6 +1478,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user time spent endpoint
+  app.put('/api/admin/users/:id/time-spent', async (req, res) => {
+    try {
+      const currentUser = await getCurrentUser(req);
+      if (!currentUser || !currentUser.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const userId = parseInt(req.params.id);
+      const { timeSpent } = req.body;
+
+      if (isNaN(userId) || isNaN(timeSpent) || timeSpent < 0) {
+        return res.status(400).json({ error: 'Invalid user ID or time spent value' });
+      }
+
+      // Update the user's total time spent in meditation sessions
+      const success = await storage.updateUserTotalTimeSpent(userId, timeSpent);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      res.json({ success: true, timeSpent });
+    } catch (error) {
+      console.error('Error updating user time spent:', error);
+      res.status(500).json({ error: 'Failed to update time spent' });
+    }
+  });
+
   // Chat Message Moderation Routes
   app.delete('/api/messages/:id', async (req, res) => {
     try {

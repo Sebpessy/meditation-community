@@ -61,6 +61,7 @@ export interface IStorage {
   // User analytics
   getUserLastLogin(userId: number): Promise<Date | null>;
   getUserTotalTimeSpent(userId: number): Promise<number>;
+  updateUserTotalTimeSpent(userId: number, timeSpent: number): Promise<boolean>;
   
   // Profile picture operations
   getAllProfilePictures(): Promise<ProfilePicture[]>;
@@ -654,6 +655,55 @@ export class DatabaseStorage implements IStorage {
 
     // Convert seconds to minutes
     return Math.round((totalDuration[0]?.totalDuration || 0) / 60);
+  }
+
+  // Update user's total time spent by setting all their session durations to match the new total
+  async updateUserTotalTimeSpent(userId: number, timeSpentMinutes: number): Promise<boolean> {
+    try {
+      // Convert minutes to seconds for database storage
+      const timeSpentSeconds = timeSpentMinutes * 60;
+      
+      // Get all user's meditation sessions
+      const userSessions = await db.select()
+        .from(meditationSessions)
+        .where(eq(meditationSessions.userId, userId));
+
+      if (userSessions.length === 0) {
+        // If user has no sessions, create a session for today with the total time
+        const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
+        await this.createMeditationSession({
+          userId,
+          sessionDate: today,
+          startTime: new Date(),
+          duration: timeSpentSeconds
+        });
+        return true;
+      }
+
+      // Distribute the time across existing sessions proportionally
+      // Or simply update the most recent session with the total time
+      const mostRecentSession = userSessions.sort((a, b) => 
+        new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime()
+      )[0];
+
+      // Clear all other sessions' durations and set the total on the most recent
+      await db.update(meditationSessions)
+        .set({ duration: 0 })
+        .where(and(
+          eq(meditationSessions.userId, userId),
+          sql`id != ${mostRecentSession.id}`
+        ));
+
+      // Set the total time on the most recent session
+      await db.update(meditationSessions)
+        .set({ duration: timeSpentSeconds })
+        .where(eq(meditationSessions.id, mostRecentSession.id));
+
+      return true;
+    } catch (error) {
+      console.error('Error updating user total time spent:', error);
+      return false;
+    }
   }
 
   // Get session durations by date for a user

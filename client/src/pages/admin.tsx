@@ -92,8 +92,12 @@ export default function AdminPage() {
   const [scheduleViewMode, setScheduleViewMode] = useState<"list" | "calendar">("list");
   const [calendarView, setCalendarView] = useState<"week" | "month" | "year">("month");
   const [userSearchTerm, setUserSearchTerm] = useState("");
+  const [sortField, setSortField] = useState<'name' | 'timeSpent' | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [editingTimeSpent, setEditingTimeSpent] = useState<{ user: User; currentTime: number } | null>(null);
+  const [newTimeSpent, setNewTimeSpent] = useState("");
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [csvData, setCsvData] = useState("");
   const [importPreview, setImportPreview] = useState<any[]>([]);
@@ -402,6 +406,31 @@ export default function AdminPage() {
       toast({
         title: "Error",
         description: "Failed to update user role. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateTimeSpentMutation = useMutation({
+    mutationFn: async ({ userId, timeSpent }: { userId: number; timeSpent: number }) => {
+      const response = await apiRequest("PUT", `/api/admin/users/${userId}/time-spent`, { timeSpent });
+      if (!response.ok) {
+        throw new Error('Failed to update time spent');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      setEditingTimeSpent(null);
+      toast({
+        title: "Success",
+        description: "Time spent updated successfully"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update time spent",
         variant: "destructive"
       });
     }
@@ -775,10 +804,39 @@ export default function AdminPage() {
     setCalendarDate(newDate);
   };
 
-  const filteredUsers = users?.filter(user => 
+  // Handle sorting
+  const handleSort = (field: 'name' | 'timeSpent') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const filteredAndSortedUsers = users?.filter(user => 
     user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(userSearchTerm.toLowerCase())
-  ) || [];
+  ).sort((a, b) => {
+    if (!sortField) return 0;
+    
+    let aValue: string | number;
+    let bValue: string | number;
+    
+    if (sortField === 'name') {
+      aValue = a.name.toLowerCase();
+      bValue = b.name.toLowerCase();
+    } else if (sortField === 'timeSpent') {
+      aValue = userAnalytics.find(ua => ua.userId === a.id)?.totalTimeSpent || 0;
+      bValue = userAnalytics.find(ua => ua.userId === b.id)?.totalTimeSpent || 0;
+    } else {
+      return 0;
+    }
+    
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  }) || [];
 
   const handleBanUser = (user: User) => {
     setBanningUser(user);
@@ -1715,7 +1773,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-center py-8">
               <Loading />
             </div>
-          ) : filteredUsers.length === 0 ? (
+          ) : filteredAndSortedUsers.length === 0 ? (
             <Card>
               <CardContent className="p-0">
                 <div className="text-center py-12">
@@ -1734,18 +1792,42 @@ export default function AdminPage() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b dark:border-[var(--border)]">
-                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">User</th>
+                          <th 
+                            className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] cursor-pointer hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors"
+                            onClick={() => handleSort('name')}
+                          >
+                            <div className="flex items-center space-x-1">
+                              <span>Name</span>
+                              {sortField === 'name' && (
+                                <span className="text-xs">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Email</th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Role</th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Status</th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Joined</th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Last Login</th>
-                          <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Time Spent</th>
+                          <th 
+                            className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] cursor-pointer hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors"
+                            onClick={() => handleSort('timeSpent')}
+                          >
+                            <div className="flex items-center space-x-1">
+                              <span>Time Spent</span>
+                              {sortField === 'timeSpent' && (
+                                <span className="text-xs">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredUsers.map((user) => (
+                        {filteredAndSortedUsers.map((user) => (
                           <tr key={user.id} className={`border-b dark:border-[var(--border)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors ${selectedUserId === user.id ? 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-200 dark:ring-blue-800' : ''}`}>
                             <td className="p-4">
                               <div className="flex items-center space-x-3">
@@ -1821,10 +1903,23 @@ export default function AdminPage() {
                               </div>
                             </td>
                             <td className="p-4">
-                              <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
-                                {((user as any).totalTimeSpent || 0) > 0 ? 
-                                  `${(user as any).totalTimeSpent} min` : 
-                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">0 min</span>}
+                              <div className="flex items-center space-x-2">
+                                <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
+                                  {((user as any).totalTimeSpent || 0) > 0 ? 
+                                    `${(user as any).totalTimeSpent} min` : 
+                                    <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">0 min</span>}
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingTimeSpent({ user, currentTime: (user as any).totalTimeSpent || 0 });
+                                    setNewTimeSpent(String((user as any).totalTimeSpent || 0));
+                                  }}
+                                  className="h-6 w-6 p-0 text-neutral-400 hover:text-neutral-600 dark:text-[var(--text-low-contrast)] dark:hover:text-[var(--text-medium-contrast)]"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
                               </div>
                             </td>
                             <td className="p-4">
@@ -2012,6 +2107,55 @@ export default function AdminPage() {
               </div>
             </div>
           )}
+
+          {/* Time Spent Edit Modal */}
+          <Dialog open={!!editingTimeSpent} onOpenChange={() => setEditingTimeSpent(null)}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Edit Time Spent</DialogTitle>
+                <DialogDescription>
+                  Update the total meditation time for {editingTimeSpent?.user.name}
+                </DialogDescription>
+              </DialogHeader>
+              {editingTimeSpent && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="timeSpent">Time Spent (minutes)</Label>
+                    <Input
+                      id="timeSpent"
+                      type="number"
+                      min="0"
+                      value={newTimeSpent}
+                      onChange={(e) => setNewTimeSpent(e.target.value)}
+                      placeholder="Enter time in minutes"
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setEditingTimeSpent(null)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        const timeValue = parseInt(newTimeSpent);
+                        if (!isNaN(timeValue) && timeValue >= 0) {
+                          updateTimeSpentMutation.mutate({
+                            userId: editingTimeSpent.user.id,
+                            timeSpent: timeValue
+                          });
+                        }
+                      }}
+                      disabled={updateTimeSpentMutation.isPending}
+                    >
+                      {updateTimeSpentMutation.isPending ? "Updating..." : "Update"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
 
           {/* User Edit Modal */}
           <Dialog open={isUserModalOpen} onOpenChange={setIsUserModalOpen}>
