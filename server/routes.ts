@@ -115,18 +115,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             sessionUsers.get(message.sessionDate)!.add(message.userId);
             
-            // Check if it's a new day and flush old chat messages if needed
-            // Use CST time (Dallas, TX) for consistency
+            // Only flush old messages once per day when it's actually a new day
+            // This ensures messages from 12:00 AM to 11:59 PM CST are preserved for the current day
             const now = new Date();
-            // Get proper CST date for Dallas, TX timezone
             const today = now.toLocaleDateString("en-CA", { timeZone: "America/Chicago" }); // YYYY-MM-DD format
             
-            // Only flush if we're on today's session date
-            // This ensures messages from 12:00 AM to 11:59 PM CST are preserved for the current day
-            if (message.sessionDate === today) {
+            // Check if we need to flush old messages (only when transitioning to a new day)
+            if (!global.lastFlushDate || global.lastFlushDate !== today) {
               // Flush messages from previous days (not today's session)
               await storage.flushOldChatMessages(today);
-              console.log(`Flushed old chat messages before ${today} at ${cstTime.toLocaleTimeString()}`);
+              global.lastFlushDate = today;
+              console.log(`Flushed old chat messages before ${today} at ${now.toLocaleString("en-US", { timeZone: "America/Chicago" })}`);
             }
             
             // Send all messages from the current day (12:00 AM to 11:59 PM CST)
@@ -572,8 +571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use Central Standard Time (CST) as reference - UTC-6
       const now = new Date();
       const cstOffset = -6; // CST is UTC-6
-      const cstTime = new Date(now.getTime() + (cstOffset * 60 * 60 * 1000));
-      const today = cstTime.toISOString().split('T')[0];
+      const today = now.toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
       const schedule = await storage.getScheduleByDate(today);
       
       if (!schedule || !schedule.templateId) {
