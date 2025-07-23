@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertUserSchema, insertMeditationTemplateSchema, insertScheduleSchema, insertChatMessageSchema, insertMoodEntrySchema, insertMeditationSessionSchema, insertProfilePictureSchema } from "@shared/schema";
 import { z } from "zod";
+import { nanoid } from "nanoid";
 
 // Helper function to get current user from request
 async function getCurrentUser(req: any) {
@@ -2002,48 +2003,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin endpoint to generate referral codes for existing users
-  app.post('/api/admin/generate-referral-codes', async (req, res) => {
+  // Generate referral code for current user
+  app.post('/api/user/generate-referral-code', async (req, res) => {
     try {
-      const firebaseUid = req.headers['firebase-uid'] as string;
-      if (!firebaseUid) {
+      const user = await getCurrentUser(req);
+      if (!user) {
         return res.status(401).json({ error: 'Authentication required' });
       }
 
-      const user = await storage.getUserByFirebaseUid(firebaseUid);
-      if (!user || !user.isAdmin) {
-        return res.status(403).json({ error: 'Admin access required' });
+      // Check if user already has a referral code
+      if (user.referralCode) {
+        return res.json({ referralCode: user.referralCode });
       }
 
-      // Generate referral codes for all users without them
-      const allUsers = await storage.getAllUsers();
-      const updatedUsers = [];
+      // Generate a unique referral code
+      let referralCode: string;
+      let isUnique = false;
       
-      for (const existingUser of allUsers) {
-        if (!existingUser.referralCode) {
-          let referralCode;
-          let isUnique = false;
-          
-          // Keep generating until we get a unique code
-          while (!isUnique) {
-            referralCode = nanoid(8);
-            const existing = allUsers.find(u => u.referralCode === referralCode);
-            isUnique = !existing;
-          }
-          
-          const updated = await storage.updateUser(existingUser.id, { referralCode });
-          if (updated) {
-            updatedUsers.push(updated);
-          }
-        }
+      while (!isUnique) {
+        referralCode = nanoid(8);
+        // Check if code already exists
+        const existingUser = await storage.getUserByReferralCode(referralCode);
+        isUnique = !existingUser;
       }
       
-      res.json({ 
-        message: `Generated referral codes for ${updatedUsers.length} users`,
-        updated: updatedUsers.length
-      });
+      // Update user with referral code
+      const updated = await storage.updateUser(user.id, { referralCode });
+      if (!updated) {
+        return res.status(500).json({ error: 'Failed to update user' });
+      }
+      
+      res.json({ referralCode });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to generate referral codes' });
+      console.error('Error generating referral code:', error);
+      res.status(500).json({ error: 'Failed to generate referral code' });
     }
   });
 

@@ -68,8 +68,18 @@ export default function ReferralsPage() {
           quantumResponse.json()
         ]);
 
+        // If user doesn't have a referral code, generate one
+        let finalReferralCode = codeData.referralCode;
+        if (!finalReferralCode) {
+          const generateResponse = await apiRequest("POST", `/api/user/generate-referral-code`);
+          if (generateResponse.ok) {
+            const generateData = await generateResponse.json();
+            finalReferralCode = generateData.referralCode;
+          }
+        }
+
         setReferralData({
-          referralCode: codeData.referralCode,
+          referralCode: finalReferralCode,
           referrals: referralsData.referrals,
           quantumLove: quantumData
         });
@@ -104,12 +114,12 @@ export default function ReferralsPage() {
     if (!referralData) return;
     
     const referralLink = `${window.location.origin}?ref=${referralData.referralCode}`;
-    const text = `Join me on Serene Space for daily meditation! Use my referral code: ${referralData.referralCode}`;
+    const text = `Join me on Evolving Hearts for daily meditation! Use my referral code: ${referralData.referralCode}`;
     
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Join Serene Space",
+          title: "Join Evolving Hearts",
           text: text,
           url: referralLink
         });
@@ -164,7 +174,7 @@ export default function ReferralsPage() {
               Share the Love ✨
             </h1>
             <p className="text-neutral-600 dark:text-neutral-300">
-              Invite friends to Serene Space and earn Quantum Love points together
+              Invite friends to Evolving Hearts and earn Quantum Love points together
             </p>
           </div>
 
