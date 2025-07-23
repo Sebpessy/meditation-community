@@ -15,6 +15,9 @@ export const users = pgTable("users", {
   bannedReason: text("banned_reason"),
   lastLoginIp: text("last_login_ip"),
   profileCompleted: boolean("profile_completed").default(false),
+  referralCode: text("referral_code"),
+  referredBy: integer("referred_by").references(() => users.id),
+  quantumLovePoints: integer("quantum_love_points").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -99,6 +102,27 @@ export const bannedIps = pgTable("banned_ips", {
   isActive: boolean("is_active").default(true),
 });
 
+export const referrals = pgTable("referrals", {
+  id: serial("id").primaryKey(),
+  referrerId: integer("referrer_id").references(() => users.id).notNull(),
+  referredId: integer("referred_id").references(() => users.id).notNull(),
+  referralCode: text("referral_code").notNull(),
+  status: text("status").notNull().default("pending"), // pending, completed, rewarded
+  rewardGiven: boolean("reward_given").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export const quantumLoveTransactions = pgTable("quantum_love_transactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  amount: integer("amount").notNull(), // can be positive or negative
+  type: text("type").notNull(), // referral_bonus, meditation_reward, special_event
+  description: text("description").notNull(),
+  referralId: integer("referral_id").references(() => referrals.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   name: true,
@@ -154,6 +178,17 @@ export const insertBannedIpSchema = createInsertSchema(bannedIps).omit({
   bannedAt: true,
 });
 
+export const insertReferralSchema = createInsertSchema(referrals).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
+export const insertQuantumLoveTransactionSchema = createInsertSchema(quantumLoveTransactions).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type MeditationTemplate = typeof meditationTemplates.$inferSelect;
@@ -185,3 +220,7 @@ export type ProfilePicture = typeof profilePictures.$inferSelect;
 export type InsertProfilePicture = z.infer<typeof insertProfilePictureSchema>;
 export type BannedIp = typeof bannedIps.$inferSelect;
 export type InsertBannedIp = z.infer<typeof insertBannedIpSchema>;
+export type Referral = typeof referrals.$inferSelect;
+export type InsertReferral = z.infer<typeof insertReferralSchema>;
+export type QuantumLoveTransaction = typeof quantumLoveTransactions.$inferSelect;
+export type InsertQuantumLoveTransaction = z.infer<typeof insertQuantumLoveTransactionSchema>;

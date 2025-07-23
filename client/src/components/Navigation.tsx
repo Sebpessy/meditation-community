@@ -129,6 +129,18 @@ export function Navigation({ onlineCount }: NavigationProps) {
               </Link>
             )}
 
+            {user && !isFirstTimeUser && (
+              <Link href="/referrals">
+                <span className={`font-medium transition-colors cursor-pointer ${
+                  isActive("/referrals") 
+                    ? "text-primary border-b-2 border-primary pb-1" 
+                    : "text-neutral-600 dark:text-[var(--text-medium-contrast)] hover:text-neutral-800 dark:hover:text-[var(--text-high-contrast)]"
+                }`}>
+                  Referrals
+                </span>
+              </Link>
+            )}
+
             {user && backendUser?.isAdmin && !isFirstTimeUser && (
               <Link href="/admin">
                 <span className={`font-medium transition-colors cursor-pointer ${
@@ -231,6 +243,17 @@ export function Navigation({ onlineCount }: NavigationProps) {
                     className="block px-3 py-2 text-base font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] hover:text-neutral-900 dark:hover:text-[var(--text-high-contrast)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] rounded-md cursor-pointer"
                   >
                     Energy Tracker
+                  </span>
+                </Link>
+              )}
+
+              {user && !isFirstTimeUser && (
+                <Link href="/referrals">
+                  <span 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-base font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] hover:text-neutral-900 dark:hover:text-[var(--text-high-contrast)] hover:bg-neutral-50 dark:hover:bg-[var(--muted)] rounded-md cursor-pointer"
+                  >
+                    Referrals
                   </span>
                 </Link>
               )}

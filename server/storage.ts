@@ -1,4 +1,4 @@
-import { users, meditationTemplates, schedules, chatMessages, messageLikes, moodEntries, meditationSessions, profilePictures, bannedIps, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type ChatMessageWithUser, type InsertChatMessage, type MessageLike, type InsertMessageLike, type MoodEntry, type InsertMoodEntry, type MeditationSession, type InsertMeditationSession, type ProfilePicture, type InsertProfilePicture, type BannedIp, type InsertBannedIp } from "@shared/schema";
+import { users, meditationTemplates, schedules, chatMessages, messageLikes, moodEntries, meditationSessions, profilePictures, bannedIps, referrals, quantumLoveTransactions, type User, type InsertUser, type MeditationTemplate, type InsertMeditationTemplate, type Schedule, type InsertSchedule, type ChatMessage, type ChatMessageWithUser, type InsertChatMessage, type MessageLike, type InsertMessageLike, type MoodEntry, type InsertMoodEntry, type MeditationSession, type InsertMeditationSession, type ProfilePicture, type InsertProfilePicture, type BannedIp, type InsertBannedIp, type Referral, type InsertReferral, type QuantumLoveTransaction, type InsertQuantumLoveTransaction } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, count, and, sql, isNotNull } from "drizzle-orm";
 
@@ -73,8 +73,20 @@ export interface IStorage {
 
   // IP ban operations
   banIp(ipAddress: string, bannedBy: number, reason?: string): Promise<BannedIp>;
-  unbanIp(ipAddress: string): Promise<boolean>;
   isIpBanned(ipAddress: string): Promise<boolean>;
+  
+  // Referral operations
+  createReferral(referral: InsertReferral): Promise<Referral>;
+  getReferralByCode(code: string): Promise<Referral | undefined>;
+  getUserReferrals(userId: number): Promise<Referral[]>;
+  completeReferral(referralId: number): Promise<Referral | undefined>;
+  generateUniqueReferralCode(): Promise<string>;
+  
+  // Quantum Love operations
+  addQuantumLovePoints(userId: number, amount: number, type: string, description: string, referralId?: number): Promise<QuantumLoveTransaction>;
+  getUserQuantumLovePoints(userId: number): Promise<number>;
+  getQuantumLoveTransactions(userId: number): Promise<QuantumLoveTransaction[]>;
+  unbanIp(ipAddress: string): Promise<boolean>;
   getBannedIps(): Promise<BannedIp[]>;
 }
 
@@ -813,6 +825,105 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(bannedIps)
       .where(eq(bannedIps.isActive, true));
+  }
+
+  // Referral operations
+  async createReferral(referral: InsertReferral): Promise<Referral> {
+    const [newReferral] = await db
+      .insert(referrals)
+      .values(referral)
+      .returning();
+    return newReferral;
+  }
+
+  async getReferralByCode(code: string): Promise<Referral | undefined> {
+    const [referral] = await db
+      .select()
+      .from(referrals)
+      .where(eq(referrals.referralCode, code));
+    return referral;
+  }
+
+  async getUserReferrals(userId: number): Promise<Referral[]> {
+    return await db
+      .select()
+      .from(referrals)
+      .where(eq(referrals.referrerId, userId))
+      .orderBy(desc(referrals.createdAt));
+  }
+
+  async completeReferral(referralId: number): Promise<Referral | undefined> {
+    const [updatedReferral] = await db
+      .update(referrals)
+      .set({ 
+        status: "completed",
+        completedAt: new Date()
+      })
+      .where(eq(referrals.id, referralId))
+      .returning();
+    return updatedReferral;
+  }
+
+  async generateUniqueReferralCode(): Promise<string> {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let attempts = 0;
+    const maxAttempts = 100;
+
+    while (attempts < maxAttempts) {
+      let code = '';
+      for (let i = 0; i < 8; i++) {
+        code += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      
+      // Check if code already exists
+      const existing = await this.getReferralByCode(code);
+      if (!existing) {
+        return code;
+      }
+      attempts++;
+    }
+    
+    throw new Error('Unable to generate unique referral code');
+  }
+
+  // Quantum Love operations
+  async addQuantumLovePoints(userId: number, amount: number, type: string, description: string, referralId?: number): Promise<QuantumLoveTransaction> {
+    const [transaction] = await db
+      .insert(quantumLoveTransactions)
+      .values({
+        userId,
+        amount,
+        type,
+        description,
+        referralId
+      })
+      .returning();
+
+    // Update user's total points
+    await db
+      .update(users)
+      .set({
+        quantumLovePoints: sql`quantum_love_points + ${amount}`
+      })
+      .where(eq(users.id, userId));
+
+    return transaction;
+  }
+
+  async getUserQuantumLovePoints(userId: number): Promise<number> {
+    const [user] = await db
+      .select({ points: users.quantumLovePoints })
+      .from(users)
+      .where(eq(users.id, userId));
+    return user?.points || 0;
+  }
+
+  async getQuantumLoveTransactions(userId: number): Promise<QuantumLoveTransaction[]> {
+    return await db
+      .select()
+      .from(quantumLoveTransactions)
+      .where(eq(quantumLoveTransactions.userId, userId))
+      .orderBy(desc(quantumLoveTransactions.createdAt));
   }
 }
 

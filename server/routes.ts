@@ -480,12 +480,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         randomProfilePicture = randomPicture.imageData;
       }
       
+      // Generate unique referral code for new user
+      const referralCode = await storage.generateUniqueReferralCode();
+      
+      // Handle referral if provided
+      let referredBy = null;
+      if (req.body.referralCode) {
+        const referralRecord = await storage.getReferralByCode(req.body.referralCode);
+        if (referralRecord) {
+          referredBy = referralRecord.referrerId;
+        }
+      }
+      
       const userWithAvatar = {
         ...userData,
-        profilePicture: randomProfilePicture
+        profilePicture: randomProfilePicture,
+        referralCode,
+        referredBy
       };
 
       const user = await storage.createUser(userWithAvatar);
+      
+      // Create referral record if user was referred
+      if (referredBy) {
+        await storage.createReferral({
+          referrerId: referredBy,
+          referredId: user.id,
+          referralCode: req.body.referralCode,
+          status: "pending"
+        });
+        
+        // Give welcome bonus to new user
+        await storage.addQuantumLovePoints(
+          user.id, 
+          50, 
+          "welcome_bonus", 
+          "Welcome to Serene Space! 🌟"
+        );
+      }
       console.log('User created successfully with random avatar:', user);
       res.json(user);
     } catch (error) {
@@ -1007,6 +1039,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!updatedSession) {
         return res.status(404).json({ error: 'Session not found' });
+      }
+
+      // Check for referral completion (if this is a referred user's first meaningful session)
+      if (duration >= 300) { // 5 minutes minimum for referral completion
+        const user = await getCurrentUser(req);
+        if (user && user.referredBy) {
+          // Check if user has any pending referrals
+          const pendingReferrals = await storage.getUserReferrals(user.referredBy);
+          const userReferral = pendingReferrals.find(ref => 
+            ref.referredId === user.id && ref.status === "pending"
+          );
+          
+          if (userReferral) {
+            console.log(`Completing referral ${userReferral.id} for user ${user.id}`);
+            await storage.completeReferral(userReferral.id);
+            
+            // Give rewards to both users
+            await Promise.all([
+              // Give points to referrer
+              storage.addQuantumLovePoints(
+                user.referredBy,
+                100,
+                "referral_bonus",
+                "You earned points for referring a friend! 🎉",
+                userReferral.id
+              ),
+              // Give additional completion bonus to referred user
+              storage.addQuantumLovePoints(
+                user.id,
+                25,
+                "referral_completion",
+                "Bonus for completing your first meditation! ✨",
+                userReferral.id
+              )
+            ]);
+          }
+        }
       }
 
       res.json(updatedSession);
@@ -1854,6 +1923,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error unbanning IP:', error);
       res.status(500).json({ error: 'Failed to unban IP' });
+    }
+  });
+
+  // Referral system endpoints
+  app.get('/api/user/:userId/referral-code', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      res.json({ referralCode: user.referralCode });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get referral code' });
+    }
+  });
+
+  app.get('/api/user/:userId/referrals', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const referrals = await storage.getUserReferrals(userId);
+      res.json({ referrals });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get referrals' });
+    }
+  });
+
+  app.get('/api/user/:userId/quantum-love', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const points = await storage.getUserQuantumLovePoints(userId);
+      const transactions = await storage.getQuantumLoveTransactions(userId);
+      
+      res.json({ 
+        points,
+        transactions 
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get Quantum Love data' });
+    }
+  });
+
+  app.post('/api/referral/complete/:referralId', async (req, res) => {
+    try {
+      const referralId = parseInt(req.params.referralId);
+      const referral = await storage.completeReferral(referralId);
+      
+      if (!referral) {
+        return res.status(404).json({ error: 'Referral not found' });
+      }
+      
+      // Give rewards to both users
+      await Promise.all([
+        // Give points to referrer
+        storage.addQuantumLovePoints(
+          referral.referrerId,
+          100,
+          "referral_bonus",
+          "You earned points for referring a friend! 🎉",
+          referral.id
+        ),
+        // Give additional welcome bonus to referred user
+        storage.addQuantumLovePoints(
+          referral.referredId,
+          25,
+          "referral_completion",
+          "Bonus for completing your first meditation! ✨",
+          referral.id
+        )
+      ]);
+      
+      res.json({ message: 'Referral completed and rewards distributed' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to complete referral' });
+    }
+  });
+
+  // Admin endpoint to generate referral codes for existing users
+  app.post('/api/admin/generate-referral-codes', async (req, res) => {
+    try {
+      const firebaseUid = req.headers['firebase-uid'] as string;
+      if (!firebaseUid) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const user = await storage.getUserByFirebaseUid(firebaseUid);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      // Generate referral codes for all users without them
+      const allUsers = await storage.getAllUsers();
+      const updatedUsers = [];
+      
+      for (const existingUser of allUsers) {
+        if (!existingUser.referralCode) {
+          let referralCode;
+          let isUnique = false;
+          
+          // Keep generating until we get a unique code
+          while (!isUnique) {
+            referralCode = nanoid(8);
+            const existing = allUsers.find(u => u.referralCode === referralCode);
+            isUnique = !existing;
+          }
+          
+          const updated = await storage.updateUser(existingUser.id, { referralCode });
+          if (updated) {
+            updatedUsers.push(updated);
+          }
+        }
+      }
+      
+      res.json({ 
+        message: `Generated referral codes for ${updatedUsers.length} users`,
+        updated: updatedUsers.length
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to generate referral codes' });
+    }
+  });
+
+  app.get('/api/referral/validate/:code', async (req, res) => {
+    try {
+      const code = req.params.code.toUpperCase();
+      const referral = await storage.getReferralByCode(code);
+      
+      if (!referral) {
+        return res.status(404).json({ error: 'Invalid referral code' });
+      }
+      
+      const referrer = await storage.getUser(referral.referrerId);
+      res.json({ 
+        valid: true,
+        referrer: {
+          name: referrer?.name,
+          id: referrer?.id
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to validate referral code' });
     }
   });
 

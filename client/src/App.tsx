@@ -17,6 +17,7 @@ import AdminPage from "@/pages/admin";
 import GardenAngelPage from "@/pages/garden-angel";
 import SettingsPage from "@/pages/settings";
 import MoodAnalyticsPage from "@/pages/mood-analytics";
+import ReferralsPage from "@/pages/referrals";
 import NotFound from "@/pages/not-found";
 
 function AppContent() {
@@ -58,6 +59,7 @@ function AppContent() {
           <Route path="/garden-angel" component={GardenAngelPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/mood-analytics" component={MoodAnalyticsPage} />
+          <Route path="/referrals" component={ReferralsPage} />
           <Route path="/" component={MeditationPage} />
           <Route component={NotFound} />
         </Switch>

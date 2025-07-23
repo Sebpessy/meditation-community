@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,17 +30,55 @@ export default function AuthPage() {
     remember: false
   });
 
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralInfo, setReferralInfo] = useState<{valid: boolean, referrer?: {name: string, id: number}} | null>(null);
+
+  // Check for referral code in URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    
+    if (refCode) {
+      setReferralCode(refCode.toUpperCase());
+      
+      // Validate referral code
+      const validateReferral = async () => {
+        try {
+          const response = await apiRequest("GET", `/api/referral/validate/${refCode}`);
+          if (response.ok) {
+            const data = await response.json();
+            setReferralInfo(data);
+          } else {
+            setReferralInfo({ valid: false });
+          }
+        } catch (error) {
+          console.error("Failed to validate referral code:", error);
+          setReferralInfo({ valid: false });
+        }
+      };
+      
+      validateReferral();
+    }
+  }, []);
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const registerUserInBackend = async (user: any) => {
     try {
-      const response = await apiRequest("POST", "/api/auth/register", {
+      const registrationData: any = {
         email: user.email,
         name: user.displayName || formData.name || user.email?.split('@')[0] || "User",
         firebaseUid: user.uid
-      });
+      };
+      
+      // Add referral code if present and valid
+      if (referralCode && referralInfo?.valid) {
+        registrationData.referralCode = referralCode;
+      }
+      
+      const response = await apiRequest("POST", "/api/auth/register", registrationData);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -214,6 +252,26 @@ export default function AuthPage() {
                 </Button>
               </AlertDescription>
             </Alert>
+          )}
+
+          {/* Referral Indicator */}
+          {referralCode && referralInfo?.valid && isSignUp && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-center">
+              <p className="text-sm text-green-800">
+                🎉 You were referred by <strong>{referralInfo.referrer?.name}</strong>!
+              </p>
+              <p className="text-xs text-green-600 mt-1">
+                You'll receive bonus Quantum Love points when you join!
+              </p>
+            </div>
+          )}
+          
+          {referralCode && referralInfo?.valid === false && isSignUp && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+              <p className="text-sm text-red-800">
+                Invalid referral code: {referralCode}
+              </p>
+            </div>
           )}
 
           {/* Auth Toggle */}
