@@ -210,8 +210,8 @@ export default function MeditationPage() {
                 // Calculate time spent in this browser session only
                 const sessionDuration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
                 
-                // Cap at 4 hours (14400 seconds) per day - reasonable maximum
-                const cappedDuration = Math.min(sessionDuration, 14400);
+                // Cap at 2 hours (7200 seconds) per day - realistic maximum for meditation
+                const cappedDuration = Math.min(sessionDuration, 7200);
                 
                 console.log('Updating session duration:', cappedDuration, 'seconds');
                 try {
@@ -267,7 +267,7 @@ export default function MeditationPage() {
                   const sessionData = await sessionResponse.json();
                   const existingDuration = sessionData.duration || 0;
                   const sessionDuration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
-                  const totalDuration = Math.min(existingDuration + sessionDuration, 28800); // Cap at 8 hours
+                  const totalDuration = Math.min(existingDuration + sessionDuration, 7200); // Cap at 2 hours
                   
                   console.log('Resuming - this visit:', sessionDuration, 'seconds, total:', totalDuration, 'seconds');
                   const updateResponse = await apiRequest('PUT', `/api/session/${sessionId.current}`, {
