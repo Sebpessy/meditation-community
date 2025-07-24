@@ -1527,13 +1527,32 @@ export default function AdminPage() {
                     )}
                   </div>
 
-                  <div className="flex justify-end space-x-3">
-                    <Button type="button" variant="outline" onClick={() => setIsScheduleModalOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createScheduleMutation.isPending || updateScheduleMutation.isPending}>
-                      {editingSchedule ? "Update Schedule" : "Create Schedule"}
-                    </Button>
+                  <div className="flex justify-between">
+                    {editingSchedule && (
+                      <Button 
+                        type="button" 
+                        variant="destructive" 
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this schedule? This action cannot be undone.")) {
+                            deleteScheduleMutation.mutate(editingSchedule.id);
+                            setIsScheduleModalOpen(false);
+                            setEditingSchedule(null);
+                            resetScheduleForm();
+                          }
+                        }}
+                        disabled={deleteScheduleMutation.isPending}
+                      >
+                        {deleteScheduleMutation.isPending ? "Deleting..." : "Delete Schedule"}
+                      </Button>
+                    )}
+                    <div className="flex space-x-3 ml-auto">
+                      <Button type="button" variant="outline" onClick={() => setIsScheduleModalOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={createScheduleMutation.isPending || updateScheduleMutation.isPending}>
+                        {editingSchedule ? "Update Schedule" : "Create Schedule"}
+                      </Button>
+                    </div>
                   </div>
                 </form>
               </DialogContent>
