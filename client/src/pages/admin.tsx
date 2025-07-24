@@ -74,6 +74,7 @@ export default function AdminPage() {
   });
   const [templateSearchTerm, setTemplateSearchTerm] = useState("");
   const [lastUsedDate, setLastUsedDate] = useState("");
+  const [lastSearchTerm, setLastSearchTerm] = useState("");
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("templates");
@@ -475,7 +476,7 @@ export default function AdminPage() {
       repeatWeeks: 0,
       repeatCount: 1
     });
-    setTemplateSearchTerm("");
+    setTemplateSearchTerm(lastSearchTerm);
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -616,8 +617,9 @@ export default function AdminPage() {
   const handleScheduleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Save the date as last used date
+    // Save the date and search term for next time
     setLastUsedDate(scheduleForm.date);
+    setLastSearchTerm(templateSearchTerm);
     
     const scheduleData = {
       ...scheduleForm,
@@ -1417,7 +1419,11 @@ export default function AdminPage() {
             <h2 className="text-xl font-semibold text-neutral-800 dark:text-[var(--text-high-contrast)]">Schedule Management</h2>
             <Dialog open={isScheduleModalOpen} onOpenChange={setIsScheduleModalOpen}>
               <DialogTrigger asChild>
-                <Button onClick={() => { resetScheduleForm(); setEditingSchedule(null); }}>
+                <Button onClick={() => { 
+                  resetScheduleForm(); 
+                  setEditingSchedule(null);
+                  setTemplateSearchTerm(lastSearchTerm);
+                }}>
                   <Calendar className="w-4 h-4 mr-2" />
                   Add Schedule
                 </Button>
