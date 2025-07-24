@@ -67,7 +67,7 @@ export default function AdminPage() {
   const [scheduleForm, setScheduleForm] = useState({
     date: "",
     templateId: "",
-    scheduledTime: "12:00",
+    scheduledTime: "00:00",
     isActive: true,
     repeatWeeks: 0,
     repeatCount: 1
@@ -470,7 +470,7 @@ export default function AdminPage() {
     setScheduleForm({
       date: lastUsedDate,
       templateId: "",
-      scheduledTime: "12:00",
+      scheduledTime: "00:00",
       isActive: true,
       repeatWeeks: 0,
       repeatCount: 1
@@ -1471,6 +1471,7 @@ export default function AdminPage() {
                         <SelectContent>
                           {templates
                             ?.filter(template => 
+                              templateSearchTerm === "" || 
                               template.title.toLowerCase().includes(templateSearchTerm.toLowerCase())
                             )
                             .sort((a, b) => {
@@ -1482,20 +1483,36 @@ export default function AdminPage() {
                                 return aPrefix.localeCompare(bPrefix);
                               }
                               
-                              // Extract day of week for secondary sort
-                              const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                              // Extract day of week for secondary sort (Monday to Friday priority)
+                              const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
                               const aDayMatch = a.title.toLowerCase().match(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/);
                               const bDayMatch = b.title.toLowerCase().match(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/);
                               
                               if (aDayMatch && bDayMatch) {
                                 const aDayIndex = dayOrder.indexOf(aDayMatch[1]);
                                 const bDayIndex = dayOrder.indexOf(bDayMatch[1]);
-                                return aDayIndex - bDayIndex;
+                                
+                                // Both are weekdays (Monday-Friday)
+                                if (aDayIndex !== -1 && bDayIndex !== -1) {
+                                  return aDayIndex - bDayIndex;
+                                }
+                                // Only A is a weekday, prioritize it
+                                if (aDayIndex !== -1 && bDayIndex === -1) {
+                                  return -1;
+                                }
+                                // Only B is a weekday, prioritize it
+                                if (aDayIndex === -1 && bDayIndex !== -1) {
+                                  return 1;
+                                }
+                                // Both are weekend days, sort alphabetically
+                                return aDayMatch[1].localeCompare(bDayMatch[1]);
                               }
                               
+                              // One has day, one doesn't - prioritize the one with day
                               if (aDayMatch && !bDayMatch) return -1;
                               if (!aDayMatch && bDayMatch) return 1;
                               
+                              // Neither has day, sort alphabetically
                               return a.title.localeCompare(b.title);
                             })
                             .map((template) => (
