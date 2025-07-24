@@ -67,11 +67,13 @@ export default function AdminPage() {
   const [scheduleForm, setScheduleForm] = useState({
     date: "",
     templateId: "",
-    scheduledTime: "",
+    scheduledTime: "12:00",
     isActive: true,
     repeatWeeks: 0,
     repeatCount: 1
   });
+  const [templateSearchTerm, setTemplateSearchTerm] = useState("");
+  const [lastUsedDate, setLastUsedDate] = useState("");
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("templates");
@@ -466,13 +468,14 @@ export default function AdminPage() {
 
   const resetScheduleForm = () => {
     setScheduleForm({
-      date: "",
+      date: lastUsedDate,
       templateId: "",
-      scheduledTime: "",
+      scheduledTime: "12:00",
       isActive: true,
       repeatWeeks: 0,
       repeatCount: 1
     });
+    setTemplateSearchTerm("");
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -613,6 +616,9 @@ export default function AdminPage() {
   const handleScheduleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Save the date as last used date
+    setLastUsedDate(scheduleForm.date);
+    
     const scheduleData = {
       ...scheduleForm,
       templateId: parseInt(scheduleForm.templateId),
@@ -692,6 +698,15 @@ export default function AdminPage() {
       repeatWeeks: schedule.repeatWeeks || 0,
       repeatCount: schedule.repeatCount || 1
     });
+    
+    // Find the template name for search field
+    const template = templates?.find(t => t.id === schedule.templateId);
+    if (template) {
+      setTemplateSearchTerm(template.title);
+    } else {
+      setTemplateSearchTerm("");
+    }
+    
     setIsScheduleModalOpen(true);
   };
 
@@ -1442,18 +1457,55 @@ export default function AdminPage() {
                   
                   <div>
                     <Label htmlFor="schedule-template">Template</Label>
-                    <Select value={scheduleForm.templateId} onValueChange={(value) => handleScheduleInputChange("templateId", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a template" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {templates?.map((template) => (
-                          <SelectItem key={template.id} value={template.id.toString()}>
-                            {template.title} - {template.duration} min
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Search templates..."
+                        value={templateSearchTerm}
+                        onChange={(e) => setTemplateSearchTerm(e.target.value)}
+                        className="w-full"
+                      />
+                      <Select value={scheduleForm.templateId} onValueChange={(value) => handleScheduleInputChange("templateId", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a template" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {templates
+                            ?.filter(template => 
+                              template.title.toLowerCase().includes(templateSearchTerm.toLowerCase())
+                            )
+                            .sort((a, b) => {
+                              // Extract first 5 letters for primary sort
+                              const aPrefix = a.title.substring(0, 5).toLowerCase();
+                              const bPrefix = b.title.substring(0, 5).toLowerCase();
+                              
+                              if (aPrefix !== bPrefix) {
+                                return aPrefix.localeCompare(bPrefix);
+                              }
+                              
+                              // Extract day of week for secondary sort
+                              const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                              const aDayMatch = a.title.toLowerCase().match(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/);
+                              const bDayMatch = b.title.toLowerCase().match(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/);
+                              
+                              if (aDayMatch && bDayMatch) {
+                                const aDayIndex = dayOrder.indexOf(aDayMatch[1]);
+                                const bDayIndex = dayOrder.indexOf(bDayMatch[1]);
+                                return aDayIndex - bDayIndex;
+                              }
+                              
+                              if (aDayMatch && !bDayMatch) return -1;
+                              if (!aDayMatch && bDayMatch) return 1;
+                              
+                              return a.title.localeCompare(b.title);
+                            })
+                            .map((template) => (
+                              <SelectItem key={template.id} value={template.id.toString()}>
+                                {template.title} - {template.duration} min
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
