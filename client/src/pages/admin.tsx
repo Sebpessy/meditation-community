@@ -95,8 +95,10 @@ export default function AdminPage() {
   const [scheduleViewMode, setScheduleViewMode] = useState<"list" | "calendar">("list");
   const [calendarView, setCalendarView] = useState<"week" | "month" | "year">("month");
   const [userSearchTerm, setUserSearchTerm] = useState("");
-  const [sortField, setSortField] = useState<'name' | 'timeSpent' | null>(null);
+  const [sortField, setSortField] = useState<'name' | 'timeSpent' | 'referredBy' | 'referralCount' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 20;
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [editingTimeSpent, setEditingTimeSpent] = useState<{ user: User; currentTime: number } | null>(null);
@@ -822,7 +824,7 @@ export default function AdminPage() {
   };
 
   // Handle sorting
-  const handleSort = (field: 'name' | 'timeSpent') => {
+  const handleSort = (field: 'name' | 'timeSpent' | 'referredBy' | 'referralCount') => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -831,7 +833,7 @@ export default function AdminPage() {
     }
   };
 
-  const filteredAndSortedUsers = users?.filter(user => 
+  const allFilteredAndSortedUsers = users?.filter(user => 
     user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(userSearchTerm.toLowerCase())
   ).sort((a, b) => {
@@ -846,6 +848,14 @@ export default function AdminPage() {
     } else if (sortField === 'timeSpent') {
       aValue = (a as any).totalTimeSpent || 0;
       bValue = (b as any).totalTimeSpent || 0;
+    } else if (sortField === 'referredBy') {
+      const aReferrer = users?.find(u => u.id === a.referredBy);
+      const bReferrer = users?.find(u => u.id === b.referredBy);
+      aValue = aReferrer?.name?.toLowerCase() || '';
+      bValue = bReferrer?.name?.toLowerCase() || '';
+    } else if (sortField === 'referralCount') {
+      aValue = users?.filter(u => u.referredBy === a.id).length || 0;
+      bValue = users?.filter(u => u.referredBy === b.id).length || 0;
     } else {
       return 0;
     }
@@ -854,6 +864,21 @@ export default function AdminPage() {
     if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
     return 0;
   }) || [];
+
+  // Pagination logic
+  const totalPages = Math.ceil(allFilteredAndSortedUsers.length / usersPerPage);
+  const startIndex = (currentPage - 1) * usersPerPage;
+  const endIndex = startIndex + usersPerPage;
+  const filteredAndSortedUsers = allFilteredAndSortedUsers.slice(startIndex, endIndex);
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [userSearchTerm]);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
 
   const handleBanUser = (user: User) => {
     setBanningUser(user);
@@ -1917,6 +1942,32 @@ export default function AdminPage() {
                               )}
                             </div>
                           </th>
+                          <th 
+                            className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] cursor-pointer hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors"
+                            onClick={() => handleSort('referredBy')}
+                          >
+                            <div className="flex items-center space-x-1">
+                              <span>Referred by</span>
+                              {sortField === 'referredBy' && (
+                                <span className="text-xs">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)] cursor-pointer hover:bg-neutral-50 dark:hover:bg-[var(--muted)] transition-colors"
+                            onClick={() => handleSort('referralCount')}
+                          >
+                            <div className="flex items-center space-x-1">
+                              <span>Referred to</span>
+                              {sortField === 'referralCount' && (
+                                <span className="text-xs">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
                           <th className="text-left p-4 font-medium text-neutral-700 dark:text-[var(--text-medium-contrast)]">Actions</th>
                         </tr>
                       </thead>
@@ -2014,6 +2065,22 @@ export default function AdminPage() {
                                 >
                                   <Edit className="h-3 w-3" />
                                 </Button>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
+                                {user.referredBy ? (
+                                  <div>
+                                    {users?.find(u => u.id === user.referredBy)?.name || `User ${user.referredBy}`}
+                                  </div>
+                                ) : (
+                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">None</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
+                                {users?.filter(u => u.referredBy === user.id).length || 0}
                               </div>
                             </td>
                             <td className="p-4">
@@ -2133,10 +2200,13 @@ export default function AdminPage() {
                         </p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-neutral-500">
                           <div>
-                            <span className="font-medium">Last Login:</span> Not Available
+                            <span className="font-medium">Time:</span> {((user as any).totalTimeSpent || 0)} min
                           </div>
                           <div>
-                            <span className="font-medium">Time:</span> Not Available
+                            <span className="font-medium">Referred by:</span> {user.referredBy ? (users?.find(u => u.id === user.referredBy)?.name || `User ${user.referredBy}`) : 'None'}
+                          </div>
+                          <div>
+                            <span className="font-medium">Referrals:</span> {users?.filter(u => u.referredBy === user.id).length || 0}
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-1 mt-3">
@@ -2199,6 +2269,58 @@ export default function AdminPage() {
                   </Card>
                 ))}
               </div>
+
+              {/* Pagination Controls */}
+              {allFilteredAndSortedUsers.length > usersPerPage && (
+                <Card className="mt-4">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">
+                        Showing {startIndex + 1}-{Math.min(endIndex, allFilteredAndSortedUsers.length)} of {allFilteredAndSortedUsers.length} users
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => goToPage(1)}
+                          disabled={currentPage === 1}
+                        >
+                          First
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => goToPage(currentPage - 1)}
+                          disabled={currentPage === 1}
+                        >
+                          Previous
+                        </Button>
+                        <div className="flex items-center space-x-1">
+                          <span className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">
+                            Page {currentPage} of {totalPages}
+                          </span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => goToPage(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                        >
+                          Next
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => goToPage(totalPages)}
+                          disabled={currentPage === totalPages}
+                        >
+                          Last
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
 
