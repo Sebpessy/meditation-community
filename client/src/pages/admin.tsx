@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Loading } from "@/components/ui/loading";
-import { Plus, Edit, Trash2, Calendar, Users, Search, BarChart3, Activity, Clock, Target, Copy, Upload, FileText, ChevronLeft, ChevronRight, TrendingUp, Trophy } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, Users, Search, BarChart3, Activity, Clock, Target, Copy, Upload, FileText, ChevronLeft, ChevronRight, TrendingUp, Trophy, ArrowUp, ArrowDown } from "lucide-react";
 import { ProfilePictureManager } from "@/components/ProfilePictureManager";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
@@ -1874,7 +1874,7 @@ export default function AdminPage() {
         {/* Users Tab */}
         <TabsContent value="users" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-neutral-800">User Management</h2>
+            <h2 className="text-xl font-semibold text-neutral-800 dark:text-[var(--text-high-contrast)]">User Management</h2>
             <div className="flex items-center space-x-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
@@ -1885,8 +1885,74 @@ export default function AdminPage() {
                   onChange={(e) => setUserSearchTerm(e.target.value)}
                 />
               </div>
+              <Select value={sortField || ''} onValueChange={(value) => setSortField(value as any)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Sort by Name</SelectItem>
+                  <SelectItem value="timeSpent">Sort by Time Spent</SelectItem>
+                  <SelectItem value="referredBy">Sort by Referred by</SelectItem>
+                  <SelectItem value="referralCount">Sort by Referrals</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+              >
+                {sortDirection === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+              </Button>
             </div>
           </div>
+
+          {/* Top Pagination Controls */}
+          {allFilteredAndSortedUsers.length > usersPerPage && (
+            <div className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-[var(--muted)] rounded-lg">
+              <div className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">
+                Showing {startIndex + 1}-{Math.min(endIndex, allFilteredAndSortedUsers.length)} of {allFilteredAndSortedUsers.length} users
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => goToPage(1)}
+                  disabled={currentPage === 1}
+                >
+                  First
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center space-x-1">
+                  <span className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => goToPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                >
+                  Last
+                </Button>
+              </div>
+            </div>
+          )}
 
           {usersLoading ? (
             <div className="flex items-center justify-center py-8">
