@@ -110,6 +110,14 @@ export default function AdminPage() {
   const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
   const [banningUser, setBanningUser] = useState<User | null>(null);
   const [banReason, setBanReason] = useState("");
+  
+  // Referral attribution states
+  const [referralForm, setReferralForm] = useState({
+    referreeId: "",
+    referrerId: "",
+    referralCode: ""
+  });
+  const [potentialMatches, setPotentialMatches] = useState<any[]>([]);
 
   const [templateForm, setTemplateForm] = useState({
     title: "",
@@ -436,6 +444,33 @@ export default function AdminPage() {
       toast({
         title: "Error",
         description: "Failed to update time spent",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Referral mutations
+  const { data: potentialMatchesData } = useQuery<any[]>({
+    queryKey: ["/api/admin/referral/potential-matches"],
+    enabled: activeTab === "referrals" && !!backendUser?.isAdmin,
+  });
+
+  const manualAttributeReferralMutation = useMutation({
+    mutationFn: (data: { referreeId: number; referrerId: number; referralCode: string }) =>
+      apiRequest("POST", "/api/admin/referral/manual-attribute", data),
+    onSuccess: (response: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setReferralForm({ referreeId: "", referrerId: "", referralCode: "" });
+      toast({
+        title: "Referral attributed successfully",
+        description: `${response.details?.referree?.name} has been attributed to ${response.details?.referrer?.name} with bonuses awarded.`
+      });
+    },
+    onError: (error: any) => {
+      const errorMsg = error.message || "Failed to attribute referral";
+      toast({
+        title: "Error",
+        description: errorMsg,
         variant: "destructive"
       });
     }
@@ -931,7 +966,7 @@ export default function AdminPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value)} className="space-y-8">
-        <TabsList className="grid w-full h-auto p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg grid-cols-3 grid-rows-2 gap-1 sm:grid-cols-3 sm:grid-rows-1 lg:grid-cols-5">
+        <TabsList className="grid w-full h-auto p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg grid-cols-3 grid-rows-2 gap-1 sm:grid-cols-6 sm:grid-rows-1">
           <TabsTrigger 
             value="templates" 
             className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
@@ -951,17 +986,23 @@ export default function AdminPage() {
             Users
           </TabsTrigger>
           <TabsTrigger 
+            value="referrals"
+            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
+          >
+            Referrals
+          </TabsTrigger>
+          <TabsTrigger 
             value="analytics"
-            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium sm:col-span-3 lg:col-span-1"
+            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
           >
             Analytics
           </TabsTrigger>
           <TabsTrigger 
             value="profile-pictures"
-            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium col-span-2 sm:col-span-3 lg:col-span-1"
+            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neural-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium col-span-3 sm:col-span-1"
           >
-            <span className="hidden sm:inline">Profile Pictures</span>
-            <span className="sm:hidden">Pictures</span>
+            <span className="hidden sm:inline">Pictures</span>
+            <span className="sm:hidden">Pics</span>
           </TabsTrigger>
         </TabsList>
 
@@ -2533,6 +2574,156 @@ export default function AdminPage() {
               )}
             </DialogContent>
           </Dialog>
+        </TabsContent>
+
+        {/* Referrals Tab */}
+        <TabsContent value="referrals" className="space-y-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-2xl font-semibold">Referral Management</h2>
+              <p className="text-neutral-600 dark:text-[var(--text-medium-contrast)]">Manage historical referral attributions</p>
+            </div>
+          </div>
+
+          <div className="grid gap-6">
+            {/* Manual Attribution Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Manual Referral Attribution</CardTitle>
+                <CardDescription>
+                  Manually attribute a referral relationship between users. This awards points and creates proper records.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="referreeId">Referee User ID</Label>
+                    <Input
+                      id="referreeId"
+                      placeholder="User who was referred"
+                      value={referralForm.referreeId}
+                      onChange={(e) => setReferralForm({ ...referralForm, referreeId: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="referrerId">Referrer User ID</Label>
+                    <Input
+                      id="referrerId"
+                      placeholder="User who made the referral"
+                      value={referralForm.referrerId}
+                      onChange={(e) => setReferralForm({ ...referralForm, referrerId: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="referralCode">Referral Code</Label>
+                    <Input
+                      id="referralCode"
+                      placeholder="The referral code used"
+                      value={referralForm.referralCode}
+                      onChange={(e) => setReferralForm({ ...referralForm, referralCode: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <Button
+                  onClick={() => manualAttributeReferralMutation.mutate({
+                    referreeId: parseInt(referralForm.referreeId),
+                    referrerId: parseInt(referralForm.referrerId),
+                    referralCode: referralForm.referralCode
+                  })}
+                  disabled={!referralForm.referreeId || !referralForm.referrerId || !referralForm.referralCode || manualAttributeReferralMutation.isPending}
+                  className="w-full md:w-auto"
+                >
+                  {manualAttributeReferralMutation.isPending ? "Attributing..." : "Attribute Referral"}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Potential Matches */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Potential Historical Matches</CardTitle>
+                <CardDescription>
+                  Users who signed up close to someone with a referral code. Review for possible manual attribution.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {potentialMatchesData && potentialMatchesData.length > 0 ? (
+                  <div className="space-y-3">
+                    {potentialMatchesData.slice(0, 20).map((match: any, index: number) => (
+                      <div key={index} className="p-4 border rounded-lg bg-neutral-50 dark:bg-neutral-800/50">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 space-y-1">
+                            <p className="font-medium">
+                              <strong>{match.potential_referrer_name}</strong> (ID: {match.potential_referrer_id}) 
+                              → <strong>{match.potential_referee_name}</strong> (ID: {match.potential_referee_id})
+                            </p>
+                            <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">
+                              Code: <span className="font-mono bg-neutral-200 dark:bg-neutral-700 px-1 rounded">{match.referral_code}</span>
+                              • Gap: {match.signup_gap_days} day{match.signup_gap_days !== 1 ? 's' : ''}
+                              • Referrer: {new Date(match.referrer_signup).toLocaleDateString()}
+                              • Referee: {new Date(match.referee_signup).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => setReferralForm({
+                              referreeId: match.potential_referee_id.toString(),
+                              referrerId: match.potential_referrer_id.toString(),
+                              referralCode: match.referral_code
+                            })}
+                            variant="outline"
+                          >
+                            Use This
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {potentialMatchesData.length > 20 && (
+                      <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)] text-center pt-2">
+                        Showing first 20 of {potentialMatchesData.length} potential matches
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-center py-8">
+                    No potential matches found or data still loading
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Referral Statistics */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Referral System Overview</CardTitle>
+                <CardDescription>
+                  Current state of the referral system
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {users?.filter(u => u.referralCode).length || 0}
+                    </p>
+                    <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">Users with Codes</p>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {users?.filter(u => u.referredBy).length || 0}
+                    </p>
+                    <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">Successfully Attributed</p>
+                  </div>
+                  <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                      {potentialMatchesData?.length || 0}
+                    </p>
+                    <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">Potential Matches</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Analytics Tab */}
