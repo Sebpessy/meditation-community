@@ -35,8 +35,8 @@ const activeConnections = new Map<WebSocket, { userId?: number, sessionDate?: st
 const sessionUsers = new Map<string, Set<number>>(); // sessionDate -> Set of userIds
 const userGracePeriod = new Map<string, { userId: number, sessionDate: string, disconnectTime: Date, userData?: any }>(); // userId-sessionDate -> grace period info
 
-// Grace period duration: 10 minutes (reduced to prevent session time confusion)
-const GRACE_PERIOD_MINUTES = 10;
+// Grace period duration: 120 minutes for online presence (does NOT affect meditation time tracking)
+const GRACE_PERIOD_MINUTES = 120;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -223,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   
                   console.log(`Grace period started for user ${connectionInfo.userId} on ${connectionInfo.sessionDate}`);
                   
-                  // Schedule grace period check after 10 minutes (with logging for debugging)
+                  // Schedule grace period check after 120 minutes (with logging for debugging)
                   setTimeout(async () => {
                     console.log(`Checking grace period expiry for ${graceKey}`);
                     await checkGracePeriodExpiry(graceKey);
@@ -415,20 +415,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     if (timeSinceDisconnect >= gracePeriodMs) {
-      // Grace period expired, remove user completely
-      console.log(`Grace period expired for user ${graceInfo.userId}, removing from session`);
+      // Grace period expired, extend for another 120 minutes or remove user
+      console.log(`Grace period expired for user ${graceInfo.userId}, extending for another ${GRACE_PERIOD_MINUTES} minutes`);
       
-      userGracePeriod.delete(graceKey);
-      sessionUsers.get(graceInfo.sessionDate)?.delete(graceInfo.userId);
+      // Update disconnect time to extend grace period
+      graceInfo.disconnectTime = new Date();
+      userGracePeriod.set(graceKey, graceInfo);
       
-      const onlineUsers = await getOnlineUsers(graceInfo.sessionDate);
-      
-      broadcastToSession(graceInfo.sessionDate, {
-        type: 'user-left',
-        userId: graceInfo.userId,
-        onlineCount: getOnlineCount(graceInfo.sessionDate),
-        onlineUsers: onlineUsers
-      });
+      // Schedule another check in 120 minutes
+      setTimeout(async () => {
+        await finalGracePeriodCheck(graceKey);
+      }, GRACE_PERIOD_MINUTES * 60 * 1000);
     }
   }
 
@@ -1040,6 +1037,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (additionalDuration !== undefined) {
         // Accumulate additional duration to existing duration
+        // NOTE: This is separate from the 120-minute grace period which only affects online presence
         const currentDuration = currentSession.duration || 0;
         finalDuration = currentDuration + additionalDuration;
         
@@ -1127,6 +1125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (additionalDuration !== undefined) {
         // Accumulate additional duration to existing duration
+        // NOTE: This is separate from the 120-minute grace period which only affects online presence
         const currentDuration = currentSession.duration || 0;
         finalDuration = currentDuration + additionalDuration;
         
