@@ -486,10 +486,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Handle referral if provided
       let referredBy = null;
+      let referralCodeUsed = null;
       if (req.body.referralCode) {
+        console.log('Processing referral code:', req.body.referralCode);
         const referrer = await storage.getUserByReferralCode(req.body.referralCode);
         if (referrer) {
           referredBy = referrer.id;
+          referralCodeUsed = req.body.referralCode;
+          console.log(`Valid referral: user will be referred by ${referrer.name} (ID: ${referrer.id})`);
+        } else {
+          console.log('Invalid referral code provided:', req.body.referralCode);
         }
       }
       
@@ -503,21 +509,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser(userWithAvatar);
       
       // Create referral record if user was referred
-      if (referredBy) {
-        await storage.createReferral({
-          referrerId: referredBy,
-          referredId: user.id,
-          referralCode: req.body.referralCode,
-          status: "pending"
-        });
+      if (referredBy && referralCodeUsed) {
+        console.log(`Creating referral record: referrer ${referredBy} -> referred ${user.id}`);
         
-        // Give welcome bonus to new user
-        await storage.addQuantumLovePoints(
-          user.id, 
-          50, 
-          "welcome_bonus", 
-          "Welcome to Serene Space! 🌟"
-        );
+        try {
+          const referralRecord = await storage.createReferral({
+            referrerId: referredBy,
+            referredId: user.id,
+            referralCode: referralCodeUsed,
+            status: "pending"
+          });
+          console.log('Referral record created:', referralRecord.id);
+          
+          // Give welcome bonus to new user
+          await storage.addQuantumLovePoints(
+            user.id, 
+            50, 
+            "welcome_bonus", 
+            "Welcome bonus for joining via referral! 🌟",
+            referralRecord.id
+          );
+          console.log(`Gave 50 QLP welcome bonus to new user ${user.id}`);
+        } catch (error) {
+          console.error('Failed to create referral record or give welcome bonus:', error);
+        }
+      } else if (req.body.referralCode) {
+        console.log('Referral code was provided but invalid, no referral attribution created');
       }
       console.log('User created successfully with random avatar:', user);
       res.json(user);
