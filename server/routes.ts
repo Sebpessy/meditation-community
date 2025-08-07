@@ -35,8 +35,8 @@ const activeConnections = new Map<WebSocket, { userId?: number, sessionDate?: st
 const sessionUsers = new Map<string, Set<number>>(); // sessionDate -> Set of userIds
 const userGracePeriod = new Map<string, { userId: number, sessionDate: string, disconnectTime: Date, userData?: any }>(); // userId-sessionDate -> grace period info
 
-// Grace period duration: 120 minutes
-const GRACE_PERIOD_MINUTES = 120;
+// Grace period duration: 10 minutes (reduced to prevent session time confusion)
+const GRACE_PERIOD_MINUTES = 10;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -223,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   
                   console.log(`Grace period started for user ${connectionInfo.userId} on ${connectionInfo.sessionDate}`);
                   
-                  // Schedule grace period check after 120 minutes (with logging for debugging)
+                  // Schedule grace period check after 10 minutes (with logging for debugging)
                   setTimeout(async () => {
                     console.log(`Checking grace period expiry for ${graceKey}`);
                     await checkGracePeriodExpiry(graceKey);
@@ -415,17 +415,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     if (timeSinceDisconnect >= gracePeriodMs) {
-      // Grace period expired, extend for another 120 minutes or remove user
-      console.log(`Grace period expired for user ${graceInfo.userId}, extending for another ${GRACE_PERIOD_MINUTES} minutes`);
+      // Grace period expired, remove user completely
+      console.log(`Grace period expired for user ${graceInfo.userId}, removing from session`);
       
-      // Update disconnect time to extend grace period
-      graceInfo.disconnectTime = new Date();
-      userGracePeriod.set(graceKey, graceInfo);
+      userGracePeriod.delete(graceKey);
+      sessionUsers.get(graceInfo.sessionDate)?.delete(graceInfo.userId);
       
-      // Schedule another check in 120 minutes
-      setTimeout(async () => {
-        await finalGracePeriodCheck(graceKey);
-      }, GRACE_PERIOD_MINUTES * 60 * 1000);
+      const onlineUsers = await getOnlineUsers(graceInfo.sessionDate);
+      
+      broadcastToSession(graceInfo.sessionDate, {
+        type: 'user-left',
+        userId: graceInfo.userId,
+        onlineCount: getOnlineCount(graceInfo.sessionDate),
+        onlineUsers: onlineUsers
+      });
     }
   }
 
@@ -1025,7 +1028,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const sessionId = parseInt(req.params.id);
-      const { duration } = req.body;
+      const { duration, additionalDuration } = req.body;
       
       // Get current session to check existing duration
       const currentSession = await storage.getMeditationSessionById(sessionId);
@@ -1033,9 +1036,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Session not found' });
       }
       
-      // Simply update with the current session duration (not accumulative)
+      let finalDuration: number;
+      
+      if (additionalDuration !== undefined) {
+        // Accumulate additional duration to existing duration
+        const currentDuration = currentSession.duration || 0;
+        finalDuration = currentDuration + additionalDuration;
+        
+        // Cap at 3 hours (10800 seconds) per day - realistic maximum for meditation
+        finalDuration = Math.min(finalDuration, 10800);
+        
+        console.log(`Adding ${additionalDuration}s to existing ${currentDuration}s = ${finalDuration}s total`);
+      } else if (duration !== undefined) {
+        // Legacy: direct duration update (for admin or other purposes)
+        finalDuration = duration;
+      } else {
+        return res.status(400).json({ error: 'Either duration or additionalDuration is required' });
+      }
+      
       const updatedSession = await storage.updateMeditationSession(sessionId, {
-        duration: duration
+        duration: finalDuration
       });
       
       if (!updatedSession) {
@@ -1043,7 +1063,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check for referral completion (if this is a referred user's first meaningful session)
-      if (duration >= 300) { // 5 minutes minimum for referral completion
+      if (finalDuration >= 300) { // 5 minutes minimum for referral completion
         const user = await getCurrentUser(req);
         if (user && user.referredBy) {
           // Check if user has any pending referrals
@@ -1095,7 +1115,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const sessionId = parseInt(req.params.id);
-      const updatedSession = await storage.updateMeditationSession(sessionId, req.body);
+      const { duration, additionalDuration } = req.body;
+      
+      // Get current session to check existing duration
+      const currentSession = await storage.getMeditationSessionById(sessionId);
+      if (!currentSession) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+      
+      let finalDuration: number;
+      
+      if (additionalDuration !== undefined) {
+        // Accumulate additional duration to existing duration
+        const currentDuration = currentSession.duration || 0;
+        finalDuration = currentDuration + additionalDuration;
+        
+        // Cap at 3 hours (10800 seconds) per day - realistic maximum for meditation
+        finalDuration = Math.min(finalDuration, 10800);
+        
+        console.log(`Beacon: Adding ${additionalDuration}s to existing ${currentDuration}s = ${finalDuration}s total`);
+      } else if (duration !== undefined) {
+        // Legacy: direct duration update
+        finalDuration = duration;
+      } else {
+        return res.status(400).json({ error: 'Either duration or additionalDuration is required' });
+      }
+      
+      const updatedSession = await storage.updateMeditationSession(sessionId, {
+        duration: finalDuration
+      });
       
       if (!updatedSession) {
         return res.status(404).json({ error: 'Session not found' });
@@ -1103,7 +1151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(updatedSession);
     } catch (error) {
-      console.error('Error updating meditation session:', error);
+      console.error('Error updating meditation session via beacon:', error);
       res.status(500).json({ error: 'Failed to update session' });
     }
   });

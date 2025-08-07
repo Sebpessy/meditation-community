@@ -208,16 +208,16 @@ export default function MeditationPage() {
             updateInterval.current = setInterval(async () => {
               if (sessionId.current) {
                 // Calculate time spent in this browser session only
-                const sessionDuration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
+                const currentSessionDuration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
                 
-                // Cap at 2 hours (7200 seconds) per day - realistic maximum for meditation
-                const cappedDuration = Math.min(sessionDuration, 7200);
-                
-                console.log('Updating session duration:', cappedDuration, 'seconds');
+                console.log('Updating session with additional duration:', currentSessionDuration, 'seconds');
                 try {
                   const updateResponse = await apiRequest('PUT', `/api/session/${sessionId.current}`, {
-                    duration: cappedDuration
+                    additionalDuration: currentSessionDuration
                   });
+                  
+                  // Reset the timer after successful update to prevent double-counting
+                  sessionStartTime.current = Date.now();
                   if (!updateResponse.ok) {
                     console.error('Failed to update session, status:', updateResponse.status);
                     // If session not found, clear the sessionId to trigger re-creation
@@ -301,9 +301,9 @@ export default function MeditationPage() {
       }
       
       if (sessionId.current) {
-        const duration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
+        const additionalDuration = Math.floor((Date.now() - sessionStartTime.current) / 1000);
         // Use sendBeacon for reliable unload tracking
-        const data = JSON.stringify({ duration });
+        const data = JSON.stringify({ additionalDuration });
         const blob = new Blob([data], { type: 'application/json' });
         navigator.sendBeacon(`/api/session/${sessionId.current}`, blob);
       }
