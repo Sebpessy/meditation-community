@@ -19,7 +19,7 @@ Preferred communication style: Simple, everyday language.
     - Dual video player (MP4 + YouTube) with controls.
     - Comprehensive mood tracking with 7-level chakra system, session history, and analytics. Includes optional comments and before/after mood visualization.
     - Custom profile picture system with upload, cropping, and display.
-    - Referral system with unique codes, point tracking, and automatic completion based on meditation duration.
+    - Comprehensive referral system with unique codes, point tracking, automatic completion based on meditation duration, and proper validation APIs.
     - Responsive design for mobile and desktop, including compact chat interfaces and adaptive avatar displays.
 
 ### Backend
@@ -31,7 +31,7 @@ Preferred communication style: Simple, everyday language.
     - Robust user management with admin roles, profile updates, and secure user deletion.
     - Real-time chat with daily flushing, message persistence, and online user presence tracking.
     - Meditation session tracking with accurate duration monitoring.
-    - API endpoints for referral system, user profiles, and meditation data.
+    - API endpoints for referral system (validation, generation, completion), user profiles, and meditation data.
     - Central Standard Time (CST) timezone handling for all date calculations and scheduling.
 
 ### Project Structure

@@ -487,9 +487,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Handle referral if provided
       let referredBy = null;
       if (req.body.referralCode) {
-        const referralRecord = await storage.getReferralByCode(req.body.referralCode);
-        if (referralRecord) {
-          referredBy = referralRecord.referrerId;
+        const referrer = await storage.getUserByReferralCode(req.body.referralCode);
+        if (referrer) {
+          referredBy = referrer.id;
         }
       }
       
@@ -2017,7 +2017,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Generate a unique referral code
-      let referralCode: string;
+      let referralCode: string = '';
       let isUnique = false;
       
       while (!isUnique) {
@@ -2042,22 +2042,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/referral/validate/:code', async (req, res) => {
     try {
-      const code = req.params.code.toUpperCase();
-      const referral = await storage.getReferralByCode(code);
+      const code = req.params.code;
       
-      if (!referral) {
+      // Try both original case and uppercase
+      let referrer = await storage.getUserByReferralCode(code);
+      if (!referrer) {
+        referrer = await storage.getUserByReferralCode(code.toUpperCase());
+      }
+      
+      if (!referrer) {
         return res.status(404).json({ error: 'Invalid referral code' });
       }
       
-      const referrer = await storage.getUser(referral.referrerId);
       res.json({ 
         valid: true,
         referrer: {
-          name: referrer?.name,
-          id: referrer?.id
+          name: referrer.name,
+          id: referrer.id
         }
       });
     } catch (error) {
+      console.error('Error validating referral code:', error);
       res.status(500).json({ error: 'Failed to validate referral code' });
     }
   });

@@ -6,6 +6,7 @@ export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
+  getUserByReferralCode(referralCode: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
@@ -881,7 +882,7 @@ export class DatabaseStorage implements IStorage {
       }
       
       // Check if code already exists
-      const existing = await this.getReferralByCode(code);
+      const existing = await this.getUserByReferralCode(code);
       if (!existing) {
         return code;
       }
