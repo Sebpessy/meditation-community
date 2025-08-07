@@ -111,13 +111,9 @@ export default function AdminPage() {
   const [banningUser, setBanningUser] = useState<User | null>(null);
   const [banReason, setBanReason] = useState("");
   
-  // Referral attribution states
-  const [referralForm, setReferralForm] = useState({
-    referreeId: "",
-    referrerId: "",
-    referralCode: ""
-  });
-  const [potentialMatches, setPotentialMatches] = useState<any[]>([]);
+  // Edit referrer states
+  const [editingReferrer, setEditingReferrer] = useState<{ user: User; selectedReferrer: User | null } | null>(null);
+  const [referrerSearchTerm, setReferrerSearchTerm] = useState("");
 
   const [templateForm, setTemplateForm] = useState({
     title: "",
@@ -449,25 +445,21 @@ export default function AdminPage() {
     }
   });
 
-  // Referral mutations
-  const { data: potentialMatchesData } = useQuery<any[]>({
-    queryKey: ["/api/admin/referral/potential-matches"],
-    enabled: activeTab === "referrals" && !!backendUser?.isAdmin,
-  });
-
-  const manualAttributeReferralMutation = useMutation({
+  // Edit referrer mutation
+  const editReferrerMutation = useMutation({
     mutationFn: (data: { referreeId: number; referrerId: number; referralCode: string }) =>
       apiRequest("POST", "/api/admin/referral/manual-attribute", data),
     onSuccess: (response: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      setReferralForm({ referreeId: "", referrerId: "", referralCode: "" });
+      setEditingReferrer(null);
+      setReferrerSearchTerm("");
       toast({
-        title: "Referral attributed successfully",
+        title: "Referrer updated successfully",
         description: `${response.details?.referree?.name} has been attributed to ${response.details?.referrer?.name} with bonuses awarded.`
       });
     },
     onError: (error: any) => {
-      const errorMsg = error.message || "Failed to attribute referral";
+      const errorMsg = error.message || "Failed to update referrer";
       toast({
         title: "Error",
         description: errorMsg,
@@ -966,7 +958,7 @@ export default function AdminPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value)} className="space-y-8">
-        <TabsList className="grid w-full h-auto p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg grid-cols-3 grid-rows-2 gap-1 sm:grid-cols-6 sm:grid-rows-1">
+        <TabsList className="grid w-full h-auto p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg grid-cols-3 grid-rows-2 gap-1 sm:grid-cols-3 sm:grid-rows-1 lg:grid-cols-5">
           <TabsTrigger 
             value="templates" 
             className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
@@ -986,23 +978,17 @@ export default function AdminPage() {
             Users
           </TabsTrigger>
           <TabsTrigger 
-            value="referrals"
-            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
-          >
-            Referrals
-          </TabsTrigger>
-          <TabsTrigger 
             value="analytics"
-            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium"
+            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium sm:col-span-3 lg:col-span-1"
           >
             Analytics
           </TabsTrigger>
           <TabsTrigger 
             value="profile-pictures"
-            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neural-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium col-span-3 sm:col-span-1"
+            className="text-xs sm:text-sm py-2.5 px-2 sm:px-3 data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-700 data-[state=active]:text-neutral-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm rounded-md transition-all duration-200 font-medium col-span-2 sm:col-span-3 lg:col-span-1"
           >
-            <span className="hidden sm:inline">Pictures</span>
-            <span className="sm:hidden">Pics</span>
+            <span className="hidden sm:inline">Profile Pictures</span>
+            <span className="sm:hidden">Pictures</span>
           </TabsTrigger>
         </TabsList>
 
@@ -2175,14 +2161,27 @@ export default function AdminPage() {
                               </div>
                             </td>
                             <td className="p-4">
-                              <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
-                                {user.referredBy ? (
-                                  <div>
-                                    {users?.find(u => u.id === user.referredBy)?.name || `User ${user.referredBy}`}
-                                  </div>
-                                ) : (
-                                  <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">None</span>
-                                )}
+                              <div className="flex items-center space-x-2">
+                                <div className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-sm">
+                                  {user.referredBy ? (
+                                    <div>
+                                      {users?.find(u => u.id === user.referredBy)?.name || `User ${user.referredBy}`}
+                                    </div>
+                                  ) : (
+                                    <span className="text-neutral-400 dark:text-[var(--text-low-contrast)]">None</span>
+                                  )}
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingReferrer({ user, selectedReferrer: users?.find(u => u.id === user.referredBy) || null });
+                                    setReferrerSearchTerm("");
+                                  }}
+                                  className="h-6 w-6 p-0 text-neutral-400 hover:text-neutral-600 dark:text-[var(--text-low-contrast)] dark:hover:text-[var(--text-medium-contrast)]"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
                               </div>
                             </td>
                             <td className="p-4">
@@ -2574,156 +2573,146 @@ export default function AdminPage() {
               )}
             </DialogContent>
           </Dialog>
-        </TabsContent>
 
-        {/* Referrals Tab */}
-        <TabsContent value="referrals" className="space-y-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-2xl font-semibold">Referral Management</h2>
-              <p className="text-neutral-600 dark:text-[var(--text-medium-contrast)]">Manage historical referral attributions</p>
-            </div>
-          </div>
-
-          <div className="grid gap-6">
-            {/* Manual Attribution Form */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Manual Referral Attribution</CardTitle>
-                <CardDescription>
-                  Manually attribute a referral relationship between users. This awards points and creates proper records.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Edit Referrer Modal */}
+          <Dialog open={editingReferrer !== null} onOpenChange={() => setEditingReferrer(null)}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Edit Referrer</DialogTitle>
+                <DialogDescription>
+                  Set who referred <strong>{editingReferrer?.user.name}</strong>. This will award points to both users.
+                </DialogDescription>
+              </DialogHeader>
+              {editingReferrer && (
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="referreeId">Referee User ID</Label>
-                    <Input
-                      id="referreeId"
-                      placeholder="User who was referred"
-                      value={referralForm.referreeId}
-                      onChange={(e) => setReferralForm({ ...referralForm, referreeId: e.target.value })}
-                    />
+                    <Label htmlFor="referrerSearch">Search for Referrer</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
+                      <Input
+                        id="referrerSearch"
+                        placeholder="Type name or email to search..."
+                        value={referrerSearchTerm}
+                        onChange={(e) => setReferrerSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="referrerId">Referrer User ID</Label>
-                    <Input
-                      id="referrerId"
-                      placeholder="User who made the referral"
-                      value={referralForm.referrerId}
-                      onChange={(e) => setReferralForm({ ...referralForm, referrerId: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="referralCode">Referral Code</Label>
-                    <Input
-                      id="referralCode"
-                      placeholder="The referral code used"
-                      value={referralForm.referralCode}
-                      onChange={(e) => setReferralForm({ ...referralForm, referralCode: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <Button
-                  onClick={() => manualAttributeReferralMutation.mutate({
-                    referreeId: parseInt(referralForm.referreeId),
-                    referrerId: parseInt(referralForm.referrerId),
-                    referralCode: referralForm.referralCode
-                  })}
-                  disabled={!referralForm.referreeId || !referralForm.referrerId || !referralForm.referralCode || manualAttributeReferralMutation.isPending}
-                  className="w-full md:w-auto"
-                >
-                  {manualAttributeReferralMutation.isPending ? "Attributing..." : "Attribute Referral"}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Potential Matches */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Potential Historical Matches</CardTitle>
-                <CardDescription>
-                  Users who signed up close to someone with a referral code. Review for possible manual attribution.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {potentialMatchesData && potentialMatchesData.length > 0 ? (
-                  <div className="space-y-3">
-                    {potentialMatchesData.slice(0, 20).map((match: any, index: number) => (
-                      <div key={index} className="p-4 border rounded-lg bg-neutral-50 dark:bg-neutral-800/50">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 space-y-1">
-                            <p className="font-medium">
-                              <strong>{match.potential_referrer_name}</strong> (ID: {match.potential_referrer_id}) 
-                              → <strong>{match.potential_referee_name}</strong> (ID: {match.potential_referee_id})
-                            </p>
-                            <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">
-                              Code: <span className="font-mono bg-neutral-200 dark:bg-neutral-700 px-1 rounded">{match.referral_code}</span>
-                              • Gap: {match.signup_gap_days} day{match.signup_gap_days !== 1 ? 's' : ''}
-                              • Referrer: {new Date(match.referrer_signup).toLocaleDateString()}
-                              • Referee: {new Date(match.referee_signup).toLocaleDateString()}
-                            </p>
+                  
+                  {referrerSearchTerm && (
+                    <div className="max-h-48 overflow-y-auto border rounded-md">
+                      {users?.filter(u => 
+                        u.id !== editingReferrer.user.id && // Don't allow self-referral
+                        (u.name.toLowerCase().includes(referrerSearchTerm.toLowerCase()) ||
+                         u.email.toLowerCase().includes(referrerSearchTerm.toLowerCase()))
+                      ).slice(0, 10).map(user => (
+                        <div 
+                          key={user.id}
+                          className={`p-3 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer border-b dark:border-[var(--border)] last:border-b-0 ${
+                            editingReferrer.selectedReferrer?.id === user.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                          }`}
+                          onClick={() => {
+                            setEditingReferrer({
+                              ...editingReferrer,
+                              selectedReferrer: user
+                            });
+                            setReferrerSearchTerm("");
+                          }}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 dark:border-[var(--border)] flex items-center justify-center bg-gray-50 dark:bg-[var(--muted)]">
+                              {user.profilePicture ? (
+                                <img
+                                  src={user.profilePicture}
+                                  alt={user.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-xs font-medium text-primary">
+                                  {user.name.charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">{user.name}</p>
+                              <p className="text-xs text-neutral-600 dark:text-[var(--text-medium-contrast)]">{user.email}</p>
+                              <p className="text-xs text-neutral-500 dark:text-[var(--text-low-contrast)]">Code: {user.referralCode || 'None'}</p>
+                            </div>
                           </div>
-                          <Button
-                            size="sm"
-                            onClick={() => setReferralForm({
-                              referreeId: match.potential_referee_id.toString(),
-                              referrerId: match.potential_referrer_id.toString(),
-                              referralCode: match.referral_code
-                            })}
-                            variant="outline"
-                          >
-                            Use This
-                          </Button>
                         </div>
-                      </div>
-                    ))}
-                    {potentialMatchesData.length > 20 && (
-                      <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)] text-center pt-2">
-                        Showing first 20 of {potentialMatchesData.length} potential matches
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-neutral-600 dark:text-[var(--text-medium-contrast)] text-center py-8">
-                    No potential matches found or data still loading
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+                      ))}
+                      {users?.filter(u => 
+                        u.id !== editingReferrer.user.id &&
+                        (u.name.toLowerCase().includes(referrerSearchTerm.toLowerCase()) ||
+                         u.email.toLowerCase().includes(referrerSearchTerm.toLowerCase()))
+                      ).length === 0 && (
+                        <div className="p-3 text-center text-neutral-500 dark:text-[var(--text-medium-contrast)]">
+                          No users found
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-            {/* Referral Statistics */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Referral System Overview</CardTitle>
-                <CardDescription>
-                  Current state of the referral system
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {users?.filter(u => u.referralCode).length || 0}
-                    </p>
-                    <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">Users with Codes</p>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {users?.filter(u => u.referredBy).length || 0}
-                    </p>
-                    <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">Successfully Attributed</p>
-                  </div>
-                  <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                      {potentialMatchesData?.length || 0}
-                    </p>
-                    <p className="text-sm text-neutral-600 dark:text-[var(--text-medium-contrast)]">Potential Matches</p>
+                  {editingReferrer.selectedReferrer && (
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border">
+                      <p className="text-sm font-medium">Selected Referrer:</p>
+                      <div className="flex items-center space-x-3 mt-2">
+                        <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 dark:border-[var(--border)] flex items-center justify-center bg-gray-50 dark:bg-[var(--muted)]">
+                          {editingReferrer.selectedReferrer.profilePicture ? (
+                            <img
+                              src={editingReferrer.selectedReferrer.profilePicture}
+                              alt={editingReferrer.selectedReferrer.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-xs font-medium text-primary">
+                              {editingReferrer.selectedReferrer.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{editingReferrer.selectedReferrer.name}</p>
+                          <p className="text-xs text-neutral-600 dark:text-[var(--text-medium-contrast)]">
+                            Code: {editingReferrer.selectedReferrer.referralCode || 'None'}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditingReferrer({ ...editingReferrer, selectedReferrer: null })}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end space-x-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setEditingReferrer(null)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        if (editingReferrer.selectedReferrer?.referralCode) {
+                          editReferrerMutation.mutate({
+                            referreeId: editingReferrer.user.id,
+                            referrerId: editingReferrer.selectedReferrer.id,
+                            referralCode: editingReferrer.selectedReferrer.referralCode
+                          });
+                        }
+                      }}
+                      disabled={!editingReferrer.selectedReferrer?.referralCode || editReferrerMutation.isPending}
+                    >
+                      {editReferrerMutation.isPending ? "Updating..." : "Update Referrer"}
+                    </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* Analytics Tab */}
