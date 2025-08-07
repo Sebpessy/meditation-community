@@ -2067,5 +2067,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manual referral attribution for admins (to fix historical data)
+  app.post('/api/admin/referral/manual-attribute', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { referreeId, referrerId, referralCode } = req.body;
+      
+      // Validate inputs
+      if (!referreeId || !referrerId || !referralCode) {
+        return res.status(400).json({ error: 'Missing required fields: referreeId, referrerId, referralCode' });
+      }
+
+      // Check if users exist
+      const referree = await storage.getUser(referreeId);
+      const referrer = await storage.getUser(referrerId);
+      
+      if (!referree || !referrer) {
+        return res.status(404).json({ error: 'One or both users not found' });
+      }
+
+      // Check if referree is already attributed
+      if (referree.referredBy) {
+        return res.status(400).json({ error: 'User is already attributed to another referrer' });
+      }
+
+      // Verify referral code belongs to referrer
+      if (referrer.referralCode !== referralCode) {
+        return res.status(400).json({ error: 'Referral code does not belong to specified referrer' });
+      }
+
+      // Update referree's referred_by field
+      await storage.updateUser(referreeId, { referredBy: referrerId });
+
+      // Create referral record
+      await storage.createReferral({
+        referrerId,
+        referredId: referreeId,
+        referralCode,
+        status: 'completed'
+      });
+
+      // Award retroactive bonuses
+      const welcomeBonus = await storage.addQuantumLovePoints(
+        referreeId,
+        50,
+        'welcome_bonus',
+        'Retroactive welcome bonus for referral attribution 🌟'
+      );
+
+      const referralBonus = await storage.addQuantumLovePoints(
+        referrerId,
+        100,
+        'referral_bonus',
+        `Referral bonus for bringing ${referree.name} to Serene Space! 🎉`
+      );
+
+      res.json({ 
+        success: true,
+        message: 'Referral attribution completed successfully',
+        details: {
+          referree: { id: referreeId, name: referree.name, welcomeBonus: 50 },
+          referrer: { id: referrerId, name: referrer.name, referralBonus: 100 }
+        }
+      });
+
+    } catch (error) {
+      console.error('Error in manual referral attribution:', error);
+      res.status(500).json({ error: 'Failed to process referral attribution' });
+    }
+  });
+
+  // Get potential referral matches for admin review
+  app.get('/api/admin/referral/potential-matches', async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      // This query finds users who signed up within 7 days of someone with a referral code
+      const potentialMatches = await db.execute(sql`
+        SELECT 
+          u1.id as potential_referree_id,
+          u1.name as potential_referree_name,
+          u1.email as potential_referree_email,
+          u1.created_at as referree_signup,
+          u2.id as potential_referrer_id,
+          u2.name as potential_referrer_name,
+          u2.email as potential_referrer_email,
+          u2.referral_code,
+          u2.created_at as referrer_signup,
+          EXTRACT(EPOCH FROM (u1.created_at - u2.created_at))/3600 as hours_apart
+        FROM users u1
+        JOIN users u2 ON u2.referral_code IS NOT NULL 
+          AND u2.created_at < u1.created_at
+          AND u1.created_at - u2.created_at < INTERVAL '7 days'
+        WHERE u1.referred_by IS NULL
+        ORDER BY u1.created_at DESC, hours_apart ASC
+        LIMIT 50
+      `);
+
+      res.json(potentialMatches.rows);
+    } catch (error) {
+      console.error('Error getting potential matches:', error);
+      res.status(500).json({ error: 'Failed to get potential matches' });
+    }
+  });
+
   return httpServer;
 }
