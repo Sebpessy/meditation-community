@@ -19,7 +19,7 @@ Preferred communication style: Simple, everyday language.
     - Dual video player (MP4 + YouTube) with controls.
     - Comprehensive mood tracking with 7-level chakra system, session history, and analytics. Includes optional comments and before/after mood visualization.
     - Custom profile picture system with upload, cropping, and display.
-    - Comprehensive referral system with unique codes, point tracking, automatic completion based on meditation duration, and proper validation APIs.
+    - Comprehensive referral system with unique codes, point tracking, automatic completion based on meditation duration, proper validation APIs, and "Evolving Hearts" branding for referral messages.
     - Responsive design for mobile and desktop, including compact chat interfaces and adaptive avatar displays.
 
 ### Backend

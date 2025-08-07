@@ -2123,7 +2123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         referrerId,
         100,
         'referral_bonus',
-        `Referral bonus for bringing ${referree.name} to Serene Space! 🎉`
+        `Referral bonus for bringing ${referree.name} to Evolving Hearts! 🎉`
       );
 
       res.json({ 
