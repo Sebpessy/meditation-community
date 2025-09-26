@@ -16,7 +16,7 @@ export const users = pgTable("users", {
   lastLoginIp: text("last_login_ip"),
   profileCompleted: boolean("profile_completed").default(false),
   referralCode: text("referral_code"),
-  referredBy: integer("referred_by").references(() => users.id),
+  referredBy: integer("referred_by"),
   quantumLovePoints: integer("quantum_love_points").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
