@@ -10,12 +10,12 @@ Complete migration guide from Replit to Railway for your meditation application 
 - **Features**: Real-time chat, mood tracking, referral system, admin dashboard
 
 ## Railway Plan Recommendation
-**Railway Pro ($20/month)** - Perfect for your needs:
-- 32GB RAM, 32 vCPUs
-- $20 included usage credit
+**Railway Hobby ($5/month)** - Perfect for testing your migration:
+- 8GB RAM, 8 vCPUs (more than enough for your current usage)
+- $5 included usage credit (covers first month)
 - PostgreSQL database included
 - Custom domains supported
-- Suitable for production workloads
+- Can upgrade to Pro later if needed
 
 ## Migration Steps
 
@@ -118,10 +118,11 @@ After Railway database is ready:
 
 ## Migration Advantages
 - **Reliability**: No more random crashes and downtime
-- **Performance**: Better resources (32GB RAM vs limited Replit)  
+- **Performance**: Better resources (8GB RAM, dedicated resources vs shared Replit)  
 - **Scaling**: Automatic scaling based on usage
 - **Monitoring**: Built-in metrics and logging
-- **Cost**: $20/month vs potential Replit upgrade costs
+- **Cost**: $5/month Hobby plan (much cheaper than Replit Pro)
+- **Testing**: $5 credit covers your first month completely free
 
 ## Backup Strategy
 - Keep Replit instance running until Railway is fully tested
