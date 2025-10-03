@@ -17,6 +17,16 @@ COPY . .
 # Set environment variables for build (skip Replit plugins)
 ENV REPL_ID=
 
+# Accept Firebase build args from Railway
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_APP_ID
+
+# Set them as ENV for the build process
+ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY
+ENV VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID
+ENV VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
+
 # Build the application with production config (vite and esbuild now available)
 RUN npx vite build --config vite.config.production.ts && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 
