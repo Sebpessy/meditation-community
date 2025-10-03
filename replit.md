@@ -66,3 +66,11 @@ Preferred communication style: Simple, everyday language.
 - Vite
 - ESBuild
 - PostCSS
+
+## Deployment Information
+
+### Railway Production Deployment
+- **Production URL**: https://newself.up.railway.app
+- **Database**: PostgreSQL on Railway (migrated from Neon)
+- **Status**: Active with 398 users, 3,215+ sessions migrated
+- **Firebase Auth**: Configured with Railway domain authorized
