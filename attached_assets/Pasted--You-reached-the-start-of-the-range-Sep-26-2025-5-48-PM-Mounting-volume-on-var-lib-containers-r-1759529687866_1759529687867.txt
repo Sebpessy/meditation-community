@@ -1,0 +1,151 @@
+
+
+You reached the start of the range
+Sep 26, 2025, 5:48 PM
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/efe781ac-57cd-40e4-91a8-815d911c4bab/vol_psmpxtkhtow0m6pf
+Certificate will not expire
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2025-09-26 22:49:33.698 UTC [6] LOG:  starting PostgreSQL 17.6 (Debian 17.6-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2025-09-26 22:49:33.698 UTC [6] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2025-09-26 22:49:33.698 UTC [6] LOG:  listening on IPv6 address "::", port 5432
+2025-09-26 22:49:33.703 UTC [6] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2025-09-26 22:49:33.715 UTC [29] LOG:  database system was interrupted; last known up at 2025-09-26 21:41:53 UTC
+2025-09-26 22:49:34.143 UTC [29] LOG:  database system was not properly shut down; automatic recovery in progress
+2025-09-26 22:49:34.149 UTC [29] LOG:  redo starts at 0/1959378
+2025-09-26 22:49:34.149 UTC [29] LOG:  invalid record length at 0/19593B0: expected at least 24, got 0
+2025-09-26 22:49:34.149 UTC [29] LOG:  redo done at 0/1959378 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2025-09-26 22:49:34.157 UTC [27] LOG:  checkpoint starting: end-of-recovery immediate wait
+2025-09-26 22:49:34.174 UTC [27] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.006 s, sync=0.001 s, total=0.020 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/19593B0, redo lsn=0/19593B0
+2025-09-26 22:49:34.181 UTC [6] LOG:  database system is ready to accept connections
+2025-10-03 16:44:46.548 UTC [9739] FATAL:  password authentication failed for user "postgres"
+2025-10-03 16:44:46.548 UTC [9739] DETAIL:  Connection matched file "/var/lib/postgresql/data/pgdata/pg_hba.conf" line 128: "host all all all scram-sha-256"
+2025-10-03 16:48:02.820 UTC [9744] FATAL:  password authentication failed for user "postgres"
+2025-10-03 16:48:02.820 UTC [9744] DETAIL:  Connection matched file "/var/lib/postgresql/data/pgdata/pg_hba.conf" line 128: "host all all all scram-sha-256"
+2025-10-03 16:55:30.023 UTC [9770] ERROR:  relation "public.schedules" does not exist
+2025-10-03 16:55:30.023 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.schedules DROP CONSTRAINT schedules_template_id_meditation_templates_id_fk;
+2025-10-03 16:55:30.110 UTC [9770] ERROR:  relation "public.referrals" does not exist
+2025-10-03 16:55:30.110 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.referrals DROP CONSTRAINT referrals_referrer_id_users_id_fk;
+2025-10-03 16:55:30.197 UTC [9770] ERROR:  relation "public.referrals" does not exist
+2025-10-03 16:55:30.197 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.referrals DROP CONSTRAINT referrals_referred_id_users_id_fk;
+2025-10-03 16:55:30.284 UTC [9770] ERROR:  relation "public.quantum_love_transactions" does not exist
+2025-10-03 16:55:30.284 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.quantum_love_transactions DROP CONSTRAINT quantum_love_transactions_user_id_users_id_fk;
+2025-10-03 16:55:30.371 UTC [9770] ERROR:  relation "public.quantum_love_transactions" does not exist
+2025-10-03 16:55:30.371 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.quantum_love_transactions DROP CONSTRAINT quantum_love_transactions_referral_id_referrals_id_fk;
+2025-10-03 16:55:41.595 UTC [9770] ERROR:  relation "public.mood_entries" does not exist
+2025-10-03 16:55:41.595 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.mood_entries DROP CONSTRAINT mood_entries_user_id_users_id_fk;
+2025-10-03 16:55:41.683 UTC [9770] ERROR:  relation "public.message_likes" does not exist
+2025-10-03 16:55:41.683 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.message_likes DROP CONSTRAINT message_likes_user_id_users_id_fk;
+2025-10-03 16:55:41.769 UTC [9770] ERROR:  relation "public.message_likes" does not exist
+2025-10-03 16:55:41.769 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.message_likes DROP CONSTRAINT message_likes_message_id_chat_messages_id_fk;
+2025-10-03 16:55:41.856 UTC [9770] ERROR:  relation "public.meditation_sessions" does not exist
+2025-10-03 16:55:41.856 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.meditation_sessions DROP CONSTRAINT meditation_sessions_user_id_users_id_fk;
+2025-10-03 16:55:41.943 UTC [9770] ERROR:  relation "public.meditation_sessions" does not exist
+2025-10-03 16:55:41.943 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.meditation_sessions DROP CONSTRAINT meditation_sessions_template_id_meditation_templates_id_fk;
+2025-10-03 16:55:42.030 UTC [9770] ERROR:  relation "public.chat_messages" does not exist
+2025-10-03 16:55:42.030 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.chat_messages DROP CONSTRAINT chat_messages_user_id_users_id_fk;
+2025-10-03 16:55:42.117 UTC [9770] ERROR:  relation "public.banned_ips" does not exist
+2025-10-03 16:55:42.117 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.banned_ips DROP CONSTRAINT banned_ips_banned_by_users_id_fk;
+2025-10-03 16:55:42.203 UTC [9770] ERROR:  relation "public.users" does not exist
+2025-10-03 16:55:42.203 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.users DROP CONSTRAINT users_pkey;
+2025-10-03 16:55:42.290 UTC [9770] ERROR:  relation "public.users" does not exist
+2025-10-03 16:55:42.290 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.users DROP CONSTRAINT users_firebase_uid_unique;
+2025-10-03 16:55:42.377 UTC [9770] ERROR:  relation "public.users" does not exist
+2025-10-03 16:55:42.377 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.users DROP CONSTRAINT users_email_unique;
+2025-10-03 16:55:42.464 UTC [9770] ERROR:  relation "public.schedules" does not exist
+2025-10-03 16:55:42.464 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.schedules DROP CONSTRAINT schedules_pkey;
+2025-10-03 16:55:42.551 UTC [9770] ERROR:  relation "public.referrals" does not exist
+2025-10-03 16:55:42.551 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.referrals DROP CONSTRAINT referrals_pkey;
+2025-10-03 16:55:42.638 UTC [9770] ERROR:  relation "public.quantum_love_transactions" does not exist
+2025-10-03 16:55:42.638 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.quantum_love_transactions DROP CONSTRAINT quantum_love_transactions_pkey;
+2025-10-03 16:55:42.725 UTC [9770] ERROR:  relation "public.profile_pictures" does not exist
+2025-10-03 16:55:42.725 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.profile_pictures DROP CONSTRAINT profile_pictures_pkey;
+2025-10-03 16:55:42.812 UTC [9770] ERROR:  relation "public.mood_entries" does not exist
+2025-10-03 16:55:42.812 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.mood_entries DROP CONSTRAINT mood_entries_pkey;
+2025-10-03 16:55:42.899 UTC [9770] ERROR:  relation "public.message_likes" does not exist
+2025-10-03 16:55:42.899 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.message_likes DROP CONSTRAINT message_likes_pkey;
+2025-10-03 16:55:42.986 UTC [9770] ERROR:  relation "public.meditation_templates" does not exist
+2025-10-03 16:55:42.986 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.meditation_templates DROP CONSTRAINT meditation_templates_pkey;
+2025-10-03 16:55:43.073 UTC [9770] ERROR:  relation "public.meditation_sessions" does not exist
+2025-10-03 16:55:43.073 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.meditation_sessions DROP CONSTRAINT meditation_sessions_pkey;
+2025-10-03 16:55:43.160 UTC [9770] ERROR:  relation "public.chat_messages" does not exist
+2025-10-03 16:55:43.160 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.chat_messages DROP CONSTRAINT chat_messages_pkey;
+2025-10-03 16:55:43.247 UTC [9770] ERROR:  relation "public.banned_ips" does not exist
+2025-10-03 16:55:43.247 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.banned_ips DROP CONSTRAINT banned_ips_pkey;
+2025-10-03 16:55:43.334 UTC [9770] ERROR:  relation "public.banned_ips" does not exist
+2025-10-03 16:55:43.334 UTC [9770] STATEMENT:  ALTER TABLE ONLY public.banned_ips DROP CONSTRAINT banned_ips_ip_address_unique;
+2025-10-03 16:55:43.422 UTC [9770] ERROR:  relation "public.users" does not exist
+2025-10-03 16:55:43.422 UTC [9770] STATEMENT:  ALTER TABLE public.users ALTER COLUMN id DROP DEFAULT;
+2025-10-03 16:55:43.509 UTC [9770] ERROR:  relation "public.schedules" does not exist
+2025-10-03 16:55:43.509 UTC [9770] STATEMENT:  ALTER TABLE public.schedules ALTER COLUMN id DROP DEFAULT;
+2025-10-03 16:55:43.596 UTC [9770] ERROR:  relation "public.referrals" does not exist
+2025-10-03 16:55:43.596 UTC [9770] STATEMENT:  ALTER TABLE public.referrals ALTER COLUMN id DROP DEFAULT;
+2025-10-03 16:55:43.684 UTC [9770] ERROR:  relation "public.quantum_love_transactions" does not exist
+2025-10-03 16:55:43.684 UTC [9770] STATEMENT:  ALTER TABLE public.quantum_love_transactions ALTER COLUMN id DROP DEFAULT;
+2025-10-03 16:55:43.770 UTC [9770] ERROR:  relation "public.profile_pictures" does not exist
+2025-10-03 16:55:43.770 UTC [9770] STATEMENT:  ALTER TABLE public.profile_pictures ALTER COLUMN id DROP DEFAULT;
+2025-10-03 16:55:43.857 UTC [9770] ERROR:  relation "public.mood_entries" does not exist
+2025-10-03 16:55:43.857 UTC [9770] STATEMENT:  ALTER TABLE public.mood_entries ALTER COLUMN id DROP DEFAULT;
+2025-10-03 16:55:43.945 UTC [9770] ERROR:  relation "public.message_likes" does not exist
+2025-10-03 16:55:43.945 UTC [9770] STATEMENT:  ALTER TABLE public.message_likes ALTER COLUMN id DROP DEFAULT;
+2025-10-03 16:55:44.032 UTC [9770] ERROR:  relation "public.meditation_templates" does not exist
+2025-10-03 16:55:44.032 UTC [9770] STATEMENT:  ALTER TABLE public.meditation_templates ALTER COLUMN id DROP DEFAULT;
+2025-10-03 16:55:44.120 UTC [9770] ERROR:  relation "public.meditation_sessions" does not exist
+2025-10-03 16:55:44.120 UTC [9770] STATEMENT:  ALTER TABLE public.meditation_sessions ALTER COLUMN id DROP DEFAULT;
+2025-10-03 16:55:44.207 UTC [9770] ERROR:  relation "public.chat_messages" does not exist
+2025-10-03 16:55:44.207 UTC [9770] STATEMENT:  ALTER TABLE public.chat_messages ALTER COLUMN id DROP DEFAULT;
+2025-10-03 16:55:44.295 UTC [9770] ERROR:  relation "public.banned_ips" does not exist
+2025-10-03 16:55:44.295 UTC [9770] STATEMENT:  ALTER TABLE public.banned_ips ALTER COLUMN id DROP DEFAULT;
+2025-10-03 16:55:44.383 UTC [9770] ERROR:  sequence "users_id_seq" does not exist
+2025-10-03 16:55:44.383 UTC [9770] STATEMENT:  DROP SEQUENCE public.users_id_seq;
+2025-10-03 16:55:44.471 UTC [9770] ERROR:  table "users" does not exist
+2025-10-03 16:55:44.471 UTC [9770] STATEMENT:  DROP TABLE public.users;
+2025-10-03 16:55:44.559 UTC [9770] ERROR:  sequence "schedules_id_seq" does not exist
+2025-10-03 16:55:44.559 UTC [9770] STATEMENT:  DROP SEQUENCE public.schedules_id_seq;
+2025-10-03 16:55:44.646 UTC [9770] ERROR:  table "schedules" does not exist
+2025-10-03 16:55:44.646 UTC [9770] STATEMENT:  DROP TABLE public.schedules;
+2025-10-03 16:55:44.733 UTC [9770] ERROR:  sequence "referrals_id_seq" does not exist
+2025-10-03 16:55:44.733 UTC [9770] STATEMENT:  DROP SEQUENCE public.referrals_id_seq;
+2025-10-03 16:55:44.820 UTC [9770] ERROR:  table "referrals" does not exist
+2025-10-03 16:55:44.820 UTC [9770] STATEMENT:  DROP TABLE public.referrals;
+2025-10-03 16:55:44.907 UTC [9770] ERROR:  sequence "quantum_love_transactions_id_seq" does not exist
+2025-10-03 16:55:44.907 UTC [9770] STATEMENT:  DROP SEQUENCE public.quantum_love_transactions_id_seq;
+2025-10-03 16:55:44.994 UTC [9770] ERROR:  table "quantum_love_transactions" does not exist
+2025-10-03 16:55:44.994 UTC [9770] STATEMENT:  DROP TABLE public.quantum_love_transactions;
+2025-10-03 16:55:45.081 UTC [9770] ERROR:  sequence "profile_pictures_id_seq" does not exist
+2025-10-03 16:55:45.081 UTC [9770] STATEMENT:  DROP SEQUENCE public.profile_pictures_id_seq;
+2025-10-03 16:55:45.169 UTC [9770] ERROR:  table "profile_pictures" does not exist
+2025-10-03 16:55:45.169 UTC [9770] STATEMENT:  DROP TABLE public.profile_pictures;
+2025-10-03 16:55:45.256 UTC [9770] ERROR:  sequence "mood_entries_id_seq" does not exist
+2025-10-03 16:55:45.256 UTC [9770] STATEMENT:  DROP SEQUENCE public.mood_entries_id_seq;
+2025-10-03 16:55:45.350 UTC [9770] ERROR:  table "mood_entries" does not exist
+2025-10-03 16:55:45.350 UTC [9770] STATEMENT:  DROP TABLE public.mood_entries;
+2025-10-03 16:55:45.437 UTC [9770] ERROR:  sequence "message_likes_id_seq" does not exist
+2025-10-03 16:55:45.437 UTC [9770] STATEMENT:  DROP SEQUENCE public.message_likes_id_seq;
+2025-10-03 16:55:45.525 UTC [9770] ERROR:  table "message_likes" does not exist
+2025-10-03 16:55:45.525 UTC [9770] STATEMENT:  DROP TABLE public.message_likes;
+2025-10-03 16:55:45.612 UTC [9770] ERROR:  sequence "meditation_templates_id_seq" does not exist
+2025-10-03 16:55:45.612 UTC [9770] STATEMENT:  DROP SEQUENCE public.meditation_templates_id_seq;
+2025-10-03 16:55:45.698 UTC [9770] ERROR:  table "meditation_templates" does not exist
+2025-10-03 16:55:45.698 UTC [9770] STATEMENT:  DROP TABLE public.meditation_templates;
+2025-10-03 16:55:45.786 UTC [9770] ERROR:  sequence "meditation_sessions_id_seq" does not exist
+2025-10-03 16:55:45.786 UTC [9770] STATEMENT:  DROP SEQUENCE public.meditation_sessions_id_seq;
+2025-10-03 16:55:45.873 UTC [9770] ERROR:  table "meditation_sessions" does not exist
+2025-10-03 16:55:45.873 UTC [9770] STATEMENT:  DROP TABLE public.meditation_sessions;
+2025-10-03 16:55:45.960 UTC [9770] ERROR:  sequence "chat_messages_id_seq" does not exist
+2025-10-03 16:55:45.960 UTC [9770] STATEMENT:  DROP SEQUENCE public.chat_messages_id_seq;
+2025-10-03 16:55:46.047 UTC [9770] ERROR:  table "chat_messages" does not exist
+2025-10-03 16:55:46.047 UTC [9770] STATEMENT:  DROP TABLE public.chat_messages;
+2025-10-03 16:55:46.134 UTC [9770] ERROR:  sequence "banned_ips_id_seq" does not exist
+2025-10-03 16:55:46.134 UTC [9770] STATEMENT:  DROP SEQUENCE public.banned_ips_id_seq;
+2025-10-03 16:55:46.221 UTC [9770] ERROR:  table "banned_ips" does not exist
+2025-10-03 16:55:46.221 UTC [9770] STATEMENT:  DROP TABLE public.banned_ips;
+2025-10-03 16:57:31.512 UTC [9773] FATAL:  password authentication failed for user "postgres"
+2025-10-03 16:57:31.512 UTC [9773] DETAIL:  Connection matched file "/var/lib/postgresql/data/pgdata/pg_hba.conf" line 128: "host all all all scram-sha-256"
+2025-10-03 16:57:46.831 UTC [27] LOG:  checkpoint starting: time
+2025-10-03 17:02:16.462 UTC [27] LOG:  checkpoint complete: wrote 7786 buffers (47.5%); 0 WAL file(s) added, 0 removed, 4 recycled; write=268.946 s, sync=0.418 s, total=269.631 s; sync files=118, longest=0.395 s, average=0.004 s; distance=63829 kB, estimate=63829 kB; lsn=0/57AE9F0, redo lsn=0/57AE960
+2025-10-03 17:08:16.348 UTC [9790] ERROR:  relation "meditation_schedules" does not exist at character 40
+2025-10-03 17:08:16.348 UTC [9790] STATEMENT:  SELECT COUNT(*) as schedule_count FROM meditation_schedules;
+2025-10-03 17:08:48.724 UTC [9793] ERROR:  column "role" does not exist at character 49
+2025-10-03 17:08:48.724 UTC [9793] STATEMENT:  SELECT COUNT(*) as admin_count FROM users WHERE role = 'admin';
+2025-10-03 17:12:46.688 UTC [27] LOG:  checkpoint starting: time
+2025-10-03 17:12:48.184 UTC [27] LOG:  checkpoint complete: wrote 14 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=1.409 s, sync=0.013 s, total=1.497 s; sync files=5, longest=0.013 s, average=0.003 s; distance=12 kB, estimate=57447 kB; lsn=0/57B1BF0, redo lsn=0/57B1B98
