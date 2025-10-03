@@ -1,9 +1,9 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
+import { Pool as NeonPool, neonConfig } from '@neondatabase/serverless';
+import { drizzle as neonDrizzle } from 'drizzle-orm/neon-serverless';
+import { drizzle as pgDrizzle } from 'drizzle-orm/node-postgres';
+import { Pool as PgPool } from 'pg';
 import ws from "ws";
 import * as schema from "@shared/schema";
-
-neonConfig.webSocketConstructor = ws;
 
 // Railway-compatible database connection that works with both DATABASE_URL and PG* variables
 function getDatabaseConnectionString(): string {
@@ -48,6 +48,23 @@ function getDatabaseConnectionString(): string {
 
 const connectionString = getDatabaseConnectionString();
 console.log('✅ Initializing database connection pool...');
-export const pool = new Pool({ connectionString });
-export const db = drizzle({ client: pool, schema });
+
+// Detect if we're on Railway (standard PostgreSQL) or Replit (Neon serverless)
+const isRailway = connectionString.includes('railway.app') || connectionString.includes('railway.internal');
+
+let pool: NeonPool | PgPool;
+let db: ReturnType<typeof neonDrizzle> | ReturnType<typeof pgDrizzle>;
+
+if (isRailway) {
+  console.log('🚂 Detected Railway - using standard PostgreSQL driver');
+  pool = new PgPool({ connectionString });
+  db = pgDrizzle({ client: pool, schema });
+} else {
+  console.log('🔷 Detected Neon/Replit - using WebSocket driver');
+  neonConfig.webSocketConstructor = ws;
+  pool = new NeonPool({ connectionString });
+  db = neonDrizzle({ client: pool, schema });
+}
+
+export { pool, db };
 console.log('✅ Database connection pool created successfully');
