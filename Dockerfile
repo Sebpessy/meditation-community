@@ -23,8 +23,9 @@ RUN npx vite build --config vite.config.production.ts && npx esbuild server/inde
 # Now set production for runtime
 ENV NODE_ENV=production
 
-# Expose port
+# Expose port (Railway will override with PORT env var)
 EXPOSE 3000
 
-# Start command
-CMD ["npm", "start"]
+# Railway will inject DATABASE_URL and other env vars at runtime
+# Start command with explicit environment variable check (using JSON exec form)
+CMD ["/bin/sh", "-c", "echo 'Starting app with NODE_ENV='$NODE_ENV && echo 'DATABASE_URL present:' $([ -n \"$DATABASE_URL\" ] && echo 'YES' || echo 'NO') && npm start"]

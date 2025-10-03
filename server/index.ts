@@ -2,6 +2,17 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
+// Railway environment variable validation - log at startup
+console.log('=== Railway Environment Check ===');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+console.log('DATABASE_URL length:', process.env.DATABASE_URL?.length || 0);
+console.log('DATABASE_URL prefix:', process.env.DATABASE_URL?.substring(0, 15) || 'NOT SET');
+console.log('All env vars:', Object.keys(process.env).filter(k => 
+  k.includes('DATABASE') || k.includes('PG') || k.includes('POSTGRES')
+));
+console.log('================================');
+
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false }));
